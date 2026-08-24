@@ -97,6 +97,13 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
     <div class="helper">Use the legal country of origin, not merely the country of shipment.</div>
   </div>
   <div>
+    <label for="meltPourCountry">Steel first melt / pour country <span class="tiny">(optional)</span></label>
+    <select id="meltPourCountry">
+      <option value="">Assume same as country of origin</option>
+    </select>
+    <div class="helper">Used only when Section 232 steel treatment applies. Leave blank to assume the same country as the country of origin.</div>
+  </div>
+  <div>
     <label for="value">Customs value (USD)</label>
     <input id="value" type="number" min="0.01" step="0.01" placeholder="10000.00" required>
   </div>
@@ -139,6 +146,7 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 <tr id="subheadingRow"><th>Subheading</th><td><strong id="subheadingCode"></strong><br><span id="subheadingDesc"></span></td></tr>
 <tr><th>Full HTS code</th><td><strong id="fullCode"></strong><br><span id="fullDesc"></span></td></tr>
 <tr><th>Country of origin</th><td id="countryDisplay"></td></tr>
+<tr id="meltPourDisplayRow" class="hidden"><th>Steel first melt / pour</th><td id="meltPourDisplay"></td></tr>
 </tbody></table>
 
 <h3 class="section-title">Applicable duty</h3>
@@ -215,6 +223,7 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 const ISO_CODES = `AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BV BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF TF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HM VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB UM US UY UZ VU VE VN VG VI WF EH YE ZM ZW`.split(' ');
 const $ = id => document.getElementById(id);
 const countryEl = $('country');
+const meltPourCountryEl = $('meltPourCountry');
 const dn = new Intl.DisplayNames(['en'], { type: 'region' });
 const money = value => value == null ? 'Not calculated' : new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(value);
 const text = value => value == null || value === '' ? '—' : String(value);
@@ -304,11 +313,20 @@ function clientTradeMeasureFallbacks(data) {
 }
 
 
-ISO_CODES.map(code => [code, dn.of(code) || code]).sort((a,b) => a[1].localeCompare(b[1])).forEach(([code,name]) => {
+const COUNTRY_OPTIONS = ISO_CODES
+  .map(code => [code, dn.of(code) || code])
+  .sort((a,b) => a[1].localeCompare(b[1]));
+
+COUNTRY_OPTIONS.forEach(([code,name]) => {
   const option = document.createElement('option');
   option.value = code;
   option.textContent = name;
   countryEl.appendChild(option);
+
+  const meltOption = document.createElement('option');
+  meltOption.value = code;
+  meltOption.textContent = name;
+  meltPourCountryEl.appendChild(meltOption);
 });
 
 function formatInput(value) {
@@ -420,6 +438,7 @@ $('calcForm').addEventListener('submit', async event => {
   try {
     const payload = {
       action:'calculate', hts:$('hts').value, country:$('country').value,
+      meltPourCountry:$('meltPourCountry').value,
       customsValue:$('value').value, mode:$('mode').value,
       quantity:$('qty').value, quantityUnit:$('qtyUnit').value,
       ftaQualified:$('fta').checked
@@ -457,6 +476,23 @@ function render(data) {
   $('fullCode').textContent = text(data.classification.displayHts || data.classification.hts);
   $('fullDesc').textContent = text(data.classification.description);
   $('countryDisplay').textContent = dn.of(data.query.country) || data.query.country;
+
+  const effectiveMeltCountry = data?.query?.meltPourCountry || data?.query?.country;
+  const meltAssumed = Boolean(data?.query?.meltPourAssumed);
+  const backendMeasures = Array.isArray(data?.review?.applicableAdditionalMeasures)
+    ? data.review.applicableAdditionalMeasures
+    : [];
+  const hasSection232Result = backendMeasures.some(
+    m => String(m?.program || '').toLowerCase() === 'section 232'
+  );
+
+  $('meltPourDisplayRow').classList.toggle('hidden', !hasSection232Result);
+  if (hasSection232Result) {
+    const meltName = dn.of(effectiveMeltCountry) || effectiveMeltCountry;
+    $('meltPourDisplay').textContent = meltAssumed
+      ? `${meltName} — assumed from country of origin`
+      : `${meltName} — entered by user`;
+  }
   $('appliedBasis').textContent = text(data.rates.appliedBasis);
   $('appliedRate').textContent = text(data.rates.appliedRate);
   $('units').textContent = Array.isArray(data.classification.units) && data.classification.units.length ? data.classification.units.join(', ') : '—';
@@ -620,15 +656,29 @@ function render(data) {
   const has232 = section232Amount > 0 || Boolean(melt?.mayApply);
   $('meltPourCard').classList.toggle('hidden', !has232);
   if (has232) {
-    const rate = measures.find(m => String(m?.program || '').toLowerCase() === 'section 232')?.applicableRate
+    const sec232Measure = measures.find(
+      m => String(m?.program || '').toLowerCase() === 'section 232'
+    );
+    const rate = sec232Measure?.applicableRate
       || melt?.illustrativeRate
       || 'See applicable Section 232 provision';
 
-    $('meltPourText').textContent =
-      'This HTS may require steel melt/pour information. The country where the steel was first melted and poured is not necessarily the same as the country of origin. Additional Section 232 duties may depend on the actual first melt/pour country.';
+    const effectiveCountry =
+      melt?.effectiveCountry ||
+      data?.query?.meltPourCountry ||
+      data?.query?.country;
+    const meltName = dn.of(effectiveCountry) || effectiveCountry;
+    const assumed =
+      melt?.assumedFromOrigin ??
+      data?.query?.meltPourAssumed ??
+      true;
 
-    $('meltPourRate').innerHTML =
-      `If the steel was first melted and poured in <strong>${escapeHtml(countryName)}</strong>, the illustrative Section 232 rate shown by this calculator is <strong>${escapeHtml(rate)}</strong>. This rate is provided only on that assumption.`;
+    $('meltPourText').textContent =
+      'This HTS may require steel melt/pour information. The country where the steel was first melted and poured is not necessarily the same as the country of origin.';
+
+    $('meltPourRate').innerHTML = assumed
+      ? `No melt/pour country was entered, so <strong>${escapeHtml(meltName)}</strong> was assumed from the country of origin. Section 232 rate used: <strong>${escapeHtml(rate)}</strong>.`
+      : `First melt/pour country entered: <strong>${escapeHtml(meltName)}</strong>. Section 232 rate used: <strong>${escapeHtml(rate)}</strong>.`;
   }
 
   // Other import/CBP card appears only when the HTS data contains a specific
@@ -696,6 +746,9 @@ $('copyBtn').addEventListener('click', async () => {
     `HTS: ${data.classification.displayHts || data.classification.hts}`,
     `Description: ${data.classification.description}`,
     `Country: ${dn.of(data.query.country) || data.query.country}`,
+    ...(data.query.meltPourCountry ? [
+      `Steel first melt/pour: ${dn.of(data.query.meltPourCountry) || data.query.meltPourCountry}${data.query.meltPourAssumed ? ' (assumed from origin)' : ''}`
+    ] : []),
     `Applicable treatment: ${data.rates.appliedBasis}`,
     `Applicable rate: ${data.rates.appliedRate}`,
     `Rate source: ${data.rates.appliedRateSourceHts || data.classification.displayHts}`,
