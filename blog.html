@@ -165,86 +165,8 @@
                 actually work when theory meets reality.
             </p>
         </div>
-
-        <section class="blog-grid">
-
-            <article class="post-card">
-                <div>
-                    <div class="post-meta">January 2, 2026 · Operations</div>
-                    <h2>Why Logistics Fails in the Last 10 Percent</h2>
-                    <p>
-                        Most supply chains are designed well on paper. The breakdown usually happens in the
-                        final execution phase—handoffs, assumptions, and time compression.
-                    </p>
-                </div>
-                <a href="posts/last-10-percent.html" class="read-more">Read more →</a>
-            </article>
-
-            <article class="post-card">
-                <div>
-                    <div class="post-meta">January 1, 2026 · Air Cargo</div>
-                    <h2>ULD Planning: The Detail Everyone Underestimates</h2>
-                    <p>
-                        Container choice, contour compatibility, and weight distribution are often treated
-                        as afterthoughts. They should not be.
-                    </p>
-                </div>
-                <a href="posts/uld-planning.html" class="read-more">Read more →</a>
-            </article>
-
-            <article class="post-card">
-                <div>
-                    <div class="post-meta">December 30, 2025 · Supply Chain</div>
-                    <h2>Risk Is Not the Exception—It Is the System</h2>
-                    <p>
-                        Delays, cost overruns, and disruptions are not anomalies. Mature logistics organizations
-                        plan for them explicitly.
-                    </p>
-                </div>
-                <a href="posts/risk-is-the-system.html" class="read-more">Read more →</a>
-            </article>
-
-        </section>
     </main>
-<select id="categoryFilter">
-    <option value="all">All Categories</option>
-    <option value="Operations">Operations</option>
-    <option value="Air Cargo">Air Cargo</option>
-    <option value="Supply Chain">Supply Chain</option>
-</select>
 
-<input type="search" id="searchInput" placeholder="Search posts...">
-<div id="blogGrid"></div>
-
-<script>
-fetch('blog-index.json')
-.then(r => r.json())
-.then(posts => {
-    const grid = document.getElementById('blogGrid');
-    const render = (list) => {
-        grid.innerHTML = list.map(p => `
-            <article class="post-card">
-                <h2>${p.title}</h2>
-                <p>${p.summary}</p>
-                <a href="${p.url}">Read more →</a>
-            </article>
-        `).join('');
-    };
-
-    render(posts);
-
-    document.getElementById('searchInput').oninput = e => {
-        const q = e.target.value.toLowerCase();
-        render(posts.filter(p => p.title.toLowerCase().includes(q)));
-    };
-
-    document.getElementById('categoryFilter').onchange = e => {
-        render(e.target.value === 'all'
-            ? posts
-            : posts.filter(p => p.category === e.target.value));
-    };
-});
-</script>
     <footer>
         © 2026 The Logistics Mindset. All rights reserved.
     </footer>
