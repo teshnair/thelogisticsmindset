@@ -1,0 +1,62 @@
+name: Global Logistics News Curator
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6,11,16,21 * * *"
+      timezone: "America/New_York"
+  push:
+    branches:
+      - main
+      - feature/global-news-automation
+    paths:
+      - "scripts/curate-news.mjs"
+      - "scripts/update-news-nav.mjs"
+      - ".github/workflows/news-curation.yml"
+      - "news.html"
+      - "js/news.js"
+
+permissions:
+  contents: write
+  models: read
+
+concurrency:
+  group: global-logistics-news
+  cancel-in-progress: false
+
+jobs:
+  curate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Update static News and Blog navigation
+        run: node scripts/update-news-nav.mjs
+
+      - name: Scan and curate global logistics news
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEWS_MODEL: openai/gpt-4.1-mini
+        run: node scripts/curate-news.mjs
+
+      - name: Commit curated news and static navigation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/news/*.json *.html
+          if git diff --cached --quiet; then
+            echo "No news or navigation changes to commit."
+            exit 0
+          fi
+          git commit -m "Update global logistics news"
+          git push
