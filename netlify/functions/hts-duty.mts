@@ -1,5 +1,6 @@
 const USITC_SEARCH = "https://hts.usitc.gov/reststop/search";
 const COLUMN_2 = new Set(["BY", "CU", "KP", "RU"]);
+const BUILD_VERSION = "2026-08-24-sec232-v5";
 
 const FTA_PROGRAM: Record<string, { symbol: string; name: string }> = {
   AU: { symbol: "AU", name: "U.S.-Australia FTA" },
@@ -528,6 +529,77 @@ function chapter99Refs(texts: string[]): string[] {
   return [...refs];
 }
 
+
+// Section 232 steel coverage under the April 6, 2026 U.S. Note 16 structure.
+// For the lists below, 9903.82.02 generally adds 50% to the full customs value.
+// Russia uses 9903.82.14 for these same steel categories, also at 50%.
+const SECTION_232_STEEL_PREFIXES = [
+  // U.S. Note 16(c)(iii) - articles of steel
+  "7206","7207","7208","7209","7210","7211","7212","7213","7214","7215",
+  "72161000","72162100","72162200","72163100","72163200","72163300",
+  "72164000","72165000","72169900",
+  "7217","7218","7219","7220","7221","7222","7223","7224","7225",
+  "7226","7227","7228","7229",
+  "73011000","730210","73024000","730290","7304","7305","7306",
+
+  // U.S. Note 16(c)(iv) - derivative steel articles
+  "7216910010","73012010","73012050","73023000",
+  "73071930","73071990","73072110","73072150","73072210","73072250","73072300","73072900",
+  "73079110","73079130","73079150","73079230","73079290","73079330","73079360","73079390",
+  "73079910","73079930","73079950","73081000","73082000","73083010","73083050","73084000",
+  "73089030","73089060","73089070","73089095","73090000",
+  "73101000","73102100","73102900","73110000",
+  "73121005","73121010","73121020","73121030","73121050","73121060","73121070","73121080","73121090",
+  "73129000","73130000",
+  "73141210","73141220","73141230","73141260","73141290",
+  "73141410","73141420","73141430","73141460","73141490","73141901","73142000",
+  "73143110","73143150","73143900","73144100","73144200","73144930","73144960","73145000",
+  "73151100","73151200","73151900","73152010","73152050","73158100","73158210","73158230",
+  "73158250","73158270","73158910","73158930","73158950","73159000","73160000",
+  "73170010","73170020","73170030","73170055","73170065","73170075",
+  "73181100","73181200","73181300","73181410","73181450","73181520","73181540","73181550",
+  "73181560","73181580","73181600","73181900","73182100","73182200","73182300","73182400","73182900",
+  "73194020","73194030","73194050","73199010","73199090",
+  "73201030","73201060","73201090","73202010","7320205045","73209010","73209050",
+  "7325100010","7325100020","7325100025","7325100030","7325100080",
+  "73259100","73259910","73259950","73261100","73261900","7326200090",
+  "73269010","73269025","73269060","7326908605","7326908610","7326908630",
+  "7326908635","7326908645","7326908688"
+];
+
+function isSection232Steel(hts: string): boolean {
+  const code = digits(hts);
+  return SECTION_232_STEEL_PREFIXES.some((prefix) => code.startsWith(prefix));
+}
+
+function section232Measures(
+  hts: string,
+  country: string,
+  customsValue: number
+): any[] {
+  if (!isSection232Steel(hts)) return [];
+
+  const chapter99 = country === "RU" ? "9903.82.14" : "9903.82.02";
+  const ratePercent = 50;
+
+  return [{
+    program: "Section 232",
+    hts: chapter99,
+    description:
+      "Steel article or derivative steel article covered by U.S. Note 16(c)(iii) or (iv).",
+    applicableRate: "+50%",
+    ratePercent,
+    amount: customsValue * ratePercent / 100,
+    rawRate: "The duty provided in the applicable subheading + 50%",
+    tariffTreatment: "Section 232 steel tariff on full customs value",
+    automaticallyIncludedInTotal: true,
+    ruleSource:
+      country === "RU"
+        ? "U.S. Note 16(c)(iii)-(iv); heading 9903.82.14"
+        : "U.S. Note 16(c)(iii)-(iv); heading 9903.82.02"
+  }];
+}
+
 export default async (req: Request) => {
   if (req.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
@@ -709,16 +781,36 @@ export default async (req: Request) => {
         additionalDuties: cleanText(row?.additionalDuties),
       }));
 
+    // Do not rely on base-HTS footnotes to discover Section 232. The legal
+    // product lists are in Chapter 99 U.S. Note 16, so test the entered HTS
+    // directly against those lists.
+    const ruleBasedMeasures = section232Measures(
+      hts,
+      country,
+      customsValue
+    );
+    const applicableAdditionalMeasures = [...ruleBasedMeasures];
+
     const baseDuty = baseCalculation.supported
       ? Number(baseCalculation.duty ?? 0)
       : null;
     const additionalDuty = additionalIncluded
       ? Number(additionalCalculation.duty ?? 0)
       : 0;
+
+    const ruleBasedAdditionalDuty = ruleBasedMeasures
+      .filter((measure: any) => measure.automaticallyIncludedInTotal === true)
+      .reduce(
+        (sum: number, measure: any) => sum + Number(measure.amount ?? 0),
+        0
+      );
+
+    const knownAdditionalDuty = additionalDuty + ruleBasedAdditionalDuty;
+
     const totalEstimatedImportCharges =
       baseDuty == null
         ? null
-        : baseDuty + additionalDuty + mpf + hmf;
+        : baseDuty + knownAdditionalDuty + mpf + hmf;
 
     const hierarchy = buildClassificationPath(
       rows,
@@ -770,6 +862,9 @@ export default async (req: Request) => {
           additionalDutyIncluded: additionalIncluded
             ? additionalDuty
             : null,
+          ruleBasedAdditionalDuty,
+          knownAdditionalDuty,
+          section232Duty: ruleBasedAdditionalDuty,
           mpf,
           mpfNote,
           hmf,
@@ -780,7 +875,9 @@ export default async (req: Request) => {
           footnotes,
           chapter99References,
           chapter99Rows,
+          applicableAdditionalMeasures,
           additionalTariffReviewRequired:
+            applicableAdditionalMeasures.length > 0 ||
             chapter99References.length > 0 ||
             chapter99Rows.length > 0 ||
             Boolean(
@@ -795,6 +892,16 @@ export default async (req: Request) => {
             "U.S. International Trade Commission Harmonized Tariff Schedule",
           publicUrl: "https://hts.usitc.gov/",
           retrievedAt: new Date().toISOString(),
+          buildVersion: BUILD_VERSION,
+          section232RuleBasis:
+            "2026 U.S. Note 16(c)(iii)-(iv); headings 9903.82.02 / 9903.82.14",
+        },
+        diagnostics: {
+          buildVersion: BUILD_VERSION,
+          enteredHts: hts,
+          selectedCode,
+          section232Matched: isSection232Steel(hts),
+          section232MeasureCount: ruleBasedMeasures.length,
         },
         disclaimer:
           "Screening estimate only. Verify classification, origin, Chapter 99 measures, exclusions, quotas, AD/CVD and entry-specific facts before filing.",
