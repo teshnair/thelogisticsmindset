@@ -1,0 +1,35 @@
+name: Reorder References menu
+
+on:
+  push:
+    branches:
+      - feature/reference-glossary-second
+    paths:
+      - scripts/reorder-reference-menu.mjs
+      - .github/workflows/reorder-reference-menu.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reorder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feature/reference-glossary-second
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - run: node scripts/reorder-reference-menu.mjs
+      - name: Remove one-time helpers
+        run: |
+          rm scripts/reorder-reference-menu.mjs
+          rm .github/workflows/reorder-reference-menu.yml
+      - name: Commit static menu changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add '*.html' scripts/reorder-reference-menu.mjs .github/workflows/reorder-reference-menu.yml
+          git commit -m "Move Shipping Terms Glossary second in References menu"
+          git push
