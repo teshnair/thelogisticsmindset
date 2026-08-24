@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shipment Tracking | The Logistics Mindset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="css/header.css">
+
+    <style>
+        :root {
+            --primary-color: #1a2a3a;
+            --accent-color: #2c7be5;
+            --text-color: #333;
+            --muted-color: #667085;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+            --border-color: #d9e0e7;
+            --ok-color: #177245;
+            --warn-color: #9a6700;
+            --error-color: #b42318;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.45;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 2.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        nav {
+            margin-top: 15px;
+        }
+
+        nav a {
+            margin-right: 20px;
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .intro {
+            margin: 0 0 22px;
+        }
+
+        .tracking-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .tab-button {
+            min-height: 46px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #fff;
+            color: var(--primary-color);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .tab-button.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .panel[hidden] {
+            display: none;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 7px;
+            color: var(--primary-color);
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 46px;
+            border: 1px solid #b8c2cc;
+            border-radius: 5px;
+            padding: 10px 12px;
+            font: inherit;
+            background: #fff;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            outline: 3px solid rgba(44,123,229,0.15);
+            border-color: var(--accent-color);
+        }
+
+        .field-help {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted-color);
+            font-size: 0.9rem;
+        }
+
+        .track-button {
+            min-height: 46px;
+            width: 100%;
+            border: 0;
+            border-radius: 5px;
+            background: var(--accent-color);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .track-button:hover {
+            filter: brightness(0.96);
+        }
+
+        .track-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .status {
+            margin-top: 16px;
+            min-height: 24px;
+            border-radius: 5px;
+            padding: 0;
+            font-size: 0.95rem;
+        }
+
+        .status.visible {
+            padding: 11px 12px;
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+        }
+
+        .status.ok {
+            color: var(--ok-color);
+            border-color: #a6d5be;
+            background: #f2fbf6;
+        }
+
+        .status.warn {
+            color: var(--warn-color);
+            border-color: #efd59a;
+            background: #fff9e8;
+        }
+
+        .status.error {
+            color: var(--error-color);
+            border-color: #f0b6b1;
+            background: #fff5f4;
+        }
+
+        .detected {
+            margin-top: 10px;
+            padding: 12px;
+            background: #f7f9fb;
+            border-left: 4px solid var(--primary-color);
+            display: none;
+        }
+
+        .detected.visible {
+            display: block;
+        }
+
+        .detected strong {
+            color: var(--primary-color);
+        }
+
+        .coverage {
+            margin-top: 28px;
+            padding-top: 22px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .coverage h2 {
+            color: var(--primary-color);
+            font-size: 1.05rem;
+            margin: 0 0 10px;
+        }
+
+        .coverage p {
+            margin: 6px 0;
+            color: #555;
+        }
+
+        .privacy-note {
+            margin-top: 24px;
+            padding: 15px;
+            border-left: 4px solid #7a8793;
+            background: #fff;
+            color: #555;
+            font-size: 0.92rem;
+        }
+
+        footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin-top: 20px;
+                padding: 14px;
+            }
+
+            .tracking-card {
+                padding: 18px;
+            }
+
+            .tabs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header class="page-header">
+        <img src="img/logo.png" alt="Logo" class="page-logo">
+        <div class="header-text">
+            <h1>Shipment Tracking</h1>
+            <div class="subtitle">Enter the shipment reference once and continue to the carrier's official tracking site</div>
+
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="conversion.html">Conversions</a>
+                <a href="reference.html">References</a>
+                <a href="currency.html">Currencies</a>
+                <a href="clock.html">World Time</a>
+                <a href="underconst.html">News</a>
+                <a href="underconst.html">Blog</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="intro">
+        <p>
+            Track an ocean container or identify an air carrier from an Air Waybill.
+            Where the carrier supports a direct tracking link, your reference is passed automatically.
+        </p>
+    </div>
+
+    <main class="tracking-card">
+        <div class="tabs" role="tablist" aria-label="Shipment tracking mode">
+            <button id="oceanTab" class="tab-button active" type="button" role="tab" aria-selected="true" aria-controls="oceanPanel">
+                Ocean Container
+            </button>
+            <button id="airTab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="airPanel">
+                Air Waybill
+            </button>
+        </div>
+
+        <section id="oceanPanel" class="panel" role="tabpanel" aria-labelledby="oceanTab">
+            <form id="oceanForm" novalidate>
+                <div class="field">
+                    <label for="oceanCarrier">Ocean carrier</label>
+                    <select id="oceanCarrier" required>
+                        <option value="">Select carrier</option>
+                    </select>
+                    <span class="field-help">The container prefix may suggest an owner, but it does not always identify the actual ocean carrier.</span>
+                </div>
+
+                <div class="field">
+                    <label for="containerNumber">Container number</label>
+                    <input id="containerNumber" type="text" inputmode="text" autocomplete="off" spellcheck="false"
+                           maxlength="14" placeholder="e.g. MSCU1234567" required>
+                    <span class="field-help">ISO 6346 format: four letters followed by seven digits.</span>
+                </div>
+
+                <div id="oceanDetected" class="detected" aria-live="polite"></div>
+                <button class="track-button" type="submit">Track Container</button>
+                <div id="oceanStatus" class="status" aria-live="polite"></div>
+            </form>
+        </section>
+
+        <section id="airPanel" class="panel" role="tabpanel" aria-labelledby="airTab" hidden>
+            <form id="airForm" novalidate>
+                <div class="field">
+                    <label for="awbNumber">Air Waybill (AWB)</label>
+                    <input id="awbNumber" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                           maxlength="15" placeholder="e.g. 020-12345675" required>
+                    <span class="field-help">The first three digits identify the issuing airline. The final digit is checked using modulo 7.</span>
+                </div>
+
+                <div id="airDetected" class="detected" aria-live="polite"></div>
+                <button class="track-button" type="submit">Track Air Waybill</button>
+                <div id="airStatus" class="status" aria-live="polite"></div>
+            </form>
+        </section>
+
+        <div class="coverage">
+            <h2>Coverage</h2>
+            <p id="oceanCoverage">Loading ocean carriers…</p>
+            <p id="airCoverage">Loading air carriers…</p>
+        </div>
+    </main>
+
+    <div class="privacy-note">
+        This tool does not retrieve or store shipment status. It validates the reference, identifies the carrier where possible,
+        and hands the reference to the carrier's public tracking service. Some carrier sites do not permit references to be
+        preloaded in a URL; in those cases the reference is copied before the official tracker opens.
+    </div>
+
+    <footer>
+        © The Logistics Mindset — Personal educational reference
+    </footer>
+
+</div>
+
+<script src="js/tracking.js" defer></script>
+</body>
+</html>
