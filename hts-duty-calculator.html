@@ -46,6 +46,14 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 .badge.none{background:#f0f2f4;color:#59636e}
 .summary-grid.trade-summary{grid-template-columns:repeat(4,minmax(0,1fr))}
 .summary-grid.trade-summary .metric.total{grid-column:span 2}
+.multi-rate-panel{margin-top:14px;border:1px solid #d8dee6;border-radius:5px;overflow:hidden}
+.multi-rate-head{padding:12px 14px;background:#f6f8fa;border-bottom:1px solid #d8dee6}
+.multi-rate-head strong{color:var(--primary-color)}
+.multi-rate-table{width:100%;border-collapse:collapse;font-size:.84rem}
+.multi-rate-table th,.multi-rate-table td{padding:9px 10px;border-bottom:1px solid #edf0f2;text-align:left;vertical-align:top}
+.multi-rate-table th{background:#fafbfc;color:#3f4954}
+.multi-rate-table td:first-child{white-space:nowrap;font-weight:700}
+.multi-rate-table td:last-child{white-space:nowrap;font-weight:700}
 .disclaimer-box{margin-top:18px;padding:14px;border:1px solid #d7dde3;border-radius:5px;background:#f7f8fa;font-size:.86rem;color:#4d5660}
 .disclaimer-box strong{color:var(--primary-color)}
 .assumption-note{margin-top:7px;font-size:.8rem;color:#7a5a00}
@@ -156,6 +164,20 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 <tr id="rateSourceRow"><th>Rate source</th><td id="rateSource"></td></tr>
 <tr><th>Units</th><td id="units"></td></tr>
 </tbody></table>
+
+<div id="multipleRatesPanel" class="multi-rate-panel hidden">
+  <div class="multi-rate-head">
+    <strong id="multipleRatesTitle"></strong>
+    <div class="tiny" id="multipleRatesMessage"></div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="multi-rate-table">
+      <thead><tr><th>Full HTS code</th><th>Description</th><th>Applicable rate</th></tr></thead>
+      <tbody id="multipleRatesBody"></tbody>
+    </table>
+  </div>
+  <div class="helper" id="multipleRatesFoot"></div>
+</div>
 
 <div class="summary-grid trade-summary">
   <div class="metric"><span>Base duty</span><strong id="baseDuty"></strong></div>
@@ -495,6 +517,42 @@ function render(data) {
   }
   $('appliedBasis').textContent = text(data.rates.appliedBasis);
   $('appliedRate').textContent = text(data.rates.appliedRate);
+
+  const broadSummary = data?.rates?.broadDutySummary || null;
+  const multiplePanel = $('multipleRatesPanel');
+  const multipleBody = $('multipleRatesBody');
+
+  multiplePanel.classList.toggle(
+    'hidden',
+    !broadSummary?.multipleRates
+  );
+
+  if (broadSummary?.multipleRates) {
+    $('multipleRatesTitle').textContent =
+      `Multiple duty rates under ${broadSummary.displayTarget}`;
+
+    $('multipleRatesMessage').textContent =
+      `This ${broadSummary.level} contains ${broadSummary.rateCount} different applicable base-duty rates across the returned full HTS classifications. Use the complete HTS code to determine the shipment-specific rate.`;
+
+    multipleBody.innerHTML = '';
+
+    (broadSummary.listedCodes || []).forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        `<td>${escapeHtml(item.displayHts || item.hts)}</td>` +
+        `<td>${escapeHtml(item.description || '')}</td>` +
+        `<td>${escapeHtml(item.rate || '—')}</td>`;
+      multipleBody.appendChild(tr);
+    });
+
+    $('multipleRatesFoot').textContent =
+      broadSummary.truncated
+        ? `Showing the first ${broadSummary.listedCodes.length} of ${broadSummary.totalMatchingCodes} full HTS codes returned for this ${broadSummary.level}.`
+        : `${broadSummary.totalMatchingCodes} full HTS code${broadSummary.totalMatchingCodes === 1 ? '' : 's'} returned for this ${broadSummary.level}.`;
+  } else {
+    multipleBody.innerHTML = '';
+    $('multipleRatesFoot').textContent = '';
+  }
   $('units').textContent = Array.isArray(data.classification.units) && data.classification.units.length ? data.classification.units.join(', ') : '—';
 
   const inherited = data.rates.rateInherited;
@@ -508,13 +566,19 @@ function render(data) {
   const calc = $('calcNotice');
   if (data.estimate.baseDutySupported) {
     calc.className = 'notice info';
+    const broadNote = data?.rates?.broadDutySummary?.singleRate
+      ? ` All returned full HTS lines under ${data.rates.broadDutySummary.displayTarget} currently carry the same applicable base rate.`
+      : '';
     const feeMode = data?.fees?.sourceMode === 'live'
       ? 'CBP user-fee schedule checked live.'
       : 'Using last verified CBP user-fee schedule because the live fee source was unavailable.';
-    calc.textContent = `Applicable base tariff: ${text(data.rates.appliedRate)} under ${text(data.rates.appliedBasis)}${inherited ? `, inherited from ${data.rates.appliedRateSourceHts}` : ''}. ${data.estimate.mpfNote} ${feeMode}`;
+    calc.textContent = `Applicable base tariff: ${text(data.rates.appliedRate)} under ${text(data.rates.appliedBasis)}${inherited ? `, inherited from ${data.rates.appliedRateSourceHts}` : ''}.${broadNote} ${data.estimate.mpfNote} ${feeMode}`;
   } else {
-    calc.className = 'notice danger';
-    calc.textContent = `The applicable published rate is shown, but the dollar duty could not be calculated automatically: ${text(data.estimate.baseDutyReason)} ${data.estimate.mpfNote}`;
+    const multiple = data?.rates?.broadDutySummary?.multipleRates;
+    calc.className = multiple ? 'notice warn' : 'notice danger';
+    calc.textContent = multiple
+      ? `${text(data.estimate.baseDutyReason)} The full HTS codes and their applicable rates are listed above.`
+      : `The applicable published rate is shown, but the dollar duty could not be calculated automatically: ${text(data.estimate.baseDutyReason)} ${data.estimate.mpfNote}`;
   }
 
   const pref = $('preferenceNotice');
