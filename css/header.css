@@ -1,0 +1,151 @@
+/* =========================================
+   SHARED HEADER – ALL PAGES
+   ========================================= */
+
+.page-header {
+    position: relative;
+    padding-right: 120px;           /* reserve space for logo */
+    border-bottom: 4px solid #1a2a3a;
+    padding-bottom: 18px;
+    margin-bottom: 30px;
+}
+
+/* Title + subtitle */
+.page-header h1 {
+    margin: 0;
+    font-size: 2.2rem;
+    color: #1a2a3a;
+    font-weight: 600;
+}
+
+.page-header .subtitle {
+    margin-top: 6px;
+    color: #555;
+    font-size: 1.05rem;
+}
+
+/* Navigation */
+.page-header nav {
+    margin-top: 18px;
+}
+
+.page-header nav a {
+    margin-right: 18px;
+    text-decoration: none;
+    color: #2c6bed;
+    font-weight: 500;
+}
+
+.page-header nav a:hover {
+    text-decoration: underline;
+}
+
+/* =========================================
+   LOGO – SCREEN
+   ========================================= */
+
+.page-logo {
+    position: absolute;
+    top: 6px;
+    right: 0;
+    width: 90px;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+/* =========================================
+   TEXT UTILITIES
+   ========================================= */
+
+.justified {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+}
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+    .page-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .page-logo {
+        width: 60px;
+    }
+
+    .justified {
+        text-align: left;
+    }
+}
+
+/* ===== FX TICKER (GLOBAL) ===== */
+
+.fx-ticker {
+    background: #ffffff;
+    color: #000000	;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.fx-ticker {
+  list-style: none !important;
+}
+
+.fx-ticker::before,
+.fx-ticker::after {
+  content: none !important;
+}
+
+.fx-ticker li,
+.fx-ticker li::before {
+  list-style: none !important;
+  content: none !important;
+}
+
+.fx-ticker span {
+    display: inline-block;
+    margin-right: 24px;
+  text-align: center;
+}
+
+
+
+/* =========================================
+   PRINT – WATERMARK ON ALL PAGES
+   ========================================= */
+
+@media print {
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Centered watermark */
+    .page-logo {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 260px;
+        opacity: 0.18;
+        z-index: 9999;
+        filter: grayscale(100%);
+    }
+
+    /* Hide navigation in print */
+    nav {
+        display: none;
+    }
+}
