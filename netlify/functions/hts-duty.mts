@@ -1,6 +1,6 @@
 const USITC_SEARCH = "https://hts.usitc.gov/reststop/search";
 const COLUMN_2 = new Set(["BY", "CU", "KP", "RU"]);
-const BUILD_VERSION = "2026-08-24-sec232-v5";
+const BUILD_VERSION = "2026-08-24-screening-v7";
 
 const FTA_PROGRAM: Record<string, { symbol: string; name: string }> = {
   AU: { symbol: "AU", name: "U.S.-Australia FTA" },
@@ -567,6 +567,79 @@ const SECTION_232_STEEL_PREFIXES = [
   "7326908635","7326908645","7326908688"
 ];
 
+
+// Verified China Section 301 mappings used by this calculator.
+// The resolver works at the 8-digit HTS subheading level, because Section 301
+// legal notes are written at that level. A 10-digit statistical suffix inherits
+// the Section 301 treatment of its 8-digit subheading.
+//
+// This table intentionally contains only mappings that have been verified for
+// the current 2026 schedule. Additions should be made from the current HTS
+// U.S. notes 20/31 and the current China Section 301 reference list.
+const CHINA_301_25_99038803 = new Set([
+  "72011000","72012000","72015030","72015060",
+  "72021110","72021150","72021910","72021950",
+  "72022110","72022150","72022175","72022190",
+  "72022900","72023000","72024100","72024910","72024950","72025000",
+  "72028000","72029100","72029200","72029910","72029920",
+  "72031000","72039000",
+  "72041000","72042100","72042900","72043000","72044100","72044900","72045000",
+  "72051000","72052100","72052900"
+]);
+
+const CHINA_301_25_99039101 = new Set([
+  "72026000","72029340","72029380",
+  "72061000","72069000",
+  "72071100","72071200","72071900","72072000",
+  "72081015","72081030","72081060","72082530","72082560","72082600","72082700",
+  "72083600","72083700","72083800","72083900","72084030","72084060",
+  "72085100","72085200","72085300","72085400","72089000",
+  "72091500","72091600","72091700","72091815","72091825","72091860",
+  "72092500","72092600","72092700","72092800","72099000",
+  "72101100","72101200","72102000","72103000","72104100","72104900",
+  "72105000","72106100","72106900","72107030","72107060"
+]);
+
+function section301Measures(
+  hts: string,
+  country: string,
+  customsValue: number
+): any[] {
+  if (country !== "CN") return [];
+
+  const code8 = digits(hts).slice(0, 8);
+  let chapter99: string | null = null;
+  let ratePercent: number | null = null;
+  let legalNote: string | null = null;
+
+  if (CHINA_301_25_99038803.has(code8)) {
+    chapter99 = "9903.88.03";
+    ratePercent = 25;
+    legalNote = "U.S. note 20(e)-(f), subchapter III, chapter 99";
+  } else if (CHINA_301_25_99039101.has(code8)) {
+    chapter99 = "9903.91.01";
+    ratePercent = 25;
+    legalNote = "U.S. note 31(b), subchapter III, chapter 99";
+  }
+
+  if (!chapter99 || ratePercent == null) return [];
+
+  return [{
+    program: "Section 301",
+    hts: chapter99,
+    description:
+      `Product of China classified in HTS ${formatHts(code8)} is covered by the current Section 301 mapping in this rule set.`,
+    applicableRate: `+${ratePercent}%`,
+    ratePercent,
+    amount: customsValue * ratePercent / 100,
+    rawRate: `The duty provided in the applicable subheading + ${ratePercent}%`,
+    tariffTreatment: `Section 301 additional duty for products of China`,
+    automaticallyIncludedInTotal: true,
+    ruleSource: legalNote,
+    exclusionReviewRequired: true
+  }];
+}
+
 function isSection232Steel(hts: string): boolean {
   const code = digits(hts);
   return SECTION_232_STEEL_PREFIXES.some((prefix) => code.startsWith(prefix));
@@ -586,12 +659,15 @@ function section232Measures(
     program: "Section 232",
     hts: chapter99,
     description:
-      "Steel article or derivative steel article covered by U.S. Note 16(c)(iii) or (iv).",
+      "Steel article or derivative steel article covered by the current Section 232 steel rule set.",
     applicableRate: "+50%",
     ratePercent,
     amount: customsValue * ratePercent / 100,
     rawRate: "The duty provided in the applicable subheading + 50%",
-    tariffTreatment: "Section 232 steel tariff on full customs value",
+    tariffTreatment:
+      "Illustrative Section 232 treatment if the selected country of origin is also the country of first melt and pour.",
+    illustrativeAssumption:
+      "The selected country of origin is assumed to be the country where the steel was first melted and poured. Actual melt/pour country may be different.",
     automaticallyIncludedInTotal: true,
     ruleSource:
       country === "RU"
@@ -784,12 +860,78 @@ export default async (req: Request) => {
     // Do not rely on base-HTS footnotes to discover Section 232. The legal
     // product lists are in Chapter 99 U.S. Note 16, so test the entered HTS
     // directly against those lists.
-    const ruleBasedMeasures = section232Measures(
+    const section232 = section232Measures(
       hts,
       country,
       customsValue
     );
+    const section301 = section301Measures(
+      hts,
+      country,
+      customsValue
+    );
+
+    const ruleBasedMeasures = [...section232, ...section301];
     const applicableAdditionalMeasures = [...ruleBasedMeasures];
+
+    const quotaScreenText = [
+      ...rows.map((row: any) =>
+        [
+          cleanText(row?.description),
+          cleanText(row?.general),
+          cleanText(row?.special),
+          cleanText(row?.other),
+          cleanText(row?.additionalDuties),
+        ]
+          .filter(Boolean)
+          .join(" ")
+      ),
+      ...footnotes,
+    ].join(" ");
+
+    const quotaIndicatorFound =
+      /\bquota\b|tariff[- ]rate quota|\bTRQ\b|in[- ]quota|over[- ]quota|quota quantity/i.test(
+        quotaScreenText
+      );
+
+    const steelMeltPourReview = {
+      mayApply: section232.length > 0,
+      informationRequired: section232.length > 0,
+      selectedCountry: country,
+      illustrativeRate:
+        section232.length > 0 ? section232[0]?.applicableRate ?? null : null,
+      illustrativeAmount:
+        section232.length > 0 ? Number(section232[0]?.amount ?? 0) : null,
+      note:
+        section232.length > 0
+          ? "The Section 232 rate shown assumes the selected country of origin is also the country where the steel was first melted and poured. The first melt/pour country may be different from the country of origin."
+          : null,
+    };
+
+    const screeningChecks = {
+      adCvd: {
+        mayApply: true,
+        status: "review",
+        rateBasis:
+          "If a general rate is displayed, it is an all-others, China-wide, or country-wide cash deposit rate for reference only.",
+        note:
+          "AD/CVD applicability is controlled by the scope of the order and may depend on manufacturer/exporter and other product facts. The displayed general rate may or may not apply to the shipment.",
+      },
+      quota: {
+        mayApply: true,
+        status: quotaIndicatorFound ? "potential-indicator" : "review",
+        htsIndicatorFound: quotaIndicatorFound,
+        note:
+          "Quota, tariff-rate quota (TRQ), absolute quota, tariff preference level, or similar restrictions may apply. Availability and duty treatment can depend on HTS, country, quantity, entry date, and current quota status.",
+      },
+      steelMeltPour: steelMeltPourReview,
+      otherCbp: {
+        mayApply: true,
+        status: "review",
+        note:
+          "Additional CBP requirements, Chapter 99 provisions, exclusions, special programs, reporting requirements, documentation requirements, Partner Government Agency requirements, or other trade measures may apply.",
+      },
+    };
 
     const baseDuty = baseCalculation.supported
       ? Number(baseCalculation.duty ?? 0)
@@ -798,14 +940,24 @@ export default async (req: Request) => {
       ? Number(additionalCalculation.duty ?? 0)
       : 0;
 
-    const ruleBasedAdditionalDuty = ruleBasedMeasures
+    const section232Duty = section232
       .filter((measure: any) => measure.automaticallyIncludedInTotal === true)
       .reduce(
         (sum: number, measure: any) => sum + Number(measure.amount ?? 0),
         0
       );
 
-    const knownAdditionalDuty = additionalDuty + ruleBasedAdditionalDuty;
+    const section301Duty = section301
+      .filter((measure: any) => measure.automaticallyIncludedInTotal === true)
+      .reduce(
+        (sum: number, measure: any) => sum + Number(measure.amount ?? 0),
+        0
+      );
+
+    const otherAdditionalDuty = additionalDuty;
+    const ruleBasedAdditionalDuty = section232Duty + section301Duty;
+    const knownAdditionalDuty =
+      section232Duty + section301Duty + otherAdditionalDuty;
 
     const totalEstimatedImportCharges =
       baseDuty == null
@@ -862,9 +1014,11 @@ export default async (req: Request) => {
           additionalDutyIncluded: additionalIncluded
             ? additionalDuty
             : null,
+          section232Duty,
+          section301Duty,
+          otherAdditionalDuty,
           ruleBasedAdditionalDuty,
           knownAdditionalDuty,
-          section232Duty: ruleBasedAdditionalDuty,
           mpf,
           mpfNote,
           hmf,
@@ -876,6 +1030,7 @@ export default async (req: Request) => {
           chapter99References,
           chapter99Rows,
           applicableAdditionalMeasures,
+          screeningChecks,
           additionalTariffReviewRequired:
             applicableAdditionalMeasures.length > 0 ||
             chapter99References.length > 0 ||
@@ -901,10 +1056,12 @@ export default async (req: Request) => {
           enteredHts: hts,
           selectedCode,
           section232Matched: isSection232Steel(hts),
-          section232MeasureCount: ruleBasedMeasures.length,
+          section232MeasureCount: section232.length,
+          section301MeasureCount: section301.length,
+          quotaIndicatorFound,
         },
         disclaimer:
-          "Screening estimate only. Verify classification, origin, Chapter 99 measures, exclusions, quotas, AD/CVD and entry-specific facts before filing.",
+          "General informational screening only. Actual classification, duties, additional tariffs, AD/CVD, quotas, Section 232/301 treatment, reporting requirements and other import requirements depend on shipment-specific facts and current regulations. Consult your customs broker before entry.",
       },
       {
         headers: {
