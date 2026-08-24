@@ -167,28 +167,54 @@
         return template.replace("{number}", encodeURIComponent(number));
     }
 
-    function copyReference(value) {
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(value).catch(() => {});
-            return;
+    function buildAirDirectUrl(carrier, validation) {
+        if (!carrier || !validation || !validation.valid) return null;
+
+        // Lufthansa Cargo publishes tracking result URLs as /awb/020/XXXXXXXX.
+        if (validation.prefix === "020") {
+            const serialBlock = validation.normalized.slice(3);
+            return `https://www.lufthansa-cargo.com/en/eservices/etracking/tracking/-/awb/020/${encodeURIComponent(serialBlock)}`;
         }
 
+        if (carrier.direct && carrier.direct.template) {
+            return carrier.direct.template.replace("{number}", encodeURIComponent(validation.formatted));
+        }
+
+        return null;
+    }
+
+    function hasAirDirect(carrier, prefix) {
+        return prefix === "020" || Boolean(carrier && carrier.direct && carrier.direct.template);
+    }
+
+    function copyReference(value) {
+        // Use a synchronous copy while we are still inside the user's click/submit
+        // gesture. Opening a new carrier tab first can steal focus and cause the
+        // asynchronous Clipboard API to fail.
         const textarea = document.createElement("textarea");
         textarea.value = value;
         textarea.setAttribute("readonly", "");
-        textarea.style.position = "absolute";
+        textarea.style.position = "fixed";
         textarea.style.left = "-9999px";
+        textarea.style.top = "0";
+        textarea.style.opacity = "0.01";
         document.body.appendChild(textarea);
+        textarea.focus();
         textarea.select();
-        try { document.execCommand("copy"); } catch (_) {}
+        textarea.setSelectionRange(0, textarea.value.length);
+
+        let copied = false;
+        try {
+            copied = document.execCommand("copy");
+        } catch (_) {
+            copied = false;
+        }
         textarea.remove();
+        return copied;
     }
 
     function openTracker(url) {
-        // Never replace The Logistics Mindset page. The earlier implementation used
-        // a fallback to window.location when window.open returned null; browsers can
-        // return null for noopener even after successfully opening a tab, which caused
-        // both a new tab AND navigation of the current page.
+        // Never replace The Logistics Mindset page.
         const opened = window.open(url, "_blank");
         if (opened) {
             try { opened.opener = null; } catch (_) {}
@@ -249,7 +275,7 @@
             if (selectedCarrier) {
                 oceanDetected.innerHTML = `<strong>Bill of Lading:</strong> ${normalized}. ${selectedCarrier.name}'s carrier tracking page will open in a new tab; this page will remain open.`;
             } else {
-                oceanDetected.innerHTML = `<strong>Bill of Lading:</strong> ${normalized}. Select the actual ocean carrier handling the shipment.`;
+                oceanDetected.innerHTML = `<strong>Bill of Lading:</strong> ${normalized}. Carrier will be selected automatically when the B/L prefix is recognized; otherwise select it manually.`;
             }
             return;
         }
@@ -300,9 +326,9 @@
         }
 
         const carrierLabel = `<strong>${carrier.name}</strong> · AWB prefix ${prefix}${carrier.iata ? ` · ${carrier.iata}` : ""}`;
-        const actionText = carrier.direct && carrier.direct.template
-            ? "Automatic AWB handover is available. The airline tracker will open in a new tab; this page will remain open."
-            : "No verified automatic AWB handover is available. The carrier tracking page will open in a new tab; the AWB will be copied and this page will remain open.";
+        const actionText = hasAirDirect(carrier, prefix)
+            ? "Automatic AWB handover is available. The airline tracker will open in a new tab with the AWB; this page will remain open."
+            : "No verified automatic AWB handover is available. The carrier tracking page will open in a new tab; the AWB will be copied for you to paste and this page will remain open.";
         airDetected.innerHTML = `${carrierLabel}<br>${actionText}`;
     }
 
@@ -360,19 +386,19 @@
                 oceanStatus,
                 opened
                     ? `${carrier.name}: automatic handover opened in a new tab with ${validation.normalized}. This page remains open.`
-                    : `Your browser blocked the new tab. Allow pop-ups for this site and try again.`,
+                    : "Your browser blocked the new tab. Allow pop-ups for this site and try again.",
                 opened ? "ok" : "warn"
             );
             return;
         }
 
-        copyReference(validation.normalized);
+        const copied = copyReference(validation.normalized);
         const opened = openTracker(carrier.trackerUrl);
         setStatus(
             oceanStatus,
             opened
-                ? `${carrier.name} does not have a verified automatic handover for this ${label}. The carrier tracking page opened in a new tab and ${validation.normalized} was copied. This page remains open.`
-                : `Your browser blocked the carrier tab. ${validation.normalized} was copied; allow pop-ups for this site and try again.`,
+                ? `${carrier.name} does not have a verified automatic handover for this ${label}. The carrier tracking page opened in a new tab. ${copied ? `${validation.normalized} was copied; paste it into the carrier tracker.` : `Copy ${validation.normalized} from this page and paste it into the carrier tracker.`} This page remains open.`
+                : `${copied ? `${validation.normalized} was copied.` : `Copy ${validation.normalized}.`} Your browser blocked the carrier tab; allow pop-ups for this site and try again.`,
             "warn"
         );
     });
@@ -392,26 +418,26 @@
             return;
         }
 
-        if (carrier.direct && carrier.direct.template) {
-            const directUrl = carrier.direct.template.replace("{number}", encodeURIComponent(validation.formatted));
+        const directUrl = buildAirDirectUrl(carrier, validation);
+        if (directUrl) {
             const opened = openTracker(directUrl);
             setStatus(
                 airStatus,
                 opened
                     ? `${carrier.name}: automatic AWB handover opened in a new tab with ${validation.formatted}. This page remains open.`
-                    : `Your browser blocked the airline tab. Allow pop-ups for this site and try again.`,
+                    : "Your browser blocked the airline tab. Allow pop-ups for this site and try again.",
                 opened ? "ok" : "warn"
             );
             return;
         }
 
-        copyReference(validation.formatted);
+        const copied = copyReference(validation.formatted);
         const opened = openTracker(carrier.trackerUrl);
         setStatus(
             airStatus,
             opened
-                ? `${carrier.name} does not have a verified automatic AWB handover. The carrier tracking page opened in a new tab and ${validation.formatted} was copied. This page remains open.`
-                : `Your browser blocked the carrier tab. ${validation.formatted} was copied; allow pop-ups for this site and try again.`,
+                ? `${carrier.name} does not have a verified automatic AWB handover. The carrier tracking page opened in a new tab. ${copied ? `${validation.formatted} was copied; paste it into the AWB field.` : `Copy ${validation.formatted} from this page and paste it into the AWB field.`} This page remains open.`
+                : `${copied ? `${validation.formatted} was copied.` : `Copy ${validation.formatted}.`} Your browser blocked the carrier tab; allow pop-ups for this site and try again.`,
             "warn"
         );
     });
@@ -425,9 +451,9 @@
             populateOceanCarriers();
 
             const oceanDirect = data.ocean.filter(item => item.direct).length;
-            const airDirect = data.air.filter(item => item.direct).length;
-            oceanCoverage.textContent = `${data.ocean.length} ocean carriers listed. ${oceanDirect} have verified container handover patterns; B/L searches currently use the carrier-page fallback unless separately verified.`;
-            airCoverage.textContent = `${data.air.length} AWB prefixes listed. ${airDirect} currently have verified automatic AWB handover patterns; all others open the carrier tracking page in a new tab.`;
+            const airDirect = data.air.filter(item => item.direct || item.prefix === "020").length;
+            oceanCoverage.textContent = `${data.ocean.length} ocean carriers listed. ${oceanDirect} have verified container handover patterns; B/L carrier selection is automatic for recognized SCAC/B/L prefixes.`;
+            airCoverage.textContent = `${data.air.length} AWB prefixes listed. ${airDirect} currently have verified automatic AWB handover patterns; all others open the carrier tracking page in a new tab and copy the AWB.`;
 
             updateOceanUi();
             updateAirDetection();
