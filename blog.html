@@ -124,8 +124,38 @@
 
 <body>
 
-    <!-- Header comes from header.css -->
-    <header></header>
+    <div class="container">
+        <header class="page-header">
+            <img src="img/logo.png" alt="Logo" class="page-logo">
+            <div class="header-text">
+                <h1>The Logistics Mindset</h1>
+                <p class="subtitle">Blog</p>
+                <nav>
+                    <a href="index.html">Home</a>
+                    <a href="about.html">About</a>
+                    <a href="conversion.html">Conversions</a>
+                    <span class="reference-dropdown">
+                        <a href="reference.html" class="reference-main-link">References</a>
+                        <button type="button" class="reference-dropdown-toggle" aria-label="Show reference pages" aria-expanded="false" onclick="event.stopPropagation(); const box=this.parentElement; const open=box.classList.toggle('open'); this.setAttribute('aria-expanded', String(open));">▼</button>
+                        <div class="reference-dropdown-menu" role="menu">
+                            <a href="tracking.html" role="menuitem">Shipment Tracking</a>
+                            <a href="incoterms.html" role="menuitem">Incoterms</a>
+                            <a href="hazmat.html" role="menuitem">Hazardous Materials Basics</a>
+                            <a href="Customs.html" role="menuitem">Customs & Trade Concepts</a>
+                            <a href="hts-duty-calculator.html" role="menuitem">U.S. HTS Duty Calculator</a>
+                            <a href="shipping-terms.html" role="menuitem">Shipping Terms Glossary</a>
+                            <a href="containers.html" role="menuitem">Containers</a>
+                            <a href="uld.html" role="menuitem">ULDs (Unit Load Devices)</a>
+                        </div>
+                    </span>
+                    <a href="currency.html">Currencies</a>
+                    <a href="clock.html">World Time</a>
+                    <a href="underconst.html">News</a>
+                    <a href="blog.html">Blog</a>
+                </nav>
+            </div>
+        </header>
+    </div>
 
     <main class="container">
         <div class="page-title">

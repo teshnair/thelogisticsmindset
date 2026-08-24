@@ -1,18 +1,6 @@
 (() => {
   "use strict";
 
-  if (!document.querySelector('script[data-reference-dropdown]')) {
-    const navScript = document.createElement("script");
-    navScript.src = "js/reference-dropdown.js?v=2";
-    navScript.defer = true;
-    navScript.dataset.referenceDropdown = "true";
-    document.head.appendChild(navScript);
-  }
-})();
-
-(() => {
-  "use strict";
-
   const BL_PREFIX_TO_CARRIER = {
     MAEU: "maersk", SEJJ: "maersk", MCPU: "maersk", SEAU: "maersk",
     MSCU: "msc", MEDU: "msc", MESU: "msc",
