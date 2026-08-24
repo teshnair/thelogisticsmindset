@@ -84,6 +84,9 @@ async function checkUrl(context, item, mode, url) {
     if (statusCode === 401 || statusCode === 403 || statusCode === 429) {
       status = "warning";
       message = `HTTP ${statusCode}; site may be blocking automated browsers`;
+    } else if (mode === "direct-handoff" && [400, 404, 422].includes(statusCode)) {
+      status = "warning";
+      message = `HTTP ${statusCode}; direct URL is reachable but the synthetic test reference may not exist`;
     } else if (statusCode !== null && statusCode >= 400) {
       status = "fail";
       message = `HTTP ${statusCode}`;
