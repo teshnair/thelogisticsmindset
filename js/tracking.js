@@ -151,8 +151,12 @@
     function buildOceanDirectUrl(carrier, number, referenceType) {
         if (!carrier || !carrier.direct) return null;
 
+        // Current ocean handover patterns have been verified for container tracking.
+        // B/L formats and carrier routing rules vary, so B/L currently uses the safe
+        // carrier-page fallback until a B/L-specific handover is verified.
+        if (referenceType !== "container") return null;
+
         if (carrier.direct.type === "mscBase64") {
-            if (referenceType !== "container") return null;
             const payload = `trackingNumber=${number}&trackingMode=0`;
             const encoded = btoa(payload);
             return `https://www.msc.com/en/track-a-shipment?params=${encodeURIComponent(encoded)}`;
@@ -181,8 +185,16 @@
     }
 
     function openTracker(url) {
-        const opened = window.open(url, "_blank", "noopener,noreferrer");
-        if (!opened) window.location.href = url;
+        // Never replace The Logistics Mindset page. The earlier implementation used
+        // a fallback to window.location when window.open returned null; browsers can
+        // return null for noopener even after successfully opening a tab, which caused
+        // both a new tab AND navigation of the current page.
+        const opened = window.open(url, "_blank");
+        if (opened) {
+            try { opened.opener = null; } catch (_) {}
+            return true;
+        }
+        return false;
     }
 
     function populateOceanCarriers() {
@@ -190,7 +202,9 @@
         for (const carrier of sorted) {
             const option = document.createElement("option");
             option.value = carrier.id;
-            option.textContent = carrier.direct ? `${carrier.name} — direct handoff` : carrier.name;
+            option.textContent = carrier.direct
+                ? `${carrier.name} — container handover available`
+                : `${carrier.name} — carrier page opens`;
             oceanCarrier.appendChild(option);
         }
     }
@@ -211,6 +225,7 @@
         const normalized = normalizeOceanReference(oceanReference.value);
         const chosen = oceanReferenceType.value;
         const type = selectedOceanType();
+        const selectedCarrier = oceanById.get(oceanCarrier.value);
 
         if (chosen === "container") {
             oceanReferenceHelp.textContent = "ISO 6346 format: four letters followed by seven digits.";
@@ -231,7 +246,11 @@
 
         if (type === "bl") {
             oceanDetected.className = "detected visible";
-            oceanDetected.innerHTML = `<strong>Bill of Lading:</strong> ${normalized}. Select the actual ocean carrier handling the shipment.`;
+            if (selectedCarrier) {
+                oceanDetected.innerHTML = `<strong>Bill of Lading:</strong> ${normalized}. ${selectedCarrier.name}'s carrier tracking page will open in a new tab; this page will remain open.`;
+            } else {
+                oceanDetected.innerHTML = `<strong>Bill of Lading:</strong> ${normalized}. Select the actual ocean carrier handling the shipment.`;
+            }
             return;
         }
 
@@ -250,8 +269,17 @@
         }
 
         const names = matches.map(item => item.name).join(", ");
-        oceanDetected.innerHTML = `<strong>Container prefix match:</strong> ${names}. The prefix identifies equipment ownership and may not identify the line carrying this shipment.`;
-        if (!oceanCarrier.value && matches.length === 1) oceanCarrier.value = matches[0].id;
+        let actionText = "";
+        if (selectedCarrier) {
+            actionText = selectedCarrier.direct
+                ? ` ${selectedCarrier.name} has an automatic container handover; its tracker will open in a new tab and this page will remain open.`
+                : ` ${selectedCarrier.name} does not have a verified handover pattern; its carrier tracking page will open in a new tab and the container number will be copied.`;
+        }
+        oceanDetected.innerHTML = `<strong>Container prefix match:</strong> ${names}. The prefix identifies equipment ownership and may not identify the line carrying this shipment.${actionText}`;
+        if (!oceanCarrier.value && matches.length === 1) {
+            oceanCarrier.value = matches[0].id;
+            updateOceanUi();
+        }
     }
 
     function updateAirDetection() {
@@ -265,17 +293,28 @@
         const prefix = digits.slice(0, 3);
         const carrier = airByPrefix.get(prefix);
         airDetected.className = "detected visible";
-        if (carrier) {
-            airDetected.innerHTML = `<strong>${carrier.name}</strong> · AWB prefix ${prefix}${carrier.iata ? ` · ${carrier.iata}` : ""}`;
-        } else {
+
+        if (!carrier) {
             airDetected.innerHTML = `<strong>Prefix ${prefix}</strong> is not in the current airline list.`;
+            return;
         }
+
+        const carrierLabel = `<strong>${carrier.name}</strong> · AWB prefix ${prefix}${carrier.iata ? ` · ${carrier.iata}` : ""}`;
+        const actionText = carrier.direct && carrier.direct.template
+            ? "Automatic AWB handover is available. The airline tracker will open in a new tab; this page will remain open."
+            : "No verified automatic AWB handover is available. The carrier tracking page will open in a new tab; the AWB will be copied and this page will remain open.";
+        airDetected.innerHTML = `${carrierLabel}<br>${actionText}`;
     }
 
     oceanTab.addEventListener("click", () => setTab("ocean"));
     airTab.addEventListener("click", () => setTab("air"));
 
     oceanReferenceType.addEventListener("change", () => {
+        setStatus(oceanStatus);
+        updateOceanUi();
+    });
+
+    oceanCarrier.addEventListener("change", () => {
         setStatus(oceanStatus);
         updateOceanUi();
     });
@@ -316,22 +355,31 @@
         const directUrl = buildOceanDirectUrl(carrier, validation.normalized, referenceType);
 
         if (directUrl) {
-            setStatus(oceanStatus, `Opening ${carrier.name}'s official tracker with the ${label} ${validation.normalized}.`, "ok");
-            openTracker(directUrl);
+            const opened = openTracker(directUrl);
+            setStatus(
+                oceanStatus,
+                opened
+                    ? `${carrier.name}: automatic handover opened in a new tab with ${validation.normalized}. This page remains open.`
+                    : `Your browser blocked the new tab. Allow pop-ups for this site and try again.`,
+                opened ? "ok" : "warn"
+            );
             return;
         }
 
         copyReference(validation.normalized);
+        const opened = openTracker(carrier.trackerUrl);
         setStatus(
             oceanStatus,
-            `${carrier.name} does not currently expose a verified direct link for this ${label}. ${validation.normalized} has been copied and the official tracker is opening.`,
+            opened
+                ? `${carrier.name} does not have a verified automatic handover for this ${label}. The carrier tracking page opened in a new tab and ${validation.normalized} was copied. This page remains open.`
+                : `Your browser blocked the carrier tab. ${validation.normalized} was copied; allow pop-ups for this site and try again.`,
             "warn"
         );
-        openTracker(carrier.trackerUrl);
     });
 
     airForm.addEventListener("submit", event => {
         event.preventDefault();
+
         const validation = validateAwb(awbNumber.value);
         if (!validation.valid) {
             setStatus(airStatus, validation.reason, "error");
@@ -346,18 +394,26 @@
 
         if (carrier.direct && carrier.direct.template) {
             const directUrl = carrier.direct.template.replace("{number}", encodeURIComponent(validation.formatted));
-            setStatus(airStatus, `Opening ${carrier.name}'s official tracker with ${validation.formatted}.`, "ok");
-            openTracker(directUrl);
+            const opened = openTracker(directUrl);
+            setStatus(
+                airStatus,
+                opened
+                    ? `${carrier.name}: automatic AWB handover opened in a new tab with ${validation.formatted}. This page remains open.`
+                    : `Your browser blocked the airline tab. Allow pop-ups for this site and try again.`,
+                opened ? "ok" : "warn"
+            );
             return;
         }
 
         copyReference(validation.formatted);
+        const opened = openTracker(carrier.trackerUrl);
         setStatus(
             airStatus,
-            `${carrier.name} identified. Its current public tracker does not have a verified direct-link format, so ${validation.formatted} has been copied and the official cargo page is opening.`,
+            opened
+                ? `${carrier.name} does not have a verified automatic AWB handover. The carrier tracking page opened in a new tab and ${validation.formatted} was copied. This page remains open.`
+                : `Your browser blocked the carrier tab. ${validation.formatted} was copied; allow pop-ups for this site and try again.`,
             "warn"
         );
-        openTracker(carrier.trackerUrl);
     });
 
     async function init() {
@@ -370,15 +426,15 @@
 
             const oceanDirect = data.ocean.filter(item => item.direct).length;
             const airDirect = data.air.filter(item => item.direct).length;
-            oceanCoverage.textContent = `${data.ocean.length} ocean carriers listed for container/B/L tracking; ${oceanDirect} currently have direct-handoff URL patterns.`;
-            airCoverage.textContent = `${data.air.length} AWB prefixes listed; ${airDirect} currently have verified direct-handoff URL patterns.`;
+            oceanCoverage.textContent = `${data.ocean.length} ocean carriers listed. ${oceanDirect} have verified container handover patterns; B/L searches currently use the carrier-page fallback unless separately verified.`;
+            airCoverage.textContent = `${data.air.length} AWB prefixes listed. ${airDirect} currently have verified automatic AWB handover patterns; all others open the carrier tracking page in a new tab.`;
 
             updateOceanUi();
             updateAirDetection();
         } catch (error) {
             console.error("Tracking data failed to load:", error);
             setStatus(oceanStatus, "Carrier tracking data could not be loaded. Please refresh the page.", "error");
-            setStatus(airStatus, "Carrier tracking data could not be loaded. Please refresh the page.", "error");
+            setStatus(airStatus, "Airline tracking data could not be loaded. Please refresh the page.", "error");
             oceanForm.querySelector(".track-button").disabled = true;
             airForm.querySelector(".track-button").disabled = true;
             oceanCoverage.textContent = "Carrier data unavailable.";
