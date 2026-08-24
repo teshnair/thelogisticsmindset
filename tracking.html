@@ -146,12 +146,12 @@
                     <select id="oceanCarrier" required>
                         <option value="">Select carrier</option>
                     </select>
-                    <span class="field-help">For containers, the prefix may suggest an equipment owner but does not always identify the carrier handling the shipment. For B/L, select the actual carrier.</span>
+                    <span class="field-help">For containers, the prefix may suggest an equipment owner but does not always identify the carrier handling the shipment. For B/L, the carrier is selected automatically when the B/L/SCAC prefix is recognized.</span>
                 </div>
 
                 <div class="field">
                     <label for="oceanReference">Container number or Bill of Lading</label>
-                    <input id="oceanReference" type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="40" placeholder="e.g. MSCU1234567 or MEDUABC123456" required>
+                    <input id="oceanReference" type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="40" placeholder="e.g. MSCU1234567 or MAEU123456789" required>
                     <span id="oceanReferenceHelp" class="field-help">Enter a container number or carrier Bill of Lading number.</span>
                 </div>
 
@@ -188,5 +188,6 @@
     <footer>© The Logistics Mindset — Personal educational reference</footer>
 </div>
 <script src="js/tracking.js" defer></script>
+<script src="js/tracking-bl-prefixes.js" defer></script>
 </body>
 </html>
