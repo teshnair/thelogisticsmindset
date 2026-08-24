@@ -301,7 +301,8 @@ function render(data) {
   $('result').classList.remove('hidden');
   $('desc').textContent = text(data.classification.description);
   $('resultHts').textContent = text(data.classification.displayHts || data.classification.hts);
-  $('sourceLine').textContent = `USITC live data retrieved ${new Date(data.source.retrievedAt).toLocaleString()}`;
+  const rulesVersion = data?.source?.buildVersion || data?.diagnostics?.buildVersion || 'legacy backend';
+  $('sourceLine').textContent = `USITC live data retrieved ${new Date(data.source.retrievedAt).toLocaleString()} • rules ${rulesVersion}`;
 
   const heading = data.classification.heading;
   $('headingRow').classList.toggle('hidden', !heading);
@@ -323,10 +324,8 @@ function render(data) {
   $('rateSource').textContent = data.rates.appliedRateSourceHts ? `${data.rates.appliedRateSourceHts}${inherited ? ' — inherited by the full HTS code' : ''}` : '—';
 
   $('baseDuty').textContent = money(data.estimate.baseDuty);
-  $('additionalDuty').textContent = money(data.estimate.knownAdditionalDuty ?? 0);
   $('mpf').textContent = money(data.estimate.mpf);
   $('hmf').textContent = money(data.estimate.hmf);
-  $('total').textContent = money(data.estimate.totalEstimatedImportCharges);
 
   const calc = $('calcNotice');
   if (data.estimate.baseDutySupported) {
@@ -348,9 +347,27 @@ function render(data) {
   const countryName = dn.of(data.query.country) || data.query.country;
   $('additionalTitle').textContent = `Additional duties — ${countryName}`;
 
-  const measures = Array.isArray(data.review.applicableAdditionalMeasures)
-    ? data.review.applicableAdditionalMeasures
+  let measures = Array.isArray(data.review.applicableAdditionalMeasures)
+    ? [...data.review.applicableAdditionalMeasures]
     : [];
+
+  let clientFallbackAmount = 0;
+  if (!measures.some(m => String(m?.program || '').toLowerCase() === 'section 232')) {
+    const fallback232 = clientSection232Fallback(data);
+    if (fallback232) {
+      measures.unshift(fallback232);
+      clientFallbackAmount = Number(fallback232.amount || 0);
+    }
+  }
+
+  const backendAdditional = Number(data.estimate.knownAdditionalDuty ?? 0);
+  const displayAdditional = backendAdditional + clientFallbackAmount;
+  const displayTotal = data.estimate.totalEstimatedImportCharges == null
+    ? null
+    : Number(data.estimate.totalEstimatedImportCharges) + clientFallbackAmount;
+
+  $('additionalDuty').textContent = money(displayAdditional);
+  $('total').textContent = money(displayTotal);
 
   if (measures.length) {
     const intro = document.createElement('div');
@@ -364,7 +381,8 @@ function render(data) {
       const rate = measure.applicableRate || measure.rawRate || 'See provision';
       const amountLine = measure.amount != null ? `<br><span class="tiny">Estimated additional duty: <strong>${escapeHtml(money(measure.amount))}</strong></span>` : '';
       const program = measure.program ? `${escapeHtml(measure.program)} — ` : '';
-      div.innerHTML = `<strong>${program}${escapeHtml(measure.hts || 'Chapter 99')} — ${escapeHtml(rate)}</strong>` +
+      const fallbackTag = measure.clientFallback ? ' <span class="tiny">(local rule fallback)</span>' : '';
+      div.innerHTML = `<strong>${program}${escapeHtml(measure.hts || 'Chapter 99')} — ${escapeHtml(rate)}</strong>${fallbackTag}` +
         `${measure.description ? `<br>${escapeHtml(measure.description)}` : ''}` +
         `<br><span class="tiny">Applicable treatment for ${escapeHtml(countryName)}: ${escapeHtml(measure.tariffTreatment || 'published Chapter 99 treatment')}</span>` +
         amountLine;
