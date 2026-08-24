@@ -1,0 +1,7 @@
+{
+  "startedAt": "2026-08-24T21:09:31.734Z",
+  "finishedAt": "2026-08-24T21:09:43.692Z",
+  "status": "failure",
+  "exitCode": 1,
+  "error": "GDELT query failed: fetch failed\nGDELT query failed: fetch failed\nGDELT query failed: fetch failed\nGDELT query failed: fetch failed\nGDELT query failed: fetch failed\nError: GitHub Models HTTP 410: {\"error\":{\"code\":\"[redacted]\",\"message\":\"GitHub Models is temporarily unavailable as part of a scheduled retirement brownout.\"}}\n\n    at curateWithModel (file:///home/runner/work/thelogisticsmindset/thelogisticsmindset/scripts/curate-news.mjs:341:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async main (file:///home/runner/work/thelogisticsmindset/thelogisticsmindset/scripts/curate-news.mjs:443:29)"
+}
