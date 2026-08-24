@@ -5,7 +5,7 @@ on:
     branches:
       - feature/blog-air-tracking-cleanup
     paths:
-      - scripts/apply-blog-tracking-cleanup.mjs
+      - scripts/apply-blog-tracking-cleanup2.mjs
       - .github/workflows/apply-blog-tracking-cleanup.yml
 
 permissions:
@@ -21,15 +21,16 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - run: node scripts/apply-blog-tracking-cleanup.mjs
+      - run: node scripts/apply-blog-tracking-cleanup2.mjs
       - name: Remove one-time helpers
         run: |
           rm scripts/apply-blog-tracking-cleanup.mjs
+          rm scripts/apply-blog-tracking-cleanup2.mjs
           rm .github/workflows/apply-blog-tracking-cleanup.yml
       - name: Commit final static changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add blog.html tracking.html data/tracking-carriers.json js/tracking-air-simple.js scripts/apply-blog-tracking-cleanup.mjs .github/workflows/apply-blog-tracking-cleanup.yml
+          git add blog.html tracking.html data/tracking-carriers.json js/tracking-air-simple.js scripts/apply-blog-tracking-cleanup.mjs scripts/apply-blog-tracking-cleanup2.mjs .github/workflows/apply-blog-tracking-cleanup.yml
           git commit -m "Simplify Blog and Air tracking"
           git push
