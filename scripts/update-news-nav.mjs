@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+// One-time static navigation normalization. Safe to rerun on every news workflow.
 const root = process.cwd();
 let changed = 0;
 
