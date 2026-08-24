@@ -1,3 +1,15 @@
+(() => {
+  "use strict";
+
+  if (!document.querySelector('script[data-reference-dropdown]')) {
+    const navScript = document.createElement("script");
+    navScript.src = "js/reference-dropdown.js";
+    navScript.defer = true;
+    navScript.dataset.referenceDropdown = "true";
+    document.head.appendChild(navScript);
+  }
+})();
+
 document.addEventListener("DOMContentLoaded", async () => {
   const ticker = document.getElementById("fxTicker");
   if (!ticker) return;
