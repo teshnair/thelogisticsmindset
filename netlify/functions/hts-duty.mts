@@ -1,6 +1,6 @@
 const USITC_SEARCH = "https://hts.usitc.gov/reststop/search";
 const COLUMN_2 = new Set(["BY", "CU", "KP", "RU"]);
-const BUILD_VERSION = "2026-08-24-screening-v7";
+const BUILD_VERSION = "2026-08-24-auto-fees-conditional-review-v8";
 
 const FTA_PROGRAM: Record<string, { symbol: string; name: string }> = {
   AU: { symbol: "AU", name: "U.S.-Australia FTA" },
@@ -25,11 +25,21 @@ const FTA_PROGRAM: Record<string, { symbol: string; name: string }> = {
   SG: { symbol: "SG", name: "U.S.-Singapore FTA" },
 };
 
-// FY2026 import user-fee rates.
-const MPF_RATE = 0.003464;
-const MPF_MIN = 33.58;
-const MPF_MAX = 651.50;
-const HMF_RATE = 0.00125;
+// Official CBP user-fee sources. The function attempts to read these live on
+// each calculation request. The fallback values are only used when the CBP
+// pages cannot be reached or parsed.
+const CBP_MPF_URL =
+  "https://www.help.cbp.gov/s/article/Article-1128?language=en_US";
+const CBP_HMF_URL =
+  "https://www.help.cbp.gov/s/article/Article-1225?language=en_US";
+
+const FALLBACK_USER_FEES = {
+  fiscalYear: 2026,
+  mpfRate: 0.003464,
+  mpfMin: 33.58,
+  mpfMax: 651.50,
+  hmfRate: 0.00125,
+};
 
 function digits(value: unknown): string {
   return String(value ?? "").replace(/\D/g, "");
@@ -41,6 +51,146 @@ function cleanText(value: unknown): string | null {
     .replace(/\s+/g, " ")
     .trim();
   return text || null;
+}
+
+
+function htmlToPlainText(value: string): string {
+  return value
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&#36;|&dollar;/gi, "$")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parsePercentNumber(value: string | undefined): number | null {
+  if (!value) return null;
+  const n = Number(value.replace(/,/g, ""));
+  return Number.isFinite(n) ? n / 100 : null;
+}
+
+function parseMoneyNumber(value: string | undefined): number | null {
+  if (!value) return null;
+  const n = Number(value.replace(/,/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseCbpUserFees(mpfHtml: string, hmfHtml: string) {
+  const mpfText = htmlToPlainText(mpfHtml);
+  const hmfText = htmlToPlainText(hmfHtml);
+
+  const fiscalYearMatch = mpfText.match(/fiscal\s+year\s+(20\d{2})/i);
+
+  const mpfRateMatch =
+    mpfText.match(
+      /MPF\s+for\s+formal\s+entries[\s\S]{0,180}?ad\s+valorem\s+fee\s+of\s+(\d+(?:\.\d+)?)\s*percent/i
+    ) ||
+    mpfText.match(
+      /formal\s+entries[\s\S]{0,180}?(\d+(?:\.\d+)?)\s*percent/i
+    );
+
+  const mpfMinMatch =
+    mpfText.match(
+      /(?:shall\s+not\s+be\s+less\s+than|minimum(?:\s+amount)?(?:\s+of)?)[\s:$]*\$?\s*([\d,]+(?:\.\d+)?)/i
+    );
+
+  const mpfMaxMatch =
+    mpfText.match(
+      /(?:shall\s+not\s+exceed|maximum(?:\s+amount)?(?:\s+of)?)[\s:$]*\$?\s*([\d,]+(?:\.\d+)?)/i
+    );
+
+  const hmfRateMatch =
+    hmfText.match(
+      /HMF[\s\S]{0,220}?(\d*\.?\d+)\s*percent/i
+    ) ||
+    hmfText.match(
+      /Harbor\s+Maintenance\s+Fee[\s\S]{0,220}?(\d*\.?\d+)\s*percent/i
+    );
+
+  const fiscalYear = fiscalYearMatch
+    ? Number(fiscalYearMatch[1])
+    : null;
+  const mpfRate = parsePercentNumber(mpfRateMatch?.[1]);
+  const mpfMin = parseMoneyNumber(mpfMinMatch?.[1]);
+  const mpfMax = parseMoneyNumber(mpfMaxMatch?.[1]);
+  const hmfRate = parsePercentNumber(hmfRateMatch?.[1]);
+
+  if (
+    !fiscalYear ||
+    mpfRate == null ||
+    mpfMin == null ||
+    mpfMax == null ||
+    hmfRate == null
+  ) {
+    return null;
+  }
+
+  return {
+    fiscalYear,
+    mpfRate,
+    mpfMin,
+    mpfMax,
+    hmfRate,
+  };
+}
+
+async function fetchOfficialUserFees() {
+  try {
+    const fetchOptions = {
+      headers: {
+        "User-Agent":
+          "TheLogisticsMindset-HTS-Screening/1.0 (+https://riteshnair.com)",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      signal: AbortSignal.timeout(4500),
+    };
+
+    const [mpfRes, hmfRes] = await Promise.all([
+      fetch(CBP_MPF_URL, fetchOptions),
+      fetch(CBP_HMF_URL, fetchOptions),
+    ]);
+
+    if (!mpfRes.ok || !hmfRes.ok) {
+      throw new Error(
+        `CBP fee source returned ${mpfRes.status}/${hmfRes.status}`
+      );
+    }
+
+    const [mpfHtml, hmfHtml] = await Promise.all([
+      mpfRes.text(),
+      hmfRes.text(),
+    ]);
+
+    const parsed = parseCbpUserFees(mpfHtml, hmfHtml);
+    if (!parsed) {
+      throw new Error("CBP fee pages could not be parsed.");
+    }
+
+    return {
+      ...parsed,
+      sourceMode: "live",
+      sourceLabel: "U.S. Customs and Border Protection",
+      mpfSourceUrl: CBP_MPF_URL,
+      hmfSourceUrl: CBP_HMF_URL,
+      retrievedAt: new Date().toISOString(),
+      fallbackUsed: false,
+    };
+  } catch (error: any) {
+    return {
+      ...FALLBACK_USER_FEES,
+      sourceMode: "fallback",
+      sourceLabel:
+        "Last verified CBP user-fee schedule (live CBP lookup unavailable)",
+      mpfSourceUrl: CBP_MPF_URL,
+      hmfSourceUrl: CBP_HMF_URL,
+      retrievedAt: new Date().toISOString(),
+      fallbackUsed: true,
+      fallbackReason: error?.message ?? "Unknown fee-source error",
+    };
+  }
 }
 
 function formatHts(value: unknown): string | null {
@@ -737,7 +887,10 @@ export default async (req: Request) => {
       );
     }
 
-    const rows = await fetchHierarchy(hts);
+    const [rows, userFees] = await Promise.all([
+      fetchHierarchy(hts),
+      fetchOfficialUserFees(),
+    ]);
     const selected = pickTargetRow(rows, hts);
 
     if (!selected) {
@@ -823,11 +976,14 @@ export default async (req: Request) => {
     );
 
     let mpf = Math.min(
-      MPF_MAX,
-      Math.max(MPF_MIN, customsValue * MPF_RATE)
+      userFees.mpfMax,
+      Math.max(userFees.mpfMin, customsValue * userFees.mpfRate)
     );
     let mpfNote =
-      "FY2026 formal-entry MPF: 0.3464%, subject to $33.58 minimum and $651.50 maximum.";
+      `FY${userFees.fiscalYear} formal-entry MPF: ` +
+      `${(userFees.mpfRate * 100).toFixed(4)}%, subject to ` +
+      `$${userFees.mpfMin.toFixed(2)} minimum and ` +
+      `$${userFees.mpfMax.toFixed(2)} maximum.`;
 
     if (preferenceUsed && ["CA", "MX"].includes(country)) {
       mpf = 0;
@@ -835,7 +991,8 @@ export default async (req: Request) => {
         "USMCA-qualified goods are treated here as MPF-exempt; confirm the claim requirements on the entry.";
     }
 
-    const hmf = mode === "ocean" ? customsValue * HMF_RATE : 0;
+    const hmf =
+      mode === "ocean" ? customsValue * userFees.hmfRate : 0;
 
     const footnotes = [
       ...new Set(
@@ -874,7 +1031,7 @@ export default async (req: Request) => {
     const ruleBasedMeasures = [...section232, ...section301];
     const applicableAdditionalMeasures = [...ruleBasedMeasures];
 
-    const quotaScreenText = [
+    const screeningText = [
       ...rows.map((row: any) =>
         [
           cleanText(row?.description),
@@ -889,10 +1046,92 @@ export default async (req: Request) => {
       ...footnotes,
     ].join(" ");
 
-    const quotaIndicatorFound =
-      /\bquota\b|tariff[- ]rate quota|\bTRQ\b|in[- ]quota|over[- ]quota|quota quantity/i.test(
-        quotaScreenText
+    const selectedCountryName =
+      new Intl.DisplayNames(["en"], { type: "region" }).of(country) ??
+      country;
+
+    // AD/CVD is shown only when the returned government data itself contains
+    // an AD/CVD-related signal. HTS alone is not treated as proof of scope.
+    const adCvdCaseReferences = [
+      ...new Set(
+        [...screeningText.matchAll(/\b[AC]-\d{3}-\d{3}\b/g)].map(
+          (m) => m[0]
+        )
+      ),
+    ];
+
+    const adCvdTextSignal =
+      /\banti[- ]?dumping\b|\bcountervailing\b|\bAD\/CVD\b/i.test(
+        screeningText
       );
+
+    const CASE_COUNTRY_BY_PREFIX: Record<string, string> = {
+      "570": "CN",
+      "122": "CA",
+      "201": "MX",
+      "580": "KR",
+      "533": "IN",
+      "552": "VN",
+      "475": "IT",
+      "583": "TW",
+      "489": "TR",
+      "588": "JP",
+      "520": "AE",
+      "557": "MY",
+      "469": "ES",
+      "423": "BE",
+      "301": "CO",
+      "428": "DE",
+      "421": "NL",
+      "412": "GB",
+      "821": "RU",
+      "549": "TH",
+      "560": "ID",
+      "351": "BR",
+      "357": "AR",
+    };
+
+    const adCvdCaseCountryMatches =
+      adCvdCaseReferences.length > 0 &&
+      adCvdCaseReferences.some((caseNo) => {
+        const prefix = caseNo.split("-")[1];
+        const caseCountry = CASE_COUNTRY_BY_PREFIX[prefix];
+        return caseCountry ? caseCountry === country : false;
+      });
+
+    const countryNamedInAdCvdText =
+      adCvdTextSignal &&
+      screeningText.toLowerCase().includes(
+        String(selectedCountryName).toLowerCase()
+      );
+
+    const adCvdIndicatorFound =
+      adCvdTextSignal &&
+      (adCvdCaseCountryMatches || countryNamedInAdCvdText);
+
+    // Quota / TRQ is shown only when the returned HTS data has a quota signal.
+    // If the note names the selected origin country, that is treated as a
+    // stronger country-specific match. Country-neutral quota notes still show.
+    const quotaIndicatorFound =
+      /\bquota\b|tariff[- ]rate quota|\bTRQ\b|in[- ]quota|over[- ]quota|quota quantity|tariff preference level|\bTPL\b/i.test(
+        screeningText
+      );
+
+    const quotaCountryNamed =
+      quotaIndicatorFound &&
+      screeningText.toLowerCase().includes(
+        String(selectedCountryName).toLowerCase()
+      );
+
+    const quotaAppearsCountrySpecific =
+      quotaIndicatorFound &&
+      /\b(country|countries|origin|product of|products of)\b/i.test(
+        screeningText
+      );
+
+    const quotaApplicableSignal =
+      quotaIndicatorFound &&
+      (!quotaAppearsCountrySpecific || quotaCountryNamed);
 
     const steelMeltPourReview = {
       mayApply: section232.length > 0,
@@ -908,28 +1147,66 @@ export default async (req: Request) => {
           : null,
     };
 
+    const identifiedChapter99 = new Set(
+      ruleBasedMeasures
+        .map((measure: any) => cleanText(measure?.hts))
+        .filter(Boolean)
+    );
+
+    const otherChapter99References = chapter99References.filter(
+      (ref) => !identifiedChapter99.has(ref)
+    );
+
+    const otherImportStatements = footnotes.filter((note) =>
+      /\b(required|requirement|certificate|certification|license|permit|visa|reporting|documentation|restricted|restriction|prohibited|exclusion|see\s+(?:chapter|subchapter|u\.?s\.?\s+note)|partner government agency|PGA)\b/i.test(
+        note
+      )
+    );
+
+    const otherImportSignalFound =
+      otherChapter99References.length > 0 ||
+      otherImportStatements.length > 0;
+
     const screeningChecks = {
       adCvd: {
-        mayApply: true,
-        status: "review",
+        mayApply: adCvdIndicatorFound,
+        status: adCvdIndicatorFound ? "potential-match" : "not-signaled",
+        caseReferences: adCvdIndicatorFound
+          ? adCvdCaseReferences
+          : [],
         rateBasis:
-          "If a general rate is displayed, it is an all-others, China-wide, or country-wide cash deposit rate for reference only.",
+          adCvdIndicatorFound
+            ? "Any general rate displayed should be treated as an all-others, China-wide, or country-wide cash deposit rate for reference only."
+            : null,
         note:
-          "AD/CVD applicability is controlled by the scope of the order and may depend on manufacturer/exporter and other product facts. The displayed general rate may or may not apply to the shipment.",
+          adCvdIndicatorFound
+            ? "The returned government data contains an AD/CVD indicator that matches the selected country of origin. Scope and the manufacturer/exporter-specific cash deposit rate still require confirmation."
+            : null,
       },
       quota: {
-        mayApply: true,
-        status: quotaIndicatorFound ? "potential-indicator" : "review",
-        htsIndicatorFound: quotaIndicatorFound,
+        mayApply: quotaApplicableSignal,
+        status: quotaApplicableSignal
+          ? quotaCountryNamed
+            ? "country-match"
+            : "potential-match"
+          : "not-signaled",
+        htsIndicatorFound: quotaApplicableSignal,
+        countryMatch: quotaCountryNamed,
         note:
-          "Quota, tariff-rate quota (TRQ), absolute quota, tariff preference level, or similar restrictions may apply. Availability and duty treatment can depend on HTS, country, quantity, entry date, and current quota status.",
+          quotaApplicableSignal
+            ? "The returned HTS data contains a quota/TRQ-related indicator applicable or potentially applicable to the selected country of origin. Confirm the current quota program, quantity limits, fill status, and entry treatment."
+            : null,
       },
       steelMeltPour: steelMeltPourReview,
       otherCbp: {
-        mayApply: true,
-        status: "review",
+        mayApply: otherImportSignalFound,
+        status: otherImportSignalFound ? "specific-signal" : "not-signaled",
+        chapter99References: otherChapter99References,
+        statements: otherImportStatements.slice(0, 8),
         note:
-          "Additional CBP requirements, Chapter 99 provisions, exclusions, special programs, reporting requirements, documentation requirements, Partner Government Agency requirements, or other trade measures may apply.",
+          otherImportSignalFound
+            ? "The returned HTS data contains additional notes, Chapter 99 references, documentation, reporting, licensing, restriction, or similar import statements that require review."
+            : null,
       },
     };
 
@@ -1022,8 +1299,21 @@ export default async (req: Request) => {
           mpf,
           mpfNote,
           hmf,
-          hmfRatePercent: mode === "ocean" ? 0.125 : 0,
+          hmfRatePercent: mode === "ocean" ? userFees.hmfRate * 100 : 0,
           totalEstimatedImportCharges,
+        },
+        fees: {
+          fiscalYear: userFees.fiscalYear,
+          mpfRatePercent: userFees.mpfRate * 100,
+          mpfMinimum: userFees.mpfMin,
+          mpfMaximum: userFees.mpfMax,
+          hmfRatePercent: userFees.hmfRate * 100,
+          sourceMode: userFees.sourceMode,
+          sourceLabel: userFees.sourceLabel,
+          mpfSourceUrl: userFees.mpfSourceUrl,
+          hmfSourceUrl: userFees.hmfSourceUrl,
+          retrievedAt: userFees.retrievedAt,
+          fallbackUsed: userFees.fallbackUsed,
         },
         review: {
           footnotes,
@@ -1059,6 +1349,9 @@ export default async (req: Request) => {
           section232MeasureCount: section232.length,
           section301MeasureCount: section301.length,
           quotaIndicatorFound,
+          quotaApplicableSignal,
+          adCvdIndicatorFound,
+          otherImportSignalFound,
         },
         disclaimer:
           "General informational screening only. Actual classification, duties, additional tariffs, AD/CVD, quotas, Section 232/301 treatment, reporting requirements and other import requirements depend on shipment-specific facts and current regulations. Consult your customs broker before entry.",
