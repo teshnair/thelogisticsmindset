@@ -33,6 +33,25 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 .section-title{color:var(--primary-color);border-left:5px solid var(--primary-color);padding-left:12px;margin:26px 0 12px;text-transform:uppercase;font-size:.93rem;letter-spacing:.8px}.rate-table,.class-table{width:100%;border-collapse:collapse}.rate-table th,.rate-table td,.class-table th,.class-table td{text-align:left;border-bottom:1px solid #e7ebef;padding:10px 8px;vertical-align:top}.rate-table th,.class-table th{width:28%;color:var(--primary-color);font-size:.87rem}.rate-table td,.class-table td{overflow-wrap:anywhere}
 .notice{padding:12px 14px;border-radius:4px;margin-top:12px;font-size:.9rem}.notice.warn{background:#fff7e6;border-left:4px solid #d99a20;color:#6b4b00}.notice.ok{background:#eef9f3;border-left:4px solid #3a9d65;color:#245c3d}.notice.info{background:#eef5ff;border-left:4px solid var(--accent-color);color:#264d75}.notice.danger{background:#fff1f1;border-left:4px solid #c84848;color:#7d2525}
 .hidden{display:none!important}.ch99{margin:8px 0;padding:10px;background:#fafafa;border:1px solid #e6e6e6;border-radius:4px}.ch99 strong{color:var(--primary-color)}.tiny{font-size:.8rem;color:var(--muted)}.source-note{margin-top:18px;font-size:.86rem;color:var(--muted)}.source-note a{color:var(--accent-color)}footer{text-align:center;color:#666;font-size:.9rem;margin:50px 0 25px}
+
+.review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.review-card{border:1px solid #e1e6eb;border-radius:5px;padding:14px;background:#fff}
+.review-card h4{margin:0 0 8px;color:var(--primary-color);font-size:.96rem}
+.review-card p{margin:6px 0;font-size:.88rem;color:#444}
+.review-card .review-detail{font-size:.82rem;color:var(--muted);margin-top:8px}
+.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:.72rem;font-weight:800;letter-spacing:.45px;text-transform:uppercase;margin-bottom:8px}
+.badge.identified{background:#e8f6ee;color:#22633e}
+.badge.review{background:#fff3d6;color:#765000}
+.badge.info{background:#e9f2ff;color:#285b91}
+.badge.none{background:#f0f2f4;color:#59636e}
+.summary-grid.trade-summary{grid-template-columns:repeat(4,minmax(0,1fr))}
+.summary-grid.trade-summary .metric.total{grid-column:span 2}
+.disclaimer-box{margin-top:18px;padding:14px;border:1px solid #d7dde3;border-radius:5px;background:#f7f8fa;font-size:.86rem;color:#4d5660}
+.disclaimer-box strong{color:var(--primary-color)}
+.assumption-note{margin-top:7px;font-size:.8rem;color:#7a5a00}
+@media(max-width:800px){.review-grid{grid-template-columns:1fr}.summary-grid.trade-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-grid.trade-summary .metric.total{grid-column:span 2}}
+@media(max-width:640px){.summary-grid.trade-summary{grid-template-columns:1fr}.summary-grid.trade-summary .metric.total{grid-column:auto}}
+
 @media(max-width:800px){.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.container{margin:24px auto;padding:0 14px}h1{font-size:1.8rem}.grid,.summary-grid{grid-template-columns:1fr}.full{grid-column:auto}.result-header{display:block}.hts-pill{display:inline-block;margin-top:10px}.rate-table th,.class-table th{width:37%}}
 @media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{background:#fff}.tool-card,.back-link,.actions{display:none!important}}
 </style>
@@ -130,19 +149,56 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 <tr><th>Units</th><td id="units"></td></tr>
 </tbody></table>
 
-<div class="summary-grid">
+<div class="summary-grid trade-summary">
   <div class="metric"><span>Base duty</span><strong id="baseDuty"></strong></div>
-  <div class="metric"><span>Additional tariffs</span><strong id="additionalDuty"></strong></div>
+  <div class="metric"><span>Section 232*</span><strong id="section232Duty"></strong></div>
+  <div class="metric"><span>Section 301</span><strong id="section301Duty"></strong></div>
+  <div class="metric"><span>Other additional tariffs</span><strong id="otherAdditionalDuty"></strong></div>
   <div class="metric"><span>MPF</span><strong id="mpf"></strong></div>
   <div class="metric"><span>HMF</span><strong id="hmf"></strong></div>
-  <div class="metric total"><span>Estimated charges</span><strong id="total"></strong></div>
+  <div class="metric total"><span>Estimated identified charges</span><strong id="total"></strong></div>
 </div>
+<div class="helper">* Section 232 amount is illustrative when melt/pour information is relevant. See the review section below.</div>
 <div id="calcNotice" class="notice info"></div>
 <div id="preferenceNotice" class="notice ok hidden"></div>
 
-<h3 class="section-title" id="additionalTitle">Additional duties</h3>
+<h3 class="section-title" id="additionalTitle">Identified additional duties</h3>
 <div id="additionalReview"></div>
-<div class="notice warn"><strong>Important:</strong> This is a screening estimate, not an entry calculation or binding classification. Chapter 99 measures, Section 301/232, exclusions, quotas, antidumping/countervailing duties, excise taxes and entry-specific facts may change the amount due.</div>
+
+<h3 class="section-title">Additional requirements to review</h3>
+<div class="review-grid">
+  <div class="review-card" id="adCvdCard">
+    <span class="badge review">May apply</span>
+    <h4>Antidumping / Countervailing Duties</h4>
+    <p id="adCvdText"></p>
+    <div class="review-detail">Where a general rate is shown, it should be treated as an all-others, China-wide, or country-wide cash deposit rate for reference only. It may or may not apply to your merchandise.</div>
+  </div>
+
+  <div class="review-card" id="quotaCard">
+    <span class="badge review" id="quotaBadge">May apply</span>
+    <h4>Quota / TRQ</h4>
+    <p id="quotaText"></p>
+    <div class="review-detail">Quota availability and duty treatment can change based on quantity, country, entry date, preference program, and current quota fill status.</div>
+  </div>
+
+  <div class="review-card hidden" id="meltPourCard">
+    <span class="badge info">Information required</span>
+    <h4>Steel Melt &amp; Pour</h4>
+    <p id="meltPourText"></p>
+    <div class="review-detail" id="meltPourRate"></div>
+  </div>
+
+  <div class="review-card" id="cbpCard">
+    <span class="badge review">Review</span>
+    <h4>Other CBP / Import Requirements</h4>
+    <p id="cbpText"></p>
+    <div class="review-detail">Shipment-specific requirements can include documentation, reporting, Chapter 99, exclusions, special programs, Partner Government Agency requirements, and other restrictions.</div>
+  </div>
+</div>
+
+<div class="disclaimer-box">
+  <strong>Important:</strong> This calculator provides general informational and screening guidance only. It is intended to help identify potential duty rates and additional areas that may require review. Actual classification, duties, additional tariffs, AD/CVD, quotas, Section 232 treatment, Section 301 treatment, reporting requirements and other import requirements depend on shipment-specific facts and current regulations. Consult your customs broker for shipment-specific guidance before entry.
+</div>
 
 <div class="actions">
   <button class="secondary" type="button" id="copyBtn">Copy results</button>
@@ -161,6 +217,91 @@ const countryEl = $('country');
 const dn = new Intl.DisplayNames(['en'], { type: 'region' });
 const money = value => value == null ? 'Not calculated' : new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(value);
 const text = value => value == null || value === '' ? '—' : String(value);
+
+const CLIENT_RULESET_VERSION = '2026-08-24-trade-measures-v6';
+
+const CLIENT_SEC232_PREFIXES = [
+  '7206','7207','7208','7209','7210','7211','7212','7213','7214','7215',
+  '72161000','72162100','72162200','72163100','72163200','72163300',
+  '72164000','72165000','72169900',
+  '7217','7218','7219','7220','7221','7222','7223','7224','7225','7226','7227','7228','7229',
+  '73011000','730210','73024000','730290','7304','7305','7306',
+  '7216910010','73012010','73012050','73023000','73071930','73071990',
+  '73072110','73072150','73072210','73072250','73072300','73072900',
+  '73079110','73079130','73079150','73079230','73079290','73079330','73079360','73079390',
+  '73079910','73079930','73079950','73081000','73082000','73083010','73083050',
+  '73084000','73089030','73089060','73089070','73089095','73090000'
+];
+
+const CLIENT_CHINA_301_25_99038803 = new Set([
+  '72011000','72012000','72015030','72015060',
+  '72021110','72021150','72021910','72021950',
+  '72022110','72022150','72022175','72022190',
+  '72022900','72023000','72024100','72024910','72024950','72025000',
+  '72028000','72029100','72029200','72029910','72029920',
+  '72031000','72039000','72041000','72042100','72042900','72043000',
+  '72044100','72044900','72045000','72051000','72052100','72052900'
+]);
+
+const CLIENT_CHINA_301_25_99039101 = new Set([
+  '72026000','72029340','72029380',
+  '72061000','72069000','72071100','72071200','72071900','72072000',
+  '72081015','72081030','72081060','72082530','72082560','72082600','72082700',
+  '72083600','72083700','72083800','72083900','72084030','72084060',
+  '72085100','72085200','72085300','72085400','72089000',
+  '72091500','72091600','72091700','72091815','72091825','72091860',
+  '72092500','72092600','72092700','72092800','72099000',
+  '72101100','72101200','72102000','72103000','72104100','72104900',
+  '72105000','72106100','72106900','72107030','72107060'
+]);
+
+function clientTradeMeasureFallbacks(data) {
+  const measures = [];
+  const code = String(data?.query?.hts || '').replace(/\D/g, '');
+  const code8 = code.slice(0, 8);
+  const country = String(data?.query?.country || '').toUpperCase();
+  const customsValue = Number(data?.query?.customsValue || 0);
+
+  if (CLIENT_SEC232_PREFIXES.some(prefix => code.startsWith(prefix))) {
+    measures.push({
+      program: 'Section 232',
+      hts: country === 'RU' ? '9903.82.14' : '9903.82.02',
+      description: 'Steel article or derivative steel article identified by the current Section 232 steel rule set.',
+      applicableRate: '+50%',
+      amount: Number.isFinite(customsValue) ? customsValue * 0.50 : null,
+      tariffTreatment: 'Illustrative Section 232 treatment if the selected country of origin is also the country of first melt and pour.',
+      illustrativeAssumption: 'Selected country of origin is assumed to be the first melt/pour country for this estimate.',
+      clientFallback: true
+    });
+  }
+
+  if (country === 'CN') {
+    if (CLIENT_CHINA_301_25_99038803.has(code8)) {
+      measures.push({
+        program: 'Section 301',
+        hts: '9903.88.03',
+        description: `Product of China classified in ${code8.slice(0,4)}.${code8.slice(4,6)}.${code8.slice(6,8)} is covered by the current Section 301 mapping in this rule set.`,
+        applicableRate: '+25%',
+        amount: Number.isFinite(customsValue) ? customsValue * 0.25 : null,
+        tariffTreatment: 'Section 301 additional duty for products of China',
+        clientFallback: true
+      });
+    } else if (CLIENT_CHINA_301_25_99039101.has(code8)) {
+      measures.push({
+        program: 'Section 301',
+        hts: '9903.91.01',
+        description: `Product of China classified in ${code8.slice(0,4)}.${code8.slice(4,6)}.${code8.slice(6,8)} is covered by the current Section 301 mapping in this rule set.`,
+        applicableRate: '+25%',
+        amount: Number.isFinite(customsValue) ? customsValue * 0.25 : null,
+        tariffTreatment: 'Section 301 additional duty for products of China',
+        clientFallback: true
+      });
+    }
+  }
+
+  return measures;
+}
+
 
 ISO_CODES.map(code => [code, dn.of(code) || code]).sort((a,b) => a[1].localeCompare(b[1])).forEach(([code,name]) => {
   const option = document.createElement('option');
@@ -351,41 +492,79 @@ function render(data) {
     ? [...data.review.applicableAdditionalMeasures]
     : [];
 
-  let clientFallbackAmount = 0;
-  if (!measures.some(m => String(m?.program || '').toLowerCase() === 'section 232')) {
-    const fallback232 = clientSection232Fallback(data);
-    if (fallback232) {
-      measures.unshift(fallback232);
-      clientFallbackAmount = Number(fallback232.amount || 0);
+  // Fill only missing programs from the browser rule set. This protects the
+  // visible estimate from a stale function deploy without double counting.
+  const fallbackMeasures = clientTradeMeasureFallbacks(data);
+  const existingPrograms = new Set(
+    measures.map(m => String(m?.program || '').toLowerCase())
+  );
+
+  fallbackMeasures.forEach(m => {
+    if (!existingPrograms.has(String(m.program || '').toLowerCase())) {
+      measures.push(m);
+      existingPrograms.add(String(m.program || '').toLowerCase());
     }
-  }
+  });
 
-  const backendAdditional = Number(data.estimate.knownAdditionalDuty ?? 0);
-  const displayAdditional = backendAdditional + clientFallbackAmount;
-  const displayTotal = data.estimate.totalEstimatedImportCharges == null
+  const sumProgram = name => measures
+    .filter(m => String(m?.program || '').toLowerCase() === name.toLowerCase())
+    .reduce((sum, m) => sum + Number(m?.amount || 0), 0);
+
+  const section232Amount = sumProgram('Section 232');
+  const section301Amount = sumProgram('Section 301');
+  const allMeasureAmount = measures.reduce(
+    (sum, m) => sum + Number(m?.amount || 0),
+    0
+  );
+
+  // Per-line additional duties returned directly by the HTS row, if parseable.
+  const backendPerLineAdditional = Number(data.estimate.otherAdditionalDuty ?? data.estimate.additionalDutyIncluded ?? 0);
+
+  const knownProgramAmount = section232Amount + section301Amount;
+  const otherMeasureAmount = Math.max(0, allMeasureAmount - knownProgramAmount);
+  const otherAdditionalAmount = otherMeasureAmount + backendPerLineAdditional;
+  const displayAdditional = section232Amount + section301Amount + otherAdditionalAmount;
+
+  // Recompute the visible total from the visible components.
+  const base = Number(data.estimate.baseDuty ?? 0);
+  const mpf = Number(data.estimate.mpf ?? 0);
+  const hmf = Number(data.estimate.hmf ?? 0);
+  const displayTotal = data.estimate.baseDuty == null
     ? null
-    : Number(data.estimate.totalEstimatedImportCharges) + clientFallbackAmount;
+    : base + displayAdditional + mpf + hmf;
 
-  $('additionalDuty').textContent = money(displayAdditional);
+  $('section232Duty').textContent = money(section232Amount);
+  $('section301Duty').textContent = money(section301Amount);
+  $('otherAdditionalDuty').textContent = money(otherAdditionalAmount);
   $('total').textContent = money(displayTotal);
 
   if (measures.length) {
     const intro = document.createElement('div');
     intro.className = 'notice info';
-    intro.textContent = `Applicable additional trade measures identified for ${countryName}:`;
+    intro.textContent = `Additional trade measures identified by the current rule set for ${countryName}:`;
     review.appendChild(intro);
 
     measures.forEach(measure => {
       const div = document.createElement('div');
       div.className = 'ch99';
       const rate = measure.applicableRate || measure.rawRate || 'See provision';
-      const amountLine = measure.amount != null ? `<br><span class="tiny">Estimated additional duty: <strong>${escapeHtml(money(measure.amount))}</strong></span>` : '';
+      const amountLine = measure.amount != null
+        ? `<br><span class="tiny">Estimated additional duty: <strong>${escapeHtml(money(measure.amount))}</strong></span>`
+        : '';
+      const sourceLine = measure.ruleSource
+        ? `<br><span class="tiny">Rule source: ${escapeHtml(measure.ruleSource)}</span>`
+        : '';
+      const assumptionLine = measure.illustrativeAssumption
+        ? `<br><span class="assumption-note">${escapeHtml(measure.illustrativeAssumption)}</span>`
+        : '';
       const program = measure.program ? `${escapeHtml(measure.program)} — ` : '';
       const fallbackTag = measure.clientFallback ? ' <span class="tiny">(local rule fallback)</span>' : '';
       div.innerHTML = `<strong>${program}${escapeHtml(measure.hts || 'Chapter 99')} — ${escapeHtml(rate)}</strong>${fallbackTag}` +
         `${measure.description ? `<br>${escapeHtml(measure.description)}` : ''}` +
         `<br><span class="tiny">Applicable treatment for ${escapeHtml(countryName)}: ${escapeHtml(measure.tariffTreatment || 'published Chapter 99 treatment')}</span>` +
-        amountLine;
+        amountLine +
+        sourceLine +
+        assumptionLine;
       review.appendChild(div);
     });
   } else {
@@ -393,9 +572,47 @@ function render(data) {
     none.className = data.review.additionalTariffReviewRequired ? 'notice warn' : 'notice ok';
     none.textContent = data.review.additionalTariffReviewRequired
       ? `No additional trade-measure rate could be resolved automatically for ${countryName}. Verify current Chapter 99 measures before filing.`
-      : `No additional trade measure was identified for ${countryName} from the current rule set and linked HTS data.`;
+      : `No additional Chapter 99 trade measure was identified by the current rule set for ${countryName}. This does not confirm that no other measure applies.`;
     review.appendChild(none);
   }
+
+
+  const checks = data?.review?.screeningChecks || {};
+
+  // AD/CVD: intentionally a review warning, not a determination of scope.
+  $('adCvdText').textContent =
+    checks?.adCvd?.note ||
+    'AD/CVD may apply depending on the product scope, country, manufacturer/exporter, and current Commerce instructions. Confirm scope and the applicable cash deposit rate with your customs broker.';
+
+  // Quota / TRQ
+  const quotaIndicator = Boolean(checks?.quota?.htsIndicatorFound);
+  $('quotaBadge').textContent = quotaIndicator ? 'Potential indicator' : 'May apply';
+  $('quotaBadge').className = quotaIndicator ? 'badge identified' : 'badge review';
+  $('quotaText').textContent = quotaIndicator
+    ? 'The returned HTS information contains a quota-related indicator. Confirm the applicable quota/TRQ program, quantity limits, current fill status, and entry treatment.'
+    : (checks?.quota?.note ||
+       'Quota, tariff-rate quota (TRQ), absolute quota, tariff preference level, or similar restrictions may apply. Confirm whether the merchandise is subject to a current quota program.');
+
+  // Steel melt & pour
+  const melt = checks?.steelMeltPour || {};
+  const has232 = section232Amount > 0 || Boolean(melt?.mayApply);
+  $('meltPourCard').classList.toggle('hidden', !has232);
+  if (has232) {
+    const rate = measures.find(m => String(m?.program || '').toLowerCase() === 'section 232')?.applicableRate
+      || melt?.illustrativeRate
+      || 'See applicable Section 232 provision';
+
+    $('meltPourText').textContent =
+      `This HTS may require steel melt/pour information. The country where the steel was first melted and poured is not necessarily the same as the country of origin. Additional Section 232 duties may depend on the actual first melt/pour country.`;
+
+    $('meltPourRate').innerHTML =
+      `If the steel was first melted and poured in <strong>${escapeHtml(countryName)}</strong>, the illustrative Section 232 rate shown by this calculator is <strong>${escapeHtml(rate)}</strong>. This rate is provided only on that assumption.`;
+  }
+
+  // Other CBP / import requirements
+  $('cbpText').textContent =
+    checks?.otherCbp?.note ||
+    'Additional CBP requirements or other import requirements may apply based on the merchandise and shipment circumstances.';
 
   const unresolved = Array.isArray(data.review.unresolvedChapter99References)
     ? data.review.unresolvedChapter99References
@@ -431,7 +648,7 @@ $('copyBtn').addEventListener('click', async () => {
     `Base duty: ${money(data.estimate.baseDuty)}`,
     `MPF: ${money(data.estimate.mpf)}`,
     `HMF: ${money(data.estimate.hmf)}`,
-    `Estimated charges: ${money(data.estimate.totalEstimatedImportCharges)}`
+    `Estimated charges: ${$('total').textContent}`
   ].join('\n');
   await navigator.clipboard.writeText(out);
   $('copyBtn').textContent='Copied'; setTimeout(() => $('copyBtn').textContent='Copy results',1200);
