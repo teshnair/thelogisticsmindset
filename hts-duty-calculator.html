@@ -139,7 +139,7 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 <div id="calcNotice" class="notice info"></div>
 <div id="preferenceNotice" class="notice ok hidden"></div>
 
-<h3 class="section-title">Additional-duty review</h3>
+<h3 class="section-title" id="additionalTitle">Additional duties</h3>
 <div id="additionalReview"></div>
 <div class="notice warn"><strong>Important:</strong> This is a screening estimate, not an entry calculation or binding classification. Chapter 99 measures, Section 301/232, exclusions, quotas, antidumping/countervailing duties, excise taxes and entry-specific facts may change the amount due.</div>
 
@@ -170,7 +170,6 @@ ISO_CODES.map(code => [code, dn.of(code) || code]).sort((a,b) => a[1].localeComp
 
 function formatInput(value) {
   const d = String(value || '').replace(/\D/g,'').slice(0,10);
-  if (d.length > 8) return `${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6,8)}.${d.slice(8)}`;
   if (d.length > 6) return `${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6)}`;
   if (d.length > 4) return `${d.slice(0,4)}.${d.slice(4)}`;
   return d;
@@ -344,21 +343,45 @@ function render(data) {
 
   const review = $('additionalReview');
   review.innerHTML = '';
-  if (data.review.chinaOrigin) {
+  const countryName = dn.of(data.query.country) || data.query.country;
+  $('additionalTitle').textContent = `Additional duties — ${countryName}`;
+
+  const measures = Array.isArray(data.review.applicableAdditionalMeasures)
+    ? data.review.applicableAdditionalMeasures
+    : [];
+
+  if (measures.length) {
+    const intro = document.createElement('div');
+    intro.className = 'notice info';
+    intro.textContent = `Country-applicable Chapter 99 provisions resolved from the HTS data for ${countryName}:`;
+    review.appendChild(intro);
+
+    measures.forEach(measure => {
+      const div = document.createElement('div');
+      div.className = 'ch99';
+      const rate = measure.applicableRate || measure.rawRate || 'See provision';
+      div.innerHTML = `<strong>${escapeHtml(measure.hts || 'Chapter 99')} — ${escapeHtml(rate)}</strong>` +
+        `${measure.description ? `<br>${escapeHtml(measure.description)}` : ''}` +
+        `<br><span class="tiny">Applicable treatment for ${escapeHtml(countryName)}: ${escapeHtml(measure.tariffTreatment || 'published Chapter 99 treatment')}</span>`;
+      review.appendChild(div);
+    });
+  } else {
+    const none = document.createElement('div');
+    none.className = data.review.additionalTariffReviewRequired ? 'notice warn' : 'notice ok';
+    none.textContent = data.review.additionalTariffReviewRequired
+      ? `No country-applicable Chapter 99 rate could be resolved automatically for ${countryName} from the linked HTS provisions. Verify current Chapter 99 measures before filing.`
+      : `No country-applicable Chapter 99 provision was detected in the linked HTS data for ${countryName}.`;
+    review.appendChild(none);
+  }
+
+  const unresolved = Array.isArray(data.review.unresolvedChapter99References)
+    ? data.review.unresolvedChapter99References
+    : [];
+  if (unresolved.length) {
     const div = document.createElement('div');
     div.className = 'notice warn';
-    div.textContent = 'China origin: Column 1 General is the base tariff treatment. Separate Chapter 99 / Section 301 or other trade-remedy duties may also apply and must be reviewed independently.';
+    div.textContent = `Could not resolve the current published rate for: ${unresolved.join(', ')}. These provisions still require review.`;
     review.appendChild(div);
-  }
-  if (!data.review.additionalTariffReviewRequired) {
-    review.innerHTML += '<div class="notice ok">No additional-duty signal was detected in the returned HTS data. This is not proof that no Chapter 99, AD/CVD, quota or other measure applies.</div>';
-  } else {
-    (data.review.chapter99References || []).forEach(ref => {
-      const div = document.createElement('div'); div.className = 'ch99'; div.innerHTML = `<strong>${escapeHtml(ref)}</strong> — referenced in the returned HTS footnotes`; review.appendChild(div);
-    });
-    (data.review.chapter99Rows || []).forEach(row => {
-      const div = document.createElement('div'); div.className = 'ch99'; div.innerHTML = `<strong>${escapeHtml(row.hts || 'Chapter 99')}</strong><br>${escapeHtml(row.description || '')}<br><span class="tiny">Rate: ${escapeHtml(row.general || row.additionalDuties || 'see provision')}</span>`; review.appendChild(div);
-    });
   }
 
   window.__lastResult = data;
