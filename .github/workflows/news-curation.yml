@@ -44,12 +44,15 @@ jobs:
         run: node scripts/update-news-nav.mjs
 
       - name: Scan and curate global logistics news
+        id: curate_news
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEWS_MODEL: openai/gpt-4.1-mini
         run: node scripts/curate-news.mjs
 
       - name: Commit curated news and static navigation
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -60,3 +63,9 @@ jobs:
           fi
           git commit -m "Update global logistics news"
           git push
+
+      - name: Report curation failure
+        if: steps.curate_news.outcome == 'failure'
+        run: |
+          echo "Global news curation failed; previously published news was preserved."
+          exit 1
