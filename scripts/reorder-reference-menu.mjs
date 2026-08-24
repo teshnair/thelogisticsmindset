@@ -1,3 +1,4 @@
+// Final one-time reorder across LF and CRLF pages.
 import fs from 'node:fs';
 import path from 'node:path';
 
