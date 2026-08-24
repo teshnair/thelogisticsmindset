@@ -1,6 +1,6 @@
 const USITC_SEARCH = "https://hts.usitc.gov/reststop/search";
 const COLUMN_2 = new Set(["BY", "CU", "KP", "RU"]);
-const BUILD_VERSION = "2026-08-24-auto-fees-conditional-review-v8";
+const BUILD_VERSION = "2026-08-24-melt-pour-v9";
 
 const FTA_PROGRAM: Record<string, { symbol: string; name: string }> = {
   AU: { symbol: "AU", name: "U.S.-Australia FTA" },
@@ -717,6 +717,29 @@ const SECTION_232_STEEL_PREFIXES = [
   "7326908635","7326908645","7326908688"
 ];
 
+const SECTION_232_STEEL_DERIVATIVE_PREFIXES = [
+  "7216910010", "73012010", "73012050", "73023000", "73071930", "73071990", "73072110",
+  "73072150", "73072210", "73072250", "73072300", "73072900", "73079110", "73079130",
+  "73079150", "73079230", "73079290", "73079330", "73079360", "73079390", "73079910",
+  "73079930", "73079950", "73081000", "73082000", "73083010", "73083050", "73084000",
+  "73089030", "73089060", "73089070", "73089095", "73090000", "73101000", "73102100",
+  "73102900", "73110000", "73121005", "73121010", "73121020", "73121030", "73121050",
+  "73121060", "73121070", "73121080", "73121090", "73129000", "73130000", "73141210",
+  "73141220", "73141230", "73141260", "73141290", "73141410", "73141420", "73141430",
+  "73141460", "73141490", "73141901", "73142000", "73143110", "73143150", "73143900",
+  "73144100", "73144200", "73144930", "73144960", "73145000", "73151100", "73151200",
+  "73151900", "73152010", "73152050", "73158100", "73158210", "73158230", "73158250",
+  "73158270", "73158910", "73158930", "73158950", "73159000", "73160000", "73170010",
+  "73170020", "73170030", "73170055", "73170065", "73170075", "73181100", "73181200",
+  "73181300", "73181410", "73181450", "73181520", "73181540", "73181550", "73181560",
+  "73181580", "73181600", "73181900", "73182100", "73182200", "73182300", "73182400",
+  "73182900", "73194020", "73194030", "73194050", "73199010", "73199090", "73201030",
+  "73201060", "73201090", "73202010", "7320205045", "73209010", "73209050", "7325100010",
+  "7325100020", "7325100025", "7325100030", "7325100080", "73259100", "73259910", "73259950",
+  "73261100", "73261900", "7326200090", "73269010", "73269025", "73269060", "7326908605",
+  "7326908610", "7326908630", "7326908635", "7326908645", "7326908688",
+];
+
 
 // Verified China Section 301 mappings used by this calculator.
 // The resolver works at the 8-digit HTS subheading level, because Section 301
@@ -795,34 +818,76 @@ function isSection232Steel(hts: string): boolean {
   return SECTION_232_STEEL_PREFIXES.some((prefix) => code.startsWith(prefix));
 }
 
+function isSection232SteelDerivative(hts: string): boolean {
+  const code = digits(hts);
+  return SECTION_232_STEEL_DERIVATIVE_PREFIXES.some((prefix) =>
+    code.startsWith(prefix)
+  );
+}
+
 function section232Measures(
   hts: string,
-  country: string,
-  customsValue: number
+  originCountry: string,
+  meltPourCountry: string,
+  customsValue: number,
+  meltPourAssumed: boolean
 ): any[] {
   if (!isSection232Steel(hts)) return [];
 
-  const chapter99 = country === "RU" ? "9903.82.14" : "9903.82.02";
-  const ratePercent = 50;
+  const derivative = isSection232SteelDerivative(hts);
+
+  let chapter99 = originCountry === "RU" ? "9903.82.14" : "9903.82.02";
+  let ratePercent = 50;
+  let tariffTreatment =
+    "Section 232 steel tariff on full customs value under the current steel rule set.";
+  let ruleSource =
+    originCountry === "RU"
+      ? "U.S. Note 16(c)(iii)-(iv); heading 9903.82.14"
+      : "U.S. Note 16(c)(iii)-(iv); heading 9903.82.02";
+
+  // For the current Annex I-A steel list used by this calculator:
+  // - qualifying U.K.-origin steel with U.K. melt/pour receives 25%;
+  // - qualifying derivative articles made entirely with U.S.-melted/poured
+  //   steel receive 10%.
+  if (derivative && meltPourCountry === "US") {
+    ratePercent = 10;
+    chapter99 = originCountry === "RU" ? "9903.82.15" : "9903.82.06";
+    tariffTreatment =
+      "Reduced Section 232 rate for a derivative steel article when the steel was entirely melted and poured in the United States.";
+    ruleSource =
+      originCountry === "RU"
+        ? "U.S. Note 16(e); heading 9903.82.15"
+        : "U.S. Note 16(e); heading 9903.82.06";
+  } else if (originCountry === "GB" && meltPourCountry === "GB") {
+    ratePercent = 25;
+    chapter99 = "9903.82.04";
+    tariffTreatment =
+      "Reduced Section 232 rate for a United Kingdom steel product when the steel was entirely melted and poured in the United Kingdom.";
+    ruleSource =
+      "U.S. Note 16(d); heading 9903.82.04";
+  }
+
+  const assumption = meltPourAssumed
+    ? `No melt/pour country was entered. The calculator assumed ${meltPourCountry}, the selected country of origin.`
+    : `The calculation uses the entered first melt/pour country: ${meltPourCountry}.`;
 
   return [{
     program: "Section 232",
     hts: chapter99,
-    description:
-      "Steel article or derivative steel article covered by the current Section 232 steel rule set.",
-    applicableRate: "+50%",
+    description: derivative
+      ? "Derivative steel article identified by the current Section 232 steel rule set."
+      : "Steel article identified by the current Section 232 steel rule set.",
+    applicableRate: `+${ratePercent}%`,
     ratePercent,
     amount: customsValue * ratePercent / 100,
-    rawRate: "The duty provided in the applicable subheading + 50%",
-    tariffTreatment:
-      "Illustrative Section 232 treatment if the selected country of origin is also the country of first melt and pour.",
-    illustrativeAssumption:
-      "The selected country of origin is assumed to be the country where the steel was first melted and poured. Actual melt/pour country may be different.",
+    rawRate:
+      `The duty provided in the applicable subheading + ${ratePercent}%`,
+    tariffTreatment,
+    meltPourCountry,
+    meltPourAssumed,
+    illustrativeAssumption: assumption,
     automaticallyIncludedInTotal: true,
-    ruleSource:
-      country === "RU"
-        ? "U.S. Note 16(c)(iii)-(iv); heading 9903.82.14"
-        : "U.S. Note 16(c)(iii)-(iv); heading 9903.82.02"
+    ruleSource
   }];
 }
 
@@ -853,6 +918,9 @@ export default async (req: Request) => {
     }
 
     const country = String(body?.country ?? "").toUpperCase().trim();
+    const meltPourCountryInput = String(
+      body?.meltPourCountry ?? ""
+    ).toUpperCase().trim();
     const customsValue = Number(body?.customsValue);
     const mode = String(body?.mode ?? "air").toLowerCase();
     const quantity =
@@ -874,6 +942,18 @@ export default async (req: Request) => {
         { status: 400 }
       );
     }
+    if (
+      meltPourCountryInput &&
+      !/^[A-Z]{2}$/.test(meltPourCountryInput)
+    ) {
+      return Response.json(
+        { error: "Select a valid steel melt/pour country." },
+        { status: 400 }
+      );
+    }
+
+    const meltPourCountry = meltPourCountryInput || country;
+    const meltPourAssumed = !meltPourCountryInput;
     if (!Number.isFinite(customsValue) || customsValue <= 0) {
       return Response.json(
         { error: "Enter a customs value greater than zero." },
@@ -1020,7 +1100,9 @@ export default async (req: Request) => {
     const section232 = section232Measures(
       hts,
       country,
-      customsValue
+      meltPourCountry,
+      customsValue,
+      meltPourAssumed
     );
     const section301 = section301Measures(
       hts,
@@ -1136,14 +1218,21 @@ export default async (req: Request) => {
     const steelMeltPourReview = {
       mayApply: section232.length > 0,
       informationRequired: section232.length > 0,
-      selectedCountry: country,
+      originCountry: country,
+      enteredCountry: meltPourCountryInput || null,
+      effectiveCountry: meltPourCountry,
+      assumedFromOrigin: meltPourAssumed,
       illustrativeRate:
         section232.length > 0 ? section232[0]?.applicableRate ?? null : null,
       illustrativeAmount:
         section232.length > 0 ? Number(section232[0]?.amount ?? 0) : null,
+      chapter99:
+        section232.length > 0 ? section232[0]?.hts ?? null : null,
       note:
         section232.length > 0
-          ? "The Section 232 rate shown assumes the selected country of origin is also the country where the steel was first melted and poured. The first melt/pour country may be different from the country of origin."
+          ? meltPourAssumed
+            ? "No steel melt/pour country was entered, so the calculator assumed the country of origin is also the country where the steel was first melted and poured."
+            : "The Section 232 estimate uses the steel first melt/pour country entered by the user."
           : null,
     };
 
@@ -1252,6 +1341,9 @@ export default async (req: Request) => {
         query: {
           hts,
           country,
+          meltPourCountryEntered: meltPourCountryInput || null,
+          meltPourCountry,
+          meltPourAssumed,
           customsValue,
           mode,
           quantity: quantity ?? null,
@@ -1345,7 +1437,10 @@ export default async (req: Request) => {
           buildVersion: BUILD_VERSION,
           enteredHts: hts,
           selectedCode,
+          meltPourCountry,
+          meltPourAssumed,
           section232Matched: isSection232Steel(hts),
+          section232Derivative: isSection232SteelDerivative(hts),
           section232MeasureCount: section232.length,
           section301MeasureCount: section301.length,
           quotaIndicatorFound,
