@@ -11,6 +11,7 @@ on:
       - feature/global-news-automation
     paths:
       - "scripts/curate-news.mjs"
+      - "scripts/run-news-curator.mjs"
       - "scripts/update-news-nav.mjs"
       - ".github/workflows/news-curation.yml"
       - "news.html"
@@ -49,16 +50,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEWS_MODEL: openai/gpt-4.1-mini
-        run: node scripts/curate-news.mjs
+        run: node scripts/run-news-curator.mjs
 
-      - name: Commit curated news and static navigation
+      - name: Commit curated news, diagnostics and static navigation
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/news/*.json *.html
           if git diff --cached --quiet; then
-            echo "No news or navigation changes to commit."
+            echo "No news, diagnostic or navigation changes to commit."
             exit 0
           fi
           git commit -m "Update global logistics news"
