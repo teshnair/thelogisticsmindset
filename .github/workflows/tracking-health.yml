@@ -1,0 +1,156 @@
+name: Daily tracking health check
+
+on:
+  schedule:
+    - cron: "17 10 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  tracking-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Check carrier tracking sites
+        id: tracking_check
+        continue-on-error: true
+        run: node scripts/check-tracking-health.mjs
+
+      - name: Upload health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tracking-health-report
+          path: tracking-health-report.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Create, update, or close tracking health issue
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          CHECK_OUTCOME: ${{ steps.tracking_check.outcome }}
+        with:
+          script: |
+            const fs = require("fs");
+            const issueTitle = "[Tracking Health] Carrier integration failures";
+            let report = null;
+
+            if (fs.existsSync("tracking-health-report.json")) {
+              report = JSON.parse(fs.readFileSync("tracking-health-report.json", "utf8"));
+            }
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100
+            });
+            const existing = issues.find(issue => issue.title === issueTitle && !issue.pull_request);
+
+            if (!report) {
+              const body = [
+                "The daily tracking health workflow did not produce a report.",
+                "",
+                `Workflow outcome: **${process.env.CHECK_OUTCOME}**`,
+                `Detected: ${new Date().toISOString()}`,
+                "",
+                "Review the GitHub Actions run. The browser/checker itself may have failed before carrier tests completed."
+              ].join("\n");
+
+              if (existing) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  body
+                });
+              } else {
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issueTitle,
+                  body
+                });
+              }
+              return;
+            }
+
+            const failures = report.results.filter(result => result.status === "fail");
+            const warnings = report.results.filter(result => result.status === "warning");
+
+            if (failures.length === 0) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  body: `All carrier checks passed without failures on ${report.generatedAt}. Closing this alert.`
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  state: "closed"
+                });
+              }
+              return;
+            }
+
+            const failureLines = failures.map(result =>
+              `- **${result.name}** (${result.transport}, ${result.mode}): ${result.message}\n  - Checked: ${result.checkedUrl}\n  - Final: ${result.finalUrl || "n/a"}`
+            );
+            const warningLines = warnings.slice(0, 25).map(result =>
+              `- ${result.name} (${result.transport}, ${result.mode}): ${result.message}`
+            );
+
+            const body = [
+              `Daily shipment-tracking health check found **${failures.length} failure(s)**.`,
+              "",
+              `Detected: ${report.generatedAt}`,
+              `Checks: ${report.summary.checks} | Pass: ${report.summary.pass} | Warning: ${report.summary.warning} | Fail: ${report.summary.fail}`,
+              "",
+              "## Failures",
+              ...failureLines,
+              ...(warningLines.length ? ["", "## Warnings (informational)", ...warningLines] : []),
+              "",
+              "The full JSON report is attached to the GitHub Actions run as `tracking-health-report`."
+            ].join("\n");
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body
+              });
+            }
+
+      - name: Fail workflow when carrier checks fail
+        if: steps.tracking_check.outcome == 'failure'
+        run: exit 1
