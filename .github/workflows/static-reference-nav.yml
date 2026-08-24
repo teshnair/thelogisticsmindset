@@ -1,0 +1,36 @@
+name: Rebuild static References navigation
+
+on:
+  push:
+    branches:
+      - feature/static-reference-nav
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/static-reference-nav
+          fetch-depth: 0
+
+      - name: Rebuild navigation in each HTML page
+        run: node scripts/rebuild-static-reference-nav.mjs
+
+      - name: Commit rebuilt pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Rebuild References dropdown statically on every page"
+          git push origin HEAD:feature/static-reference-nav
