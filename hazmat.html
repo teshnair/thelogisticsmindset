@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hazardous Materials Basics | The Logistics Mindset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+    <link rel="stylesheet" href="css/header.css">
+
+    <style>
+        :root {
+            --primary-color: #1a2a3a;
+            --accent-color: #2c7be5;
+            --text-color: #333;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.45;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+.highlight {
+    background: #ffffff;
+    padding: 25px;
+    border-left: 5px solid var(--accent-color);
+    margin-bottom: 40px;
+}
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 2.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        nav {
+            margin-top: 15px;
+        }
+
+        nav a {
+            margin-right: 20px;
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-left: 5px solid var(--primary-color);
+            padding-left: 15px;
+            margin: 40px 0 20px 0;
+            text-transform: uppercase;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .mindset {
+            background: #ffffff;
+            padding: 25px;
+            border-left: 5px solid #27ae60;
+        }
+
+        .mindset ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .mindset li {
+            margin-bottom: 10px;
+        }
+
+        .credentials {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .badge {
+            background: #e9eef3;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #ccd5df;
+        }
+
+        footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+.time-ticker {
+    margin-top: 6px;
+    background: #ffffff;
+    color: #000000;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 4px;
+}
+
+.time-ticker span {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.time-ticker {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.time-ticker:hover {
+    background: #ffffff;
+}
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+@media (max-width: 768px) {
+    .justified {
+        text-align: left;
+    }
+}
+
+.justified {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+}
+
+.justified li {
+    margin-bottom: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 0.95rem;
+}
+
+table th,
+table td {
+    border: 1px solid #cfd6df;
+    padding: 10px 12px;
+    vertical-align: top;
+}
+
+table th {
+    background-color: #e9eef3;
+    color: #1a2a3a;
+    font-weight: 600;
+}
+
+table tr:nth-child(even) td {
+    background-color: #fafafa;
+}
+
+table td:first-child,
+table th:first-child {
+    white-space: nowrap;
+}
+
+
+/* Mobile */
+@media (max-width: 768px) {
+    .page-logo {
+        width: 60px;
+    }
+}
+
+
+/* PRINT: force watermark on every page */
+@media print {
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    body {
+        background: #fff;
+    }
+}
+
+
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+   
+  <header class="page-header">
+    <img src="img/logo.png" alt="Logo" class="page-logo">
+    <div class="header-text">
+
+       
+  <h1>Hazardous Materials Basics</h1>
+        <p class="subtitle">
+
+<p>  Foundational guidance for handling, transporting, and identifying hazardous materials</p>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="conversion.html">Conversions</a>
+            <a href="reference.html">References</a>
+            <a href="currency.html">Currencies</a>
+            <a href="clock.html">World Time</a>
+            <a href="underconst.html">News</a>
+            <a href="underconst.html">Blog</a>
+        </nav>
+     </div>
+    </header>
+
+<div id="fxTicker"
+     class="fx-ticker"
+     role="link"
+     tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+
+<main>
+    <section>
+        <h2>What Are Hazardous Materials?</h2>
+        <p>
+            Hazardous materials, commonly referred to as <strong>HazMat</strong>, are substances or materials capable of posing a risk to health, safety, property, or the environment when improperly handled, stored, or transported. These materials may be hazardous due to their chemical properties, physical characteristics, or biological nature.
+        </p>
+        <p>
+            In logistics and transportation, hazardous materials are strictly regulated to minimize the risk of accidents, exposure, or environmental damage.
+        </p>
+    </section>
+
+    <section>
+        <h2>Why Hazardous Materials Matter</h2>
+        <ul>
+            <li>They can cause injury, illness, or death if released or mishandled.</li>
+            <li>They may damage infrastructure, cargo, or transport equipment.</li>
+            <li>They can contaminate air, water, and soil.</li>
+            <li>They are subject to national and international regulations.</li>
+        </ul>
+    </section>
+
+<section>
+    <h2>Key Hazardous Materials Terms and Definitions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Term</th>
+                <th>Definition</th>
+                <th>Where Used</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Packing Group (PG)</td>
+                <td>Indicates the degree of danger presented by hazardous materials: PG I (high danger), PG II (medium danger), PG III (low danger).</td>
+                <td>DOT, IATA, IMDG, ADR</td>
+            </tr>
+            <tr>
+                <td>EmS</td>
+                <td>Emergency Schedules providing fire and spill response guidance for dangerous goods carried by sea.</td>
+                <td>IMDG Code</td>
+            </tr>
+            <tr>
+                <td>UN Number</td>
+                <td>Four-digit identification number assigned to hazardous substances for transport purposes.</td>
+                <td>All transport regulations</td>
+            </tr>
+            <tr>
+                <td>Proper Shipping Name</td>
+                <td>Standardized name used to describe hazardous materials on shipping documents.</td>
+                <td>All transport regulations</td>
+            </tr>
+            <tr>
+                <td>Limited Quantity (LQ)</td>
+                <td>Regulatory provision allowing reduced requirements for small quantities of certain hazardous materials.</td>
+                <td>DOT, IATA, IMDG</td>
+            </tr>
+            <tr>
+                <td>Segregation</td>
+                <td>Rules governing the separation of incompatible hazardous materials during storage and transport.</td>
+                <td>IMDG, ADR, DOT</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <section>
+        <h2>Hazard Classes</h2>
+        <p>
+            Hazardous materials are divided into standardized classes. The table below summarizes the most common classes used in transportation.
+        </p>
+
+    <table>
+    <thead>
+        <tr>
+            <th>Class</th>
+            <th>Hazard Type</th>
+            <th>Primary Risk</th>
+            <th>Typical Examples</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Class 1</td>
+            <td>Explosives</td>
+            <td>Mass explosion, blast, projection</td>
+            <td>Ammunition, fireworks, detonators</td>
+        </tr>
+        <tr>
+            <td>Class 2</td>
+            <td>Gases</td>
+            <td>Pressure release, flammability, toxicity</td>
+            <td>Oxygen, propane, aerosols</td>
+        </tr>
+        <tr>
+            <td>Class 3</td>
+            <td>Flammable Liquids</td>
+            <td>Fire, vapor ignition</td>
+            <td>Gasoline, ethanol, paints</td>
+        </tr>
+        <tr>
+            <td>Class 4</td>
+            <td>Flammable Solids</td>
+            <td>Spontaneous ignition, water reactivity</td>
+            <td>Matches, magnesium powder</td>
+        </tr>
+        <tr>
+            <td>Class 5</td>
+            <td>Oxidizers / Organic Peroxides</td>
+            <td>Oxygen release, self-accelerating reactions</td>
+            <td>Ammonium nitrate, organic peroxides</td>
+        </tr>
+        <tr>
+            <td>Class 6</td>
+            <td>Toxic / Infectious Substances</td>
+            <td>Poisoning, disease transmission</td>
+            <td>Pesticides, medical specimens</td>
+        </tr>
+        <tr>
+            <td>Class 7</td>
+            <td>Radioactive Material</td>
+            <td>Radiation exposure</td>
+            <td>Medical isotopes, nuclear fuel</td>
+        </tr>
+        <tr>
+            <td>Class 8</td>
+            <td>Corrosives</td>
+            <td>Chemical burns, material degradation</td>
+            <td>Acids, alkalis, wet batteries</td>
+        </tr>
+        <tr>
+            <td>Class 9</td>
+            <td>Miscellaneous Dangerous Goods</td>
+            <td>Varied hazards not covered elsewhere</td>
+            <td>Lithium batteries, dry ice</td>
+        </tr>
+    </tbody>
+</table>
+
+    </section>
+
+    <section>
+        <h2>Labels and Placards</h2>
+        <p>
+            Labels and placards are visual indicators used to communicate the type of hazard present. They allow workers, drivers, and emergency responders to quickly identify risks.
+        </p>
+        <ul>
+            <li><strong>Labels</strong> are applied to individual packages.</li>
+            <li><strong>Placards</strong> are displayed on transport units such as trucks or containers.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Basic Handling Principles</h2>
+        <ul>
+            <li>Always verify shipping papers, markings, labels, and quantities before handling hazardous materials.</li>
+            <li>Use appropriate personal protective equipment (PPE) as identified in the Safety Data Sheet (SDS).</li>
+            <li>Never mix incompatible materials during storage or transport.</li>
+            <li>Ensure packages are undamaged, properly closed, and correctly secured.</li>
+            <li>Maintain segregation requirements for incompatible hazard classes.</li>
+            <li>Know emergency response procedures before beginning work.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Understanding a Safety Data Sheet (SDS)</h2>
+        <p>
+            A Safety Data Sheet (SDS) provides detailed information about a hazardous substance. SDS documents follow a standardized <strong>16-section</strong> format under the Globally Harmonized System (GHS). While all sections are important, certain sections are especially critical for logistics, warehousing, and transportation functions.
+        </p>
+        <ul>
+            <li><strong>Section 1 – Identification:</strong> Product identifier, manufacturer or distributor details, recommended use, and emergency contact numbers.</li>
+            <li><strong>Section 2 – Hazard Identification:</strong> GHS classification, signal words (Danger/Warning), hazard statements, precautionary statements, and pictograms.</li>
+            <li><strong>Section 3 – Composition / Information on Ingredients:</strong> Chemical ingredients, concentrations, and CAS numbers.</li>
+            <li><strong>Section 4 – First-Aid Measures:</strong> Immediate treatment instructions by route of exposure.</li>
+            <li><strong>Section 5 – Fire-Fighting Measures:</strong> Suitable extinguishing media, specific hazards, and protective equipment for firefighters.</li>
+            <li><strong>Section 6 – Accidental Release Measures:</strong> Spill response, containment, cleanup procedures, and personal precautions.</li>
+            <li><strong>Section 7 – Handling and Storage:</strong> Safe handling practices, storage requirements, and incompatibilities.</li>
+            <li><strong>Section 8 – Exposure Controls / Personal Protection:</strong> Exposure limits, engineering controls, and required PPE.</li>
+            <li><strong>Section 9 – Physical and Chemical Properties:</strong> Appearance, odor, flash point, boiling point, and other key properties.</li>
+            <li><strong>Section 10 – Stability and Reactivity:</strong> Reactivity hazards, conditions to avoid, and incompatible materials.</li>
+            <li><strong>Section 11 – Toxicological Information:</strong> Health effects, routes of exposure, and toxicity data.</li>
+            <li><strong>Section 12 – Ecological Information:</strong> Environmental impact data (non-mandatory under OSHA).</li>
+            <li><strong>Section 13 – Disposal Considerations:</strong> Waste treatment and disposal recommendations.</li>
+            <li><strong>Section 14 – Transport Information:</strong> UN number, proper shipping name, hazard class, packing group, and modal transport requirements.</li>
+            <li><strong>Section 15 – Regulatory Information:</strong> Applicable safety, health, and environmental regulations.</li>
+            <li><strong>Section 16 – Other Information:</strong> Revision dates, legend explanations, and additional notes.</li>
+        </ul>
+        <p>
+            While SDSs are a critical reference, transport classifications in Section 14 must always be verified against the current DOT, IATA, or IMDG regulations, as SDSs are not regulatory documents.
+        </p>
+    </section>
+
+
+    <section>
+        <h2>General Handling Precautions for HazMat Cargo</h2>
+        <ul>
+            <li>Keep hazardous materials away from ignition sources.</li>
+            <li>Maintain adequate ventilation in storage and transport areas.</li>
+            <li>Use spill containment measures where appropriate.</li>
+            <li>Ensure personnel are trained and authorized to handle hazardous goods.</li>
+            <li>Segregate hazardous cargo from foodstuffs and consumer goods.</li>
+            <li>Report damaged or leaking packages immediately.</li>
+        </ul>
+    </section>
+
+
+    <section>
+        <h2>Regulatory Overview and Reference Links</h2>
+        <p>
+            Hazardous materials are regulated by multiple authorities depending on geography and mode of transport. The following references provide authoritative regulatory guidance:
+        </p>
+        <ul>
+            <li><a href="https://www.phmsa.dot.gov" target="_blank">U.S. DOT / PHMSA Hazardous Materials Regulations</a></li>
+            <li><a href="https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.1200" target="_blank">OSHA Hazard Communication Standard (SDS)</a></li>
+            <li><a href="https://www.iata.org/en/programs/cargo/dgr" target="_blank">IATA Dangerous Goods Regulations (Air)</a></li>
+            <li><a href="https://www.imo.org/en/OurWork/Safety/Pages/DangerousGoods.aspx" target="_blank">IMDG Code (Ocean)</a></li>
+            <li><a href="https://unece.org/transport/dangerous-goods/adr" target="_blank">ADR – European Road Transport of Dangerous Goods</a></li>
+        </ul>
+        <p>
+            Always consult the latest edition of applicable regulations, as requirements are updated regularly.
+        </p>
+    </section>
+
+    <div class="note">
+        <strong>Disclaimer:</strong> This page provides general information for educational purposes only. It does not replace formal hazardous materials training or regulatory guidance. Always consult applicable regulations and qualified professionals.
+    </div>
+</main>
+
+<footer>
+    <p>&copy; 2026 The Logistics Mindset. All rights reserved.</p>
+</footer>
+<script>
+const TIME_TICKER_ZONES = [
+    { label: "New York", tz: "America/New_York" },
+    { label: "London", tz: "Europe/London" },
+    { label: "Mumbai", tz: "Asia/Kolkata" },
+    { label: "Singapore", tz: "Asia/Singapore" },
+    { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+
+const timeTickerEl = document.getElementById("timeTicker");
+
+function updateTimeTicker() {
+    timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+        const t = new Date().toLocaleTimeString("en-US", {
+            timeZone: z.tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        return `<span>${z.label}: ${t}</span>`;
+    }).join("");
+}
+
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+
+</script>
+<script src="js/fx-ticker.js" defer></script>
+</body>
+</html>

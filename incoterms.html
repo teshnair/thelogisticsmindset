@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Incoterms® 2020 Reference</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="css/header.css">
+
+<style>
+body {
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    background:#f4f6f8;
+    margin:0;
+    color:#222;
+}
+
+.container {
+    max-width:900px;
+    margin:30px auto;
+    padding:20px;
+}
+
+
+h1 {
+    margin:0;
+    font-size:2.2rem;
+    color:#1a2a3a;
+}
+
+.subtitle {
+    color:#555;
+    margin-top:6px;
+}
+
+nav a {
+    margin-right:18px;
+    text-decoration:none;
+    color:#2c6bed;
+    font-weight:500;
+}
+
+
+
+.box {
+    background:#fff;
+    padding:22px;
+    margin-bottom:30px;
+    border-radius:4px;
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+
+h2 {
+    margin-top:40px;
+    border-left:6px solid #1a2a3a;
+    padding-left:12px;
+    color:#1a2a3a;
+    text-transform:uppercase;
+    font-size:1.05rem;
+}
+
+h3 {
+    margin-top: 28px;
+    color: #243a52;
+    font-size: 1rem;
+}
+
+
+table {
+    width:100%;
+    border-collapse:collapse;
+    font-size:.82rem;
+}
+
+th, td {
+    border:1px solid #cfd6de;
+    padding:6px;
+    text-align:center;
+}
+
+th {
+    background:#e8edf3;
+    font-weight:600;
+}
+
+.activity {
+    text-align:left;
+    font-weight:500;
+    background:#f7f9fc;
+}
+
+.seller { background:#cfe9da; }
+.buyer { background:#d6e3f5; }
+
+.legend span {
+    margin-right:18px;
+}
+
+.note {
+    background:#fff7e6;
+    border-left:6px solid #f39c12;
+    padding:14px;
+    margin-top:15px;
+    font-size:.9rem;
+}
+/* Disclaimer banner */
+.banner {
+    background: linear-gradient(90deg, #1a2a3a, #243a52);
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+
+.banner strong {
+    font-weight: 600;
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dotted #555;
+}
+
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: 130%;
+    transform: translateX(-50%);
+    background: #1a2a3a;
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 4px;
+    width: 260px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    text-align: left;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 10;
+}
+
+.tooltip::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 120%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1a2a3a transparent transparent transparent;
+    opacity: 0;
+    transition: opacity .2s ease;
+}
+
+.tooltip:hover::after,
+.tooltip:hover::before {
+    opacity: 1;
+}
+
+.time-ticker {
+    margin-top: 6px;
+    background: #ffffff;
+    color: #000000;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 4px;
+}
+
+.time-ticker span {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.time-ticker {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.time-ticker:hover {
+    background: #ffffff;
+}
+/* Header positioning context */
+
+/* Mobile */
+@media (max-width: 768px) {
+    .page-logo {
+        width: 60px;
+    }
+}
+
+@media (max-width: 768px) {
+    .justified {
+        text-align: left;
+    }
+}
+
+/* PRINT: force watermark on every page */
+@media print {
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .page-logo {
+        display: block !important;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 260px;
+        opacity: 0.22;   /* critical */
+        z-index: 9999;      /* critical */
+        filter: grayscale(100%);
+        
+    }
+
+
+    body {
+        background: #fff;
+    }
+}
+
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="page-header">
+    <img src="img/logo.png" alt="Logo" class="page-logo">
+         <div class="header-text">
+
+    <h1>Incoterms® 2020 ✓</h1>
+    <p class="subtitle">Cost, risk, and responsibility allocation — operations reference</p>
+    <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="conversion.html">Conversions</a>
+            <a href="reference.html">References</a>
+            <a href="currency.html">Currencies</a>
+            <a href="clock.html">World Time</a>
+            <a href="underconst.html">News</a>
+            <a href="underconst.html">Blog</a>
+    </nav>
+</div>
+</header>
+
+<div id="fxTicker"
+     class="fx-ticker"
+     role="link"
+     tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+
+
+<div class="banner">
+<strong>Operational abstraction notice:</strong>
+This matrix is an operational reference that abstracts Incoterms® rules into cost, risk, and responsibility indicators.
+It does not replace contractual language, carrier terms, insurance conditions, or statutory obligations.
+</div>
+
+<div class="box">
+<p class="justified">Incoterms® (International Commercial Terms) are standardized trade terms published by the International Chamber of Commerce (ICC). They define how costs, risks, and responsibilities are allocated between seller and buyer under an international sales contract.</p>
+<p class="justified">This page is a practical, operations-focused reference for day-to-day logistics use and does not replace contractual language or legal advice.</p>
+<p class="justified">For authoritative definitions and interpretations, always refer to the official ICC Incoterms® rules.</p>
+<p class="justified">
+Official ICC reference:
+<a href="https://iccwbo.org/resources-for-business/incoterms-rules/" target="_blank">ICC Incoterms®</a> |
+<a href="https://2go.iccwbo.org/icc-handbook-on-transport-and-the-incoterms-r-2020-rules-config+book_version-eBook/" target="_blank">Purchase official publication</a>
+</p>
+
+</div>
+
+
+<h2>Incoterms® 2020 – Term Summaries</h2>
+
+<div class="box">
+<h3>EXW – Ex Works</h3>
+<p class="justified">The seller makes the goods available at their premises or another named place. The buyer assumes
+all costs, risks, and operational responsibility from that point onward. EXW places maximum burden
+on the buyer and is often unsuitable for international exports.</p>
+
+<h3>FCA – Free Carrier</h3>
+<p class="justified">The seller delivers the goods to a carrier or another party nominated by the buyer. Risk transfers
+once the goods are handed over, but cost and responsibility may diverge depending on the location.
+FCA is widely used for containerized shipments.</p>
+
+<h3>FAS – Free Alongside Ship</h3>
+<p class="justified">The seller places the goods alongside the vessel at the named port of shipment. Risk transfers
+before loading onto the vessel. FAS is used primarily for bulk and breakbulk cargo.</p>
+
+<h3>FOB – Free On Board</h3>
+<p class="justified">The seller loads the goods onto the vessel at the port of shipment. Risk transfers once the goods
+are on board. FOB is commonly misused for containerized cargo.</p>
+
+<h3>CFR – Cost and Freight</h3>
+<p class="justified">The seller pays for carriage to the destination port, but risk transfers once the goods are on
+board at origin. Insurance is the buyer’s responsibility. CFR is sea-only.</p>
+
+<h3>CIF – Cost, Insurance and Freight</h3>
+<p class="justified">Similar to CFR, but the seller also provides insurance meeting minimum ICC requirements. Risk still
+transfers at origin, not destination. CIF is often misunderstood as “delivered” pricing.</p>
+
+<h3>CPT – Carriage Paid To</h3>
+<p class="justified">The seller pays carriage to a named place, but risk transfers upon handover to the first carrier.
+CPT applies to all modes of transport. Insurance remains the buyer’s responsibility.</p>
+
+<h3>CIP – Carriage and Insurance Paid To</h3>
+<p class="justified">CIP mirrors CPT but includes seller-provided insurance at a higher coverage level. Risk transfers
+early, while cost extends further. Frequently misunderstood in multimodal moves.</p>
+
+<h3>DAP – Delivered At Place</h3>
+<p class="justified">The seller delivers goods ready for unloading at a named destination. Risk transfers at arrival,
+but import clearance remains the buyer’s responsibility. DAP is common in project cargo.</p>
+
+<h3>DPU – Delivered at Place Unloaded</h3>
+<p class="justified">The seller delivers and unloads the goods at a named place. This is the only Incoterm requiring
+seller unloading. Site capability must be carefully assessed.</p>
+
+<h3>DDP – Delivered Duty Paid</h3>
+<p class="justified">The seller assumes maximum responsibility, including import clearance and duties. Risk transfers
+at final delivery. DDP exposes sellers to regulatory and tax risk in foreign jurisdictions.</p>
+</div>
+<h2>Complete Cost, Risk & Responsibility Matrix</h2>
+
+<div class="box">
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>EXW</th>
+<th>FCA</th>
+<th>FAS</th>
+<th>FOB</th>
+<th>CFR</th>
+<th>CIF</th>
+<th>CPT</th>
+<th>CIP</th>
+<th>DAP</th>
+<th>DPU</th>
+<th>DDP</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr><td class="activity">Packing and Checking</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Loading Seller's Premises*</td>
+<td class="buyer">B⚠</td>
+<td class="seller">S*</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Export Customs, Duties and Taxes</td>
+<td class="buyer">B</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Delivery to Named Place or Works</td>
+<td class="buyer">B</td>
+<td class="seller">S</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td class="activity">Carriage from Named Place or Works</td>
+<td class="buyer">B</td>
+<td class="buyer">B⚠</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td class="activity">Terminal Charge Origin</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Loading on Main Transport</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S⚙ B⚠+</td>
+<td class="seller">S⚙ B⚠+</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Main Transport</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B⚠</td>
+<td class="buyer">B⚠</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Terminal Charges Destination</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Import Customs, Duties and Taxes</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Loading on Inland Transport to Destination</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Transport to Destination</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+<td class="seller">S</td>
+</tr>
+
+<tr><td class="activity">Unloading Buyer's Premises</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="buyer">B</td>
+<td class="seller">S</td>
+<td class="buyer">S</td>
+</tr>
+
+</tbody>
+</table>
+
+<div class="legend">
+<span>S = Seller</span>
+<span>B = Buyer</span>
+<span class="tooltip" data-tooltip="The ⚠ symbol marks the legal point where risk of loss or damage transfers under Incoterms®. This transfer may occur earlier than cost or operational responsibility and does not imply control or payment obligation.">
+⚠ = Risk transfer
+</span>
+
+<span>⚙ = Cost and operational responsibility</span>
+
+<span>- = Not applicable</span>
+</div>
+
+<div class="note">
+<strong>Important:</strong> Risk transfer does not imply cost or operational responsibility. Under many Incoterms, risk transfers earlier than cost or control.
+</div>
+<div class="note">
+<strong>*FCA has two variants:</strong> FCA Seller’s Premises → Seller loads | FCA Other Named Place → Buyer’s carrier loads
+</div> 
+<div class="note">
+<strong>+CPT/CIP:</strong> Risk transfers at handover to first carrier.
+</div> 
+<div class="note">
+<strong>Transport Insurance:</strong> Is taken by Seller on behalf of Buyer for CIF and CIP.
+</div> 
+
+<h2>Common Incoterms® Mistakes</h2>
+
+<div class="box">
+<ul>
+<li>Using FOB for containerized shipments</li>
+<li>Assuming CIF or CIP transfers risk at destination</li>
+<li>Using EXW for international exports</li>
+<li>Ignoring unloading responsibility under DPU</li>
+<li>Using DDP without understanding local tax exposure</li>
+</ul>
+</div>
+<script>
+const TIME_TICKER_ZONES = [
+    { label: "New York", tz: "America/New_York" },
+    { label: "London", tz: "Europe/London" },
+    { label: "Mumbai", tz: "Asia/Kolkata" },
+    { label: "Singapore", tz: "Asia/Singapore" },
+    { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+
+const timeTickerEl = document.getElementById("timeTicker");
+
+function updateTimeTicker() {
+    timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+        const t = new Date().toLocaleTimeString("en-US", {
+            timeZone: z.tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        return `<span>${z.label}: ${t}</span>`;
+    }).join("");
+}
+
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+
+</script>
+<script src="js/fx-ticker.js" defer></script>
+</body>
+</html>

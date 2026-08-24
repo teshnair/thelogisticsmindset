@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shipping Terms | The Logistics Mindset</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="css/header.css">
+
+<style>
+:root{
+  --primary:#1a2a3a;
+  --accent:#2c7be5;
+  --bg:#f4f4f4;
+  --card:#ffffff;
+  --text:#333;
+}
+
+body{
+  margin:0;
+  font-family:Segoe UI, Tahoma, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.container{
+  max-width:1000px;
+  margin:40px auto;
+  padding:0 20px;
+}
+
+h1{
+  margin:0;
+  font-size:2.3rem;
+  color:var(--primary);
+}
+
+.subtitle{
+  margin-top:6px;
+  font-size:1.05rem;
+  color:#555;
+}
+
+.search-box{
+  margin:30px 0 20px 0;
+}
+
+.search-box input{
+  width:100%;
+  padding:14px 16px;
+  font-size:1rem;
+  border:1px solid #ccc;
+  border-radius:4px;
+}
+
+.alpha-index button{
+  background:#e9eef3;
+  border:1px solid #ccd5df;
+  padding:6px 10px;
+  cursor:pointer;
+  font-weight:600;
+  border-radius:4px;
+}
+
+.alpha-index button:hover{
+  background:#dfe6ee;
+}
+
+.glossary-section{
+  margin-bottom:45px;
+}
+
+.glossary-section h2{
+  border-left:3px solid var(--primary);
+  padding-left:12px;
+  color:var(--primary);
+}
+
+.term{
+  background:var(--card);
+  margin-top:14px;
+  padding:16px 18px;
+  border-radius:4px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+
+.term-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+}
+
+.term-header h3{
+  margin:0;
+  font-size:1rem;
+  color:var(--primary);
+}
+
+.toggle{
+  font-size:1.2rem;
+  font-weight:700;
+}
+
+.term-content{
+  display:none;
+  margin-top:12px;
+}
+
+.definition{
+  font-weight:600;
+}
+
+.summary{
+  margin-top:8px;
+  color:#555;
+}
+
+.notice{
+  font-size:.9rem;
+  color:#666;
+  margin-top:50px;
+  text-align:center;
+}
+
+.time-ticker {
+    margin-top: 6px;
+    background: #ffffff;
+    color: #000000;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 4px;
+}
+
+.time-ticker span {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.time-ticker {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.time-ticker:hover {
+    background: #ffffff;
+}
+
+#alphabetBar button.active {
+  background: #1a2a3a;
+  color: #fff;
+  border-color: #1a2a3a;
+}
+#searchInput {
+  width: 100%;
+  box-sizing: border-box;
+}
+.glossary-controls,
+.glossary-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+#alphabetBar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin: 16px 0 24px;
+  flex-wrap: wrap;     
+  max-width: 100%;
+}
+
+#alphabetBar button {
+  min-width: 34px;
+  height: 40px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #ccd5df;
+  background: #e9eef3;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#alphabetBar button:hover {
+  background: #dfe6ee;
+}
+
+#alphabetBar button.active {
+  background: #1a2a3a;
+  color: #ffffff;
+  border-color: #1a2a3a;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="page-header">
+    <img src="img/logo.png" alt="Logo" class="page-logo">
+         <div class="header-text">
+
+          <h1>Shipping Terms</h1>
+  <p class="subtitle">Definitions and plain‑language explanations of shipping and logistics terminology</p>
+
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="conversion.html">Conversions</a>
+            <a href="reference.html">References</a>
+            <a href="currency.html">Currencies</a>
+            <a href="time.html">Time Zones</a>
+            <a href="underconst.html">News</a>
+            <a href="underconst.html">Blog</a>
+        </nav>
+     </div>
+    </header>
+
+<div id="fxTicker"
+     class="fx-ticker"
+     role="link"
+     tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+<h2 align="center">Industry Terminologies</h2>
+<p align="center" class="subtitle">Independent operational reference. Definitions are explanatory, not contractual.</p>
+
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="Start typing to discover terms (e.g. BAF, charter, demurrage)…">
+</div>
+
+<div id="alphabetBar"></div>
+
+
+<div id="glossary"></div>
+
+</div>
+<script>
+/* ===============================
+   GLOBAL STATE
+================================ */
+let glossaryData = [];
+let currentLetter = "A";
+
+/* ===============================
+   ELEMENT REFERENCES
+================================ */
+const glossaryEl = document.getElementById("glossary");
+const alphabetBar = document.getElementById("alphabetBar");
+const searchInput = document.getElementById("searchInput");
+
+/* ===============================
+   LOAD DATA
+================================ */
+fetch("data/glossary-data.json")
+  .then(r => {
+    if (!r.ok) throw new Error("Unable to load glossary-data.json");
+    return r.json();
+  })
+  .then(data => {
+    glossaryData = Array.isArray(data) ? data : data.terms;
+    if (!Array.isArray(glossaryData)) {
+      throw new Error("Invalid glossary JSON structure");
+    }
+
+    glossaryData.sort((a, b) =>
+      a.term.localeCompare(b.term, undefined, { sensitivity: "base" })
+    );
+
+    buildAlphabetBar();
+    setActiveLetter("A");
+    renderByLetter("A");
+  })
+  .catch(err => {
+    glossaryEl.innerHTML =
+      `<p style="color:red;font-weight:600">Glossary failed to load: ${err.message}</p>`;
+  });
+
+/* ===============================
+   ALPHABET BAR
+================================ */
+function buildAlphabetBar() {
+  alphabetBar.innerHTML = "";
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+  letters.forEach(letter => {
+    const btn = document.createElement("button");
+    btn.textContent = letter;
+    btn.dataset.letter = letter;
+
+    btn.addEventListener("click", () => {
+      currentLetter = letter;
+      searchInput.value = "";
+      setActiveLetter(letter);
+      renderByLetter(letter);
+    });
+
+    alphabetBar.appendChild(btn);
+  });
+}
+
+function setActiveLetter(letter) {
+  document.querySelectorAll("#alphabetBar button").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.letter === letter);
+  });
+}
+
+/* ===============================
+   RENDERING
+================================ */
+function renderByLetter(letter) {
+  glossaryEl.innerHTML = "";
+
+  const filtered = glossaryData.filter(
+    item => item.term && item.term[0].toUpperCase() === letter
+  );
+
+  if (!filtered.length) {
+    glossaryEl.innerHTML =
+      `<p style="color:#666">No terms found for ${letter}.</p>`;
+    return;
+  }
+
+  filtered.forEach(renderTerm);
+}
+
+function renderBySearch(query) {
+  glossaryEl.innerHTML = "";
+
+  const q = query.toLowerCase();
+
+  const filtered = glossaryData.filter(item => {
+    const text = [
+      item.id,
+      item.term,
+      item.abbreviation,
+      ...(item.aliases || [])
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return text.includes(q);
+  });
+
+  if (!filtered.length) {
+    glossaryEl.innerHTML =
+      `<p style="color:#666">No matching terms found.</p>`;
+    return;
+  }
+
+  filtered.forEach(renderTerm);
+}
+
+function renderTerm(item) {
+  const termDiv = document.createElement("div");
+  termDiv.className = "term";
+
+  termDiv.innerHTML = `
+    <div class="term-header">
+      <h3>${item.term}${item.abbreviation ? " (" + item.abbreviation + ")" : ""}</h3>
+      <span class="toggle">+</span>
+    </div>
+    <div class="term-content" style="display:none">
+      <div class="definition">${item.definition || ""}</div>
+      ${item.summary ? `<div class="summary">${item.summary}</div>` : ""}
+      ${
+  Array.isArray(item.images) && item.images.length
+    ? item.images
+        .map(
+          (img) =>
+            `<img src="${img.url}" alt="${img.alt || ""}" style="max-width:100%;margin:10px 0;">`
+        )
+        .join("")
+    : item.image_url
+      ? `<img src="${item.image_url}" alt="${item.image_alt || ""}" style="max-width:100%;margin:10px 0;">`
+      : ""
+}
+    </div>
+  `;
+
+  const header = termDiv.querySelector(".term-header");
+  const content = termDiv.querySelector(".term-content");
+  const toggle = termDiv.querySelector(".toggle");
+
+  header.addEventListener("click", () => {
+    const open = content.style.display === "block";
+    content.style.display = open ? "none" : "block";
+    toggle.textContent = open ? "+" : "−";
+  });
+
+  glossaryEl.appendChild(termDiv);
+}
+
+/* ===============================
+   SEARCH (STATE-PRESERVING)
+================================ */
+searchInput.addEventListener("input", () => {
+  const value = searchInput.value.trim();
+
+  if (value === "") {
+    setActiveLetter(currentLetter);
+    renderByLetter(currentLetter);
+  } else {
+    setActiveLetter(null);
+    renderBySearch(value);
+  }
+});
+
+/* ===============================
+   TIME TICKER (UNCHANGED)
+================================ */
+const TIME_TICKER_ZONES = [
+  { label: "New York", tz: "America/New_York" },
+  { label: "London", tz: "Europe/London" },
+  { label: "Mumbai", tz: "Asia/Kolkata" },
+  { label: "Singapore", tz: "Asia/Singapore" },
+  { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+
+const timeTickerEl = document.getElementById("timeTicker");
+
+function updateTimeTicker() {
+  timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+    const t = new Date().toLocaleTimeString("en-US", {
+      timeZone: z.tz,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+    return `<span>${z.label}: ${t}</span>`;
+  }).join("");
+}
+
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+</script>
+<script src="js/fx-ticker.js" defer></script>
+
+
+<div>
+    <footer align="center">
+        © The Logistics Mindset — Personal educational project
+    </footer>
+
+</div>
+</body>
+</html>

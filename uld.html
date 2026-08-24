@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ULDs | The Logistics Mindset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+    <link rel="stylesheet" href="css/header.css">
+
+    <style>
+        :root {
+            --primary-color: #1a2a3a;
+            --accent-color: #2c7be5;
+            --text-color: #333;
+            --bg-color: #f4f4f4;
+         
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.45;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 2.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        nav {
+            margin-top: 15px;
+        }
+
+        nav a {
+            margin-right: 20px;
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-left: 5px solid var(--primary-color);
+            padding-left: 15px;
+            margin: 40px 0 20px 0;
+            text-transform: uppercase;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .mindset {
+            background: #ffffff;
+            padding: 25px;
+            border-left: 5px solid #27ae60;
+        }
+
+        .mindset ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .mindset li {
+            margin-bottom: 10px;
+        }
+
+        .credentials {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .badge {
+            background: #e9eef3;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #ccd5df;
+        }
+
+.time-ticker {
+    margin-top: 6px;
+    background: #ffffff;
+    color: #000000;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 4px;
+}
+
+.time-ticker span {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.time-ticker {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.time-ticker:hover {
+    background: #ffffff;
+}
+
+.controls input, .controls select {
+    padding:8px;
+    background:#1f2933;
+    color:#e5e7eb;
+    border:1px solid #374151;
+}
+table {
+    width:100%;
+    border-collapse:collapse;
+    background:#ffffff;
+}
+th, td {
+    border:1px solid #374151;
+    padding:10px;
+    vertical-align:top;
+}
+th {
+    background:#111827;
+}
+tr.hidden {
+    display:none;
+}
+
+/* Hover image tooltip */
+.uld-hover {
+    position:relative;
+    cursor:help;
+    color:#93c5fd;
+    font-weight:bold;
+}
+.uld-hover img {
+    display:none;
+    position:absolute;
+    top:22px;
+    left:0;
+    width:260px;
+    background:#fff;
+    border-radius:4px;
+    z-index:10;
+}
+.uld-hover:hover img {
+    display:block;
+}
+
+.note {
+    font-size:13px;
+    color:#9ca3af;
+}
+
+
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+       
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    th, td {
+        border: 1px solid #cfcfcf;
+        padding: 10px;
+        vertical-align: top;
+    }
+    th {
+        background-color: #f2f4f7;
+        font-weight: bold;
+        text-align: left;
+    }
+    .image-cell {
+        width: 260px;
+        text-align: center;
+        background: #fafafa;
+    }
+    svg {
+        width: 240px;
+        height: auto;
+        border: 1px solid #bbb;
+        background: #ffffff;
+    }
+
+.page-header {
+    position: relative;
+    z-index: 10;
+}
+
+.fx-ticker {
+    pointer-events: auto;
+    z-index: 100;
+}
+
+
+nav a {
+    position: relative;
+    z-index: 20;
+} 
+
+@media (max-width: 768px) {
+    .justified {
+        text-align: left;
+    }
+}
+
+.justified {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+}
+
+.justified li {
+    margin-bottom: 8px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .page-logo {
+        width: 60px;
+    }
+}
+
+
+/* PRINT: force watermark on every page */
+@media print {
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    body {
+        background: #fff;
+    }
+}
+
+.page-header {
+    position: relative;
+    z-index: 1000;
+}
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+   
+  <header class="page-header">
+    <img src="img/logo.png" alt="Logo" class="page-logo">
+    <div class="header-text">
+
+       <h1>ULD - Unit Load Devices (Aircraft Pallet)</h1>
+<p class="subtitle">Standard and Non-Standard Pallets · Main Deck & Lower Deck</p>
+               <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="conversion.html">Conversions</a>
+            <a href="reference.html">References</a>
+            <a href="currency.html">Currencies</a>
+            <a href="clock.html">World Time</a>
+            <a href="underconst.html">News</a>
+            <a href="underconst.html">Blog</a>
+        </nav>
+      </div>
+    </header>
+
+<div id="fxTicker"
+     class="fx-ticker"
+     role="link"
+     tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+<main>
+<p class="justified">
+Operational reference only. Always confirm ULD acceptance, limits, and approvals with the operating carrier.
+</p>
+
+<p class="justified">
+Filter to search for ULDs.
+</p>
+<div class="controls">
+
+    <input type="text" id="search" placeholder="Search ULD code or description">
+    <select id="deckFilter">
+        <option value="">All Decks</option>
+        <option>Main Deck</option>
+        <option>Lower Deck</option>
+    </select>
+    <select id="classFilter">
+        <option value="">All Classes</option>
+        <option>Pallet</option>
+        <option>Container</option>
+    </select>
+</div>
+
+<p class="justified">
+Hover over a ULD code to preview a representative image. Images sourced from Wikimedia Commons (Creative Commons).<br>
+</p>
+
+<table id="uldTable">
+<thead>
+<tr>
+<th>ULD Code</th>
+<th>Class</th>
+<th>Description</th>
+<th>Dimensions (mm)</th>
+<th>Deck</th>
+<th>Typical Aircraft</th>
+<th>Operational Notes</th>
+</tr>
+</thead>
+
+<tbody>
+
+<!-- ===================== PALLETS ===================== -->
+
+<tr data-deck="Main Deck" data-class="Pallet">
+<td><span class="uld-hover">PMC
+<img src=></span></td>
+<td>Pallet</td>
+<td>96 × 125 in <br> Aircraft Pallet</td>
+<td>2438 × 3175</td>
+<td>Main Deck</td>
+<td>B747F, B777F, MD-11F</td>
+<td>Most common wide-body pallet. Requires certified cargo nets.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Pallet">
+<td><span class="uld-hover">PAG
+<img src=></span></td>
+<td>Pallet</td>
+<td>88 × 125 in <br> Contoured Pallet</td>
+<td>2235 × 3175</td>
+<td>Lower Deck</td>
+<td>B767, B777, A330</td>
+<td>Must be contoured to fuselage shape.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Pallet">
+<td><span class="uld-hover">PLA
+<img src=></span></td>
+<td>Pallet</td>
+<td>88 × 125 in <br> Lower Deck Pallet</td>
+<td>2235 × 3175</td>
+<td>Lower Deck</td>
+<td>A320F, A321F</td>
+<td>Narrow-body freighter pallet. Strict height limits.</td>
+</tr>
+
+<tr data-deck="Main Deck" data-class="Pallet">
+<td><span class="uld-hover">PKC
+<img src=></span></td>
+<td>Pallet</td>
+<td>60.4 × 125 in <br> Narrow Pallet</td>
+<td>1534 × 3175</td>
+<td>Main Deck</td>
+<td>B747F</td>
+<td>Used for side positions or mixed builds.</td>
+</tr>
+
+<tr data-deck="Main Deck" data-class="Pallet">
+<td><span class="uld-hover">P1P
+<img src=></span></td>
+<td>Pallet</td>
+<td>Heavy-Duty <br> 96 × 125 in Pallet</td>
+<td>2438 × 3175</td>
+<td>Main Deck</td>
+<td>B747F, AN-124</td>
+<td>High point-load pallet for engines and machinery.</td>
+</tr>
+
+<tr data-deck="Main Deck" data-class="Pallet">
+<td><span class="uld-hover">P6P
+<img src=></span></td>
+<td>Pallet</td>
+<td>Extra-Strength <br> 96 × 125 in Pallet</td>
+<td>2438 × 3175</td>
+<td>Main Deck</td>
+<td>B747F, B777F</td>
+<td>Reinforced pallet. Airline approval often required.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Pallet">
+<td><span class="uld-hover">PAJ
+<img src=></span></td>
+<td>Pallet</td>
+<td>88 × 125 in <br> J-Contour Pallet</td>
+<td>2235 × 3175</td>
+<td>Lower Deck</td>
+<td>B767, B777</td>
+<td>J-contour for specific belly positions.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Pallet">
+<td><span class="uld-hover">PBJ
+<img src=></span></td>
+<td>Pallet</td>
+<td>88 × 125 in <br> Belly Pallet</td>
+<td>2235 × 3175</td>
+<td>Lower Deck</td>
+<td>A330, A350</td>
+<td>Used where containers are unavailable.</td>
+</tr>
+
+<tr data-deck="Main Deck" data-class="Pallet">
+<td><span class="uld-hover">PGF
+<img src=></span></td>
+<td>Pallet</td>
+<td>96 × 125 in <br> Freighter Pallet</td>
+<td>2438 × 3175</td>
+<td>Main Deck</td>
+<td>B747F</td>
+<td>Main-deck freighter-only pallet.</td>
+</tr>
+
+<tr data-deck="Main Deck" data-class="Pallet">
+<td><span class="uld-hover">Q6
+<img src=></span></td>
+<td>Pallet</td>
+<td>Airline-Specific <br> 96 × 125 Pallet</td>
+<td>2438 × 3175</td>
+<td>Main Deck</td>
+<td>Carrier-specific</td>
+<td>Non-IATA standard. Prior approval required.</td>
+</tr>
+
+<tr data-deck="Main Deck" data-class="Pallet">
+<td><span class="uld-hover">Q7
+<img src=></span></td>
+<td>Pallet</td>
+<td>Custom / Charter Pallet</td>
+<td>Variable</td>
+<td>Main Deck</td>
+<td>Charter, Military</td>
+<td>Custom pallet. Acceptance strictly by approval.</td>
+</tr>
+
+<!-- ===================== CONTAINERS ===================== -->
+
+<tr data-deck="Lower Deck" data-class="Container">
+<td><span class="uld-hover">AKE (LD3)
+<img src=></span></td>
+<td>Container</td>
+<td>Standard LD3 Container</td>
+<td>1534 × 1562 × 1630</td>
+<td>Lower Deck</td>
+<td>B777, A330, A350</td>
+<td>Most common passenger belly container.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Container">
+<td><span class="uld-hover">AKH (LD3-45)
+<img src=></span></td>
+<td>Container</td>
+<td>Reduced-Height LD3</td>
+<td>1534 × 1562 × 1143</td>
+<td>Lower Deck</td>
+<td>A320, A321</td>
+<td>Narrow-body optimized LD3.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Container">
+<td><span class="uld-hover">AKEF
+<img src=></span></td>
+<td>Container</td>
+<td>Fire-Resistant LD3</td>
+<td>1534 × 1562 × 1630</td>
+<td>Lower Deck</td>
+<td>Wide-body aircraft</td>
+<td>Fire containment for lithium batteries / DG.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Container">
+<td><span class="uld-hover">AMA (LD6)
+<img src=></span></td>
+<td>Container</td>
+<td>LD6 Wide-Body Container</td>
+<td>2438 × 1562 × 1630</td>
+<td>Lower Deck</td>
+<td>B777, A330</td>
+<td>Higher volume, fewer positions.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Container">
+<td><span class="uld-hover">AMJ (LD7)
+<img src=></span></td>
+<td>Container</td>
+<td>LD7 Container</td>
+<td>2438 × 3175 × 1630</td>
+<td>Lower Deck</td>
+<td>B777, A350</td>
+<td>Full pallet footprint container.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Container">
+<td><span class="uld-hover">AAX (LD8)
+<img src=></span></td>
+<td>Container</td>
+<td>LD8 Long Container</td>
+<td>3175 × 1562 × 1630</td>
+<td>Lower Deck</td>
+<td>B777, A350</td>
+<td>Limited aircraft compatibility.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Container">
+<td><span class="uld-hover">ALF (LD11)
+<img src=></span></td>
+<td>Container</td>
+<td>LD11 Large Container</td>
+<td>3175 × 2438 × 1630</td>
+<td>Lower Deck</td>
+<td>A330, A350</td>
+<td>Largest lower-deck container.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Container">
+<td><span class="uld-hover">DPE
+<img src=></span></td>
+<td>Container</td>
+<td>Temperature-Controlled Container</td>
+<td>2438 × 3175 × 1630</td>
+<td>Lower Deck</td>
+<td>Wide-body aircraft</td>
+<td>Active / passive pharma container.</td>
+</tr>
+
+<tr data-deck="Lower Deck" data-class="Container">
+<td><span class="uld-hover">DPN
+<img src=></span></td>
+<td>Container</td>
+<td>Advanced Pharma Container</td>
+<td>2438 × 3175 × 1630</td>
+<td>Lower Deck</td>
+<td>Wide-body aircraft</td>
+<td>High-performance temperature control.</td>
+</tr>
+
+</tbody>
+</table>
+
+
+
+</main>
+
+
+<script>
+const search = document.getElementById("search");
+const deckFilter = document.getElementById("deckFilter");
+const classFilter = document.getElementById("classFilter");
+const rows = document.querySelectorAll("#uldTable tbody tr");
+
+function filterTable() {
+    const s = search.value.toLowerCase();
+    const d = deckFilter.value;
+    const c = classFilter.value;
+
+    rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        const deck = r.dataset.deck;
+        const cls = r.dataset.class;
+
+        r.classList.toggle("hidden",
+            !(!s || text.includes(s)) ||
+            !(!d || deck === d) ||
+            !(!c || cls === c)
+        );
+    });
+}
+
+search.addEventListener("input", filterTable);
+deckFilter.addEventListener("change", filterTable);
+classFilter.addEventListener("change", filterTable);
+</script>
+
+
+    <footer>
+        © The Logistics Mindset — Personal educational reference
+    </footer>
+<script>
+const TIME_TICKER_ZONES = [
+    { label: "New York", tz: "America/New_York" },
+    { label: "London", tz: "Europe/London" },
+    { label: "Mumbai", tz: "Asia/Kolkata" },
+    { label: "Singapore", tz: "Asia/Singapore" },
+    { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+
+const timeTickerEl = document.getElementById("timeTicker");
+
+function updateTimeTicker() {
+    timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+        const t = new Date().toLocaleTimeString("en-US", {
+            timeZone: z.tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        return `<span>${z.label}: ${t}</span>`;
+    }).join("");
+}
+
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+
+</script>
+<script src="js/fx-ticker.js" defer></script>
+</body>
+</html>

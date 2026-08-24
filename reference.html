@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reference | The Logistics Mindset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+    <link rel="stylesheet" href="css/header.css">
+
+    <style>
+        :root {
+            --primary-color: #1a2a3a;
+            --accent-color: #2c7be5;
+            --text-color: #333;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.45;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 2.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        nav {
+            margin-top: 15px;
+        }
+
+        nav a {
+            margin-right: 20px;
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .summary-box {
+            background: var(--primary-color);
+            color: #ffffff;
+            padding: 22px;
+            border-radius: 4px;
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-left: 5px solid var(--primary-color);
+            padding-left: 15px;
+            margin: 40px 0 20px 0;
+            text-transform: uppercase;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+        }
+
+.time-ticker {
+    margin-top: 6px;
+    background: #ffffff;
+    color: #000000;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 4px;
+}
+
+.time-ticker span {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.time-ticker {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.time-ticker:hover {
+    background: #ffffff;
+}
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .mindset {
+            background: #ffffff;
+            padding: 25px;
+            border-left: 5px solid #27ae60;
+        }
+
+        .mindset ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .mindset li {
+            margin-bottom: 10px;
+        }
+
+        .credentials {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .badge {
+            background: #e9eef3;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #ccd5df;
+        }
+
+        footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+@media (max-width: 768px) {
+    .justified {
+        text-align: left;
+    }
+}
+
+.justified {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+}
+
+.justified li {
+    margin-bottom: 8px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .page-logo {
+        width: 60px;
+    }
+}
+
+
+/* PRINT: force watermark on every page */
+@media print {
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+
+
+    body {
+        background: #fff;
+    }
+}
+
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <header class="page-header">
+    <img src="img/logo.png" alt="Logo" class="page-logo">
+    <div class="header-text">
+
+        <h1>References</h1>
+        <div class="subtitle">Practical utilities and reference material for everyday logistics work</div>
+
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="conversion.html">Conversions</a>
+             <a href="currency.html">Currencies</a>
+            <a href="clock.html">World Time</a>
+            <a href="underconst.html">News</a>
+            <a href="underconst.html">Blog</a>
+        </nav>
+      </div>
+    </header>
+
+<div id="fxTicker"
+     class="fx-ticker"
+     role="link"
+     tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+    <div class="intro">
+        <p class="justified">
+            This page serves as a working collection of reference
+            material commonly used in trade and logistics.
+        </p>
+        <p class="justified">
+            Reference topics link to dedicated pages for deeper explanation.
+        </p>
+    </div>
+
+
+    <h2 class="section-title">Reference & compliance</h2>
+    <div class="grid">
+        <div class="card">
+            <h3><a href="incoterms.html">Incoterms</a></h3>
+            <p class="justified">Practical explanations of Incoterms and their real-world application.</p>
+        </div>
+
+        <div class="card">
+            <h3><a href="hazmat.html">Hazardous Materials Basics</a></h3>
+            <p class="justified">High-level overview of hazmat classifications and transport considerations.</p>
+  
+        </div>
+
+        <div class="card">
+            <h3><a href="customs.html">Customs & Trade Concepts</a></h3>
+            <p class="justified">Plain-language explanations of customs procedures and compliance fundamentals.</p>
+
+        </div>
+
+        <div class="card">
+            <h3><a href="shipping-terms.html">Shipping Terms Glossary</a></h3>
+            <p class="justified">Common terms used in shipping, especially breakbulk and heavy-lift operations.</p>
+
+        </div>
+    </div>
+
+    <h2 class="section-title">Equipment reference</h2>
+    <div class="grid">
+        <div class="card">
+            <h3><a href="containers.html">Containers</a></h3>
+            <p class="justified">Standard and specialized container types with typical use cases.</p>
+  
+        </div>
+
+        <div class="card">
+            <h3><a href="uld.html">ULDs (Unit Load Devices)</a></h3>
+            <p class="justified">Air cargo ULD profiles, limitations, and practical considerations.</p>
+ 
+        </div>
+
+        <div class="card">
+            <h3>Trucks & Trailers</h3>
+            <p class="justified">Common truck and trailer configurations used in project and regional transport.</p>
+
+        </div>
+
+        <div class="card">
+            <h3>Barges</h3>
+            <p class="justified">Barge types and inland waterway transport considerations.</p>
+
+        </div>
+    </div>
+
+    <footer>
+        © The Logistics Mindset — Personal educational reference
+    </footer>
+
+</div>
+<script>
+const TIME_TICKER_ZONES = [
+    { label: "New York", tz: "America/New_York" },
+    { label: "London", tz: "Europe/London" },
+    { label: "Mumbai", tz: "Asia/Kolkata" },
+    { label: "Singapore", tz: "Asia/Singapore" },
+    { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+
+const timeTickerEl = document.getElementById("timeTicker");
+
+function updateTimeTicker() {
+    timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+        const t = new Date().toLocaleTimeString("en-US", {
+            timeZone: z.tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        return `<span>${z.label}: ${t}</span>`;
+    }).join("");
+}
+
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+
+</script>
+<script src="js/fx-ticker.js" defer></script>
+</body>
+</html>

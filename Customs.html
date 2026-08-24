@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customs and Trade Concepts | The Logistics Mindset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/header.css">
+
+    <style>
+        :root {
+            --primary-color: #1a2a3a;
+            --accent-color: #2c7be5;
+            --text-color: #333;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.45;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .highlight {
+            background: #ffffff;
+            padding: 25px;
+            border-left: 5px solid var(--accent-color);
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 2.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        nav { margin-top: 15px; }
+        nav a {
+            margin-right: 20px;
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+        nav a:hover { text-decoration: underline; }
+
+        .section-title {
+            color: var(--primary-color);
+            border-left: 5px solid var(--primary-color);
+            padding-left: 15px;
+            margin: 40px 0 20px 0;
+            text-transform: uppercase;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .mindset {
+            background: #ffffff;
+            padding: 25px;
+            border-left: 5px solid #27ae60;
+        }
+
+        .mindset ul { margin: 0; padding-left: 18px; }
+        .mindset li { margin-bottom: 10px; }
+
+        .credentials { display: flex; flex-wrap: wrap; gap: 15px; }
+        .badge {
+            background: #e9eef3;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #ccd5df;
+        }
+
+        .hts-calculator-cta {
+            background: #ffffff;
+            border-left: 5px solid var(--accent-color);
+            padding: 18px 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        .hts-calculator-cta h3 {
+            margin: 0 0 8px;
+            color: var(--primary-color);
+        }
+
+        .hts-calculator-cta p { margin: 0 0 14px; }
+        .calculator-link {
+            display: inline-block;
+            padding: 10px 15px;
+            background: var(--primary-color);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .calculator-link:hover { background: #263d54; text-decoration: none; }
+
+        footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .justified { text-align: left; }
+            .page-logo { width: 60px; }
+        }
+
+        .justified {
+            text-align: justify;
+            text-justify: inter-word;
+            hyphens: auto;
+        }
+        .justified li { margin-bottom: 8px; }
+
+        .time-ticker {
+            margin-top: 6px;
+            background: #ffffff;
+            color: #000000;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .time-ticker span { white-space: nowrap; font-weight: 500; }
+        .time-ticker:hover { background: #ffffff; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .page-logo { width: 60px; }
+        }
+
+        /* PRINT: force watermark on every page */
+        @media print {
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            body { background: #fff; }
+        }
+
+
+    </style>
+</head>
+
+<body>
+<div class="container">
+<header class="page-header">
+    <img src="img/logo.png" alt="Logo" class="page-logo">
+    <div class="header-text">
+        <h1>Customs and Trade Concepts</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="conversion.html">Conversions</a>
+            <a href="reference.html">References</a>
+            <a href="currency.html">Currencies</a>
+            <a href="clock.html">World Time</a>
+            <a href="underconst.html">News</a>
+            <a href="underconst.html">Blog</a>
+        </nav>
+    </div>
+</header>
+
+<div id="fxTicker" class="fx-ticker" role="link" tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+<main>
+<section>
+<h2>Purpose and Regulatory Framework</h2>
+<p class="justified">United States customs and trade regulations govern the lawful importation and exportation of merchandise. These rules are primarily enforced by U.S. Customs and Border Protection (CBP), operating under the Department of Homeland Security, with statutory authority derived from Title 19 of the United States Code and Title 19 of the Code of Federal Regulations (19 CFR).</p>
+<p class="justified">The objectives of U.S. customs regulations include revenue protection, trade facilitation, national security, consumer safety, and enforcement of U.S. trade policy.</p>
+</section>
+
+<section>
+<h2>U.S. Customs and Border Protection (CBP)</h2>
+<p class="justified">
+CBP is the primary federal agency responsible for administering customs laws at U.S. ports of entry. CBP oversees cargo security, trade compliance, duty collection, and enforcement actions related to imports and exports.
+</p>
+<ul>
+<li>Review and release of imported cargo</li>
+<li>Assessment and collection of duties, taxes, and fees</li>
+<li>Enforcement of admissibility and safety regulations</li>
+<li>Audit and post-entry compliance verification</li>
+</ul>
+</section>
+
+<section>
+<h2>Importer of Record (IOR)</h2>
+<p class="justified">
+The Importer of Record is the party responsible for ensuring that imported goods comply with all U.S. laws and regulations. The IOR may be the owner, purchaser, or a licensed customs broker acting under a valid power of attorney.
+</p>
+<p class="justified">
+Responsibilities include accurate declaration, payment of duties, recordkeeping for a minimum of five years, and response to CBP inquiries or audits.
+</p>
+</section>
+
+<section>
+<h2>Partner Government Agencies (PGAs)</h2>
+<p class="justified">
+Many imports are regulated by agencies other than CBP. These agencies impose additional requirements beyond customs clearance.
+</p>
+<ul>
+<li>FDA – food, drugs, medical devices</li>
+<li>USDA – agriculture and animal products</li>
+<li>EPA – chemicals and environmental goods</li>
+<li>CPSC – consumer product safety</li>
+<li>FCC – telecommunications equipment</li>
+</ul>
+</section>
+
+<section>
+<h2>Customs Brokers</h2>
+<p class="justified">
+Licensed U.S. customs brokers facilitate the clearance of goods through CBP on behalf of importers and exporters. Brokers must be licensed under 19 CFR Part 111 and operate under CBP oversight.
+</p>
+<p class="justified">
+While brokers prepare and submit entries, legal liability for accuracy remains with the importer of record.
+</p>
+</section>
+
+<section>
+<h2>Harmonized Tariff Schedule of the United States (HTSUS)</h2>
+<p class="justified">
+The HTSUS is the official classification system used for all U.S. imports. It is based on the international Harmonized System and expanded to ten digits for U.S.-specific duty assessment, trade remedies, and statistical reporting.
+</p>
+<ul>
+<li>First six digits: International HS code</li>
+<li>Seventh and eighth digits: U.S. tariff provisions</li>
+<li>Ninth and tenth digits: Statistical suffix</li>
+</ul>
+
+<div class="hts-calculator-cta">
+<h3>U.S. HTS Duty Calculator</h3>
+<p class="justified">Enter an HTS number, country of origin, customs value and mode of import to screen the published duty rate and estimate applicable import user fees.</p>
+<a class="calculator-link" href="hts-duty-calculator.html">Open HTS Duty Calculator →</a>
+</div>
+</section>
+
+<section>
+<h2>Country of Origin and Marking</h2>
+<p class="justified">
+U.S. country of origin rules determine where goods are manufactured or substantially transformed. Origin impacts duty rates, trade agreement eligibility, and compliance with marking laws.
+</p>
+<p class="justified">
+Under 19 CFR Part 134, imported goods must be legibly and permanently marked with their country of origin unless a specific exception applies.
+</p>
+</section>
+
+<section>
+<h2>Customs Valuation</h2>
+<p class="justified">
+CBP generally applies the transaction value method, defined as the price actually paid or payable for the merchandise when sold for export to the United States.
+</p>
+<p class="justified">
+Certain costs must be added to the declared value, including assists, royalties, packing costs, and proceeds of subsequent resale when applicable.
+</p>
+</section>
+
+
+<section>
+<h2>Duties, Taxes, and Fees</h2>
+<ul>
+<li><strong>Customs Duty:</strong> Calculated based on HTSUS classification and value</li>
+<li><strong>Merchandise Processing Fee (MPF):</strong> Applied to most formal and informal entries</li>
+<li><strong>Harbor Maintenance Fee (HMF):</strong> Applicable to certain ocean freight imports</li>
+<li><strong>Trade Remedy Duties:</strong> Antidumping (AD) and Countervailing Duties (CVD)</li>
+</ul>
+</section>
+
+
+<section>
+<h2>Entry Types and Filing Requirements</h2>
+<p class="justified">
+Importers must file entry documentation through CBP's Automated Commercial Environment (ACE). Entry types vary depending on shipment value, use, and regulatory requirements.
+</p>
+<ul>
+<li>Consumption entry</li>
+<li>Warehouse entry</li>
+<li>Temporary Importation under Bond (TIB)</li>
+<li>Informal entry</li>
+</ul>
+</section> 
+
+<section>
+<h2>Free Trade Agreements and Preferential Programs</h2>
+<p class="justified">
+The United States participates in multiple trade agreements, including USMCA. Preferential duty treatment requires compliance with specific rules of origin and proper certification.
+</p>
+<p class="justified">
+Incorrect claims may result in duty recovery, penalties, or loss of benefits.
+</p>
+</section>
+
+
+<section>
+<h2>Customs Bonds</h2>
+<p class="justified">
+A customs bond guarantees payment of duties, taxes, and compliance obligations. Importers typically maintain a continuous bond or use a single-entry bond depending on shipment frequency.
+</p>
+</section>
+
+
+<section>
+<h2>Audits, Penalties, and Enforcement</h2>
+<p class="justified">
+CBP conducts audits, focused assessments, and reviews to verify compliance. Penalties may be issued under 19 U.S.C. §1592 for negligence, gross negligence, or fraud.
+</p>
+<p>
+Voluntary disclosures can significantly reduce penalties when violations are identified internally.
+</p>
+</section>
+
+
+<section>
+<h2>Recordkeeping and Compliance Programs</h2>
+<p class="justified">
+Importers must retain customs records for a minimum of five years from the date of entry. Effective trade compliance programs include internal controls, periodic audits, classification management, and employee training.
+</p>
+</section> 
+
+<li><strong>FTZ:</strong> Foreign-Trade Zone where goods may be admitted without immediate duty payment.</li>
+<li><strong>HTSUS:</strong> Harmonized Tariff Schedule of the United States.</li>
+<li><strong>Importer of Record:</strong> Party legally responsible for the import transaction.</li>
+<li><strong>Liquidation:</strong> Final CBP calculation of duties owed on an entry.</li>
+<li><strong>MPF:</strong> Merchandise Processing Fee.</li>
+<li><strong>Non‑Resident Importer:</strong> Foreign entity acting as importer under U.S. rules.</li>
+<li><strong>PGA:</strong> Partner Government Agency with regulatory authority.</li>
+<li><strong>Post‑Summary Correction:</strong> Electronic correction filed after entry summary.</li>
+<li><strong>Reconciliation:</strong> Process allowing estimated reporting followed by later final data.</li>
+<li><strong>TIB:</strong> Temporary Importation under Bond.</li>
+<li><strong>USMCA:</strong> United States–Mexico–Canada Agreement.</li>
+<li><strong>Voluntary Disclosure:</strong> Self‑reported violation submitted to mitigate penalties.</li>
+</ul>
+</section>
+
+
+<section>
+<h2>U.S. Import Process Flow</h2>
+<h3>1. Entry Filing</h3>
+<p class="justified">Importer or broker files entry data in ACE, including classification, value, and PGA information.</p>
+<h3>2. Cargo Release</h3>
+<p class="justified">CBP and PGAs review admissibility. Goods may be released, examined, or held for inspection.</p>
+<h3>3. Entry Summary</h3>
+<p class="justified">Formal declaration of duties, taxes, and fees, typically within 10 working days of release.</p>
+<h3>4. Liquidation</h3>
+<p class="justified">CBP finalizes the entry, usually within 314 days, establishing final duty liability.</p>
+<h3>5. Audit and Enforcement</h3>
+<p class="justified">Entries remain subject to audit, focused assessment, or penalty action for five years.</p>
+</section>
+
+
+<section>
+<h2>Trade Remedies: Sections 301, 232, and Safeguards</h2>
+<p class="justified">
+The United States applies special duties under specific statutory authorities to protect domestic industries and address unfair trade.
+</p>
+<ul>
+<li><strong>Section 301:</strong> Duties imposed in response to unfair foreign trade practices, most notably on goods from China.</li>
+<li><strong>Section 232:</strong> National security‑based duties applied to steel, aluminum, and derivative products.</li>
+<li><strong>Safeguard Measures:</strong> Temporary duties or quotas imposed to prevent serious injury to domestic industries.</li>
+</ul>
+<p class="justified">
+These duties are applied in addition to normal HTSUS duties and are strictly enforced by CBP.
+</p>
+</section>
+
+
+
+</main>
+
+
+<footer>
+<p>© 2026 U.S. Customs & Trade Concepts. Informational use only. Not legal advice.</p>
+</footer>
+<script>
+const TIME_TICKER_ZONES = [
+    { label: "New York", tz: "America/New_York" },
+    { label: "London", tz: "Europe/London" },
+    { label: "Mumbai", tz: "Asia/Kolkata" },
+    { label: "Singapore", tz: "Asia/Singapore" },
+    { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+
+const timeTickerEl = document.getElementById("timeTicker");
+
+function updateTimeTicker() {
+    timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+        const t = new Date().toLocaleTimeString("en-US", {
+            timeZone: z.tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        return `<span>${z.label}: ${t}</span>`;
+    }).join("");
+}
+
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+
+</script>
+<script src="js/fx-ticker.js" defer></script>
+
+</body>
+</html>

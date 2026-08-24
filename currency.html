@@ -1,0 +1,512 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Currencies | The Logistics Mindset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+    <link rel="stylesheet" href="css/header.css">
+
+    <style>
+        :root {
+            --primary-color: #1a2a3a;
+            --accent-color: #2c7be5;
+            --text-color: #333;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.45;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+    /* Main 2-Column Layout */
+    .tool-container.fx-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Equal split for conversion vs rates */
+        gap: 40px;
+        align-items: start;
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* Left Column (Form) */
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+   	 footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+    button {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .result-box {
+        margin-top: 20px;
+        padding: 15px;
+        background: #eef4ff;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+
+    /* Right Column (Reference Rates) */
+    .fx-reference-isolation .section-title {
+        margin: 0 0 20px 0;
+        padding-left: 15px;
+        border-left: 5px solid var(--primary-color);
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+.fx-reference-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+}
+
+    .fx-reference-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .fx-ref-pair {
+        padding-bottom: 8px;
+        border-bottom: 1px ridge #eee;
+        font-size: 0.95rem;
+    }
+
+    .disclaimer {
+        margin-top: 20px;
+        font-size: 0.8rem;
+        color: #777;
+        font-style: italic;
+    }
+#currencyResult {
+  display: block;
+}
+
+        footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+.time-ticker {
+    margin-top: 6px;
+    background: #ffffff;
+    color: #000000;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 4px;
+}
+
+.time-ticker span {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.time-ticker {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.time-ticker:hover {
+    background: #ffffff;
+}
+
+    /* Mobile handling */
+    @media (max-width: 800px) {
+        .tool-container.fx-layout {
+            grid-template-columns: 1fr;
+        }
+	
+
+
+
+
+/* Mobile */
+@media (max-width: 768px) {
+    .page-logo {
+        width: 60px;
+    }
+}
+
+
+/* PRINT: force watermark on every page */
+@media print {
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+/* Tighten space above Quick View Rates */
+.quick-rates-section {
+    margin-top: 10px;
+    padding-top: 0;
+}
+
+.quick-rates-section h2 {
+    margin-top: 0;
+}
+
+.currency-description {
+    margin-bottom: 10px;
+}
+
+
+</style>    
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="page-header">
+    <img src="img/logo.png" alt="Logo" class="page-logo">
+         <div class="header-text">
+
+        <h1>Tools </h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+           <a href="conversion.html">Conversions</a>
+            <a href="reference.html">References</a>
+            <a href="clock.html">World Time</a>
+            <a href="underconst.html">News</a>
+            <a href="underconst.html">Blog</a>
+        </nav>
+     </div>
+    </header>
+
+<div id="fxTicker"
+     class="fx-ticker"
+     role="link"
+     tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+
+<h1 style="text-align: center">Currency Converter</h1>
+<p class="currency-description" style="text-align: center"> Typing in your currency, country code or name of country defaults to currency code. USD/EUR shown as default.<br>Rates are refreshed hourly as supplied from Frankfurter and may differ from carrier, bank, or provider rates.<br>Only currencies supported by ECB and Major central banks are shown. Those not supported will not show a conversion.<br>Please check with your financial institution for missing currencies.</p>
+
+
+<section class="tool-container tool-card quick-rates-section">
+<h2 style="text-align: center">Quick view rates</h2>
+ <div class="fx-reference-wrapper" id="fxQuickRates"></div>
+
+</section>
+
+<section class="tool-container tool-card fx-layout">
+ <div class="fx-left">
+<h2 style="text-align: center">Converter</h2>
+  <div class="form-group">
+    <label for="amount">Amount</label>
+    <input type="number" id="amount" value="1" step="0.01">
+  </div>
+
+  <div class="form-group">
+    <label for="fromCurrency">From Currency</label>
+    <input id="fromCurrency" list="currencyList" placeholder="Type country or currency">
+  </div>
+
+  <div class="form-group">
+    <label for="toCurrency">To Currency</label>
+    <input id="toCurrency" list="currencyList" placeholder="Type country or currency">
+  </div>
+<datalist id="currencyList"></datalist>
+
+<div id="currencyResult" class="result-box">
+    <div id="convertedAmount"></div>
+    <div class="fx-timestamp" id="fxTimestamp"></div>
+  </div>
+
+</section>
+
+
+
+<footer>
+  <div class="container" >
+    © The Logistics Mindset — Personal educational project
+  </div>
+</footer>
+
+
+
+<script type="module">
+const currencyAliases = {
+  USD: ["usd", "united states", "usa", "america", "us dollar", "dollar"],
+  EUR: ["eur", "euro", "europe", "european union"],
+  GBP: ["gbp", "pound", "british pound", "uk", "united kingdom", "england", "britain"],
+  JPY: ["jpy", "japan", "yen", "jp"],
+  CNY: ["cny", "china", "yuan", "renminbi", "cn"],
+  HKD: ["hkd", "hong kong", "hong kong dollar", "hk"],
+  SGD: ["sgd", "singapore", "singapore dollar", "sg"],
+  AUD: ["aud", "australia", "australian dollar"],
+  NZD: ["nzd", "new zealand", "new zealand dollar", "nz"],
+  CAD: ["cad", "canada", "canadian dollar", "ca"],
+  CHF: ["chf", "switzerland", "swiss franc", "franc"],
+  SEK: ["sek", "sweden", "swedish krona", "se"],
+  NOK: ["nok", "norway", "norwegian krone", "no"],
+  DKK: ["dkk", "denmark", "danish krone", "dk"],
+  INR: ["inr", "india", "rupee", "indian rupee"],
+  ILS: ["ils", "israel", "shekel", "new shekel", "il"],
+  TRY: ["try", "turkey", "turkish lira", "tk"],
+  PLN: ["pln", "poland", "zloty", "pl"],
+  CZK: ["czk", "czech republic", "czechia", "koruna", "cz"],
+  HUF: ["huf", "hungary", "forint", "hu"],
+  RON: ["ron", "romania", "leu", "ro"],
+  ZAR: ["zar", "south africa", "rand", "za"],
+  BRL: ["brl", "brazil", "real", "brazilian real", "br"],
+  MXN: ["mxn", "mexico", "mexican peso", "mx"],
+  KRW: ["krw", "south korea", "korea", "won", "kr"],
+  THB: ["thb", "thailand", "baht", "th"],
+  MYR: ["myr", "malaysia", "ringgit","my"],
+  IDR: ["idr", "indonesia", "rupiah", "id"],
+  PHP: ["php", "philippines", "philippine peso", "ph"],
+
+};
+
+function resolveCurrency(input) {
+  if (!input) return null;
+
+  const normalized = input.toLowerCase().trim();
+
+  for (const [code, aliases] of Object.entries(currencyAliases)) {
+    if (aliases.includes(normalized) || code.toLowerCase() === normalized) {
+      return code;
+    }
+  }
+
+  return null;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+
+
+});
+
+	  /* ========= FX CONVERTER ========= */
+
+
+
+
+let fxTypingTimer;
+
+function handleFxTyping() {
+  const fromResolved = resolveCurrency(fromCurrency.value);
+  const toResolved = resolveCurrency(toCurrency.value);
+
+  if (fromResolved) fromCurrency.value = fromResolved;
+  if (toResolved) toCurrency.value = toResolved;
+
+  if (fromResolved && toResolved) {
+    runConversion();
+  }
+}
+
+
+  const FX_API_URL = "https://api.frankfurter.app/latest?from=USD";
+  const FX_CACHE_KEY = "fxRatesCache";
+  const FX_CACHE_TIME_KEY = "fxRatesTimestamp";
+  const FX_REFRESH_INTERVAL = 60 * 60 * 1000;
+
+  const fromCurrency = document.getElementById("fromCurrency");
+  const toCurrency = document.getElementById("toCurrency");
+  const amountInput = document.getElementById("amount");
+  const resultFxBox = document.getElementById("currencyResult");
+  const convertedAmount = document.getElementById("convertedAmount");
+  const fxTimestamp = document.getElementById("fxTimestamp");
+  const quickRatesEl = document.getElementById("fxQuickRates");
+
+  async function getRates() {
+    const cached = localStorage.getItem(FX_CACHE_KEY);
+    const cachedTime = Number(localStorage.getItem(FX_CACHE_TIME_KEY));
+
+    if (cached && cachedTime && Date.now() - cachedTime < FX_REFRESH_INTERVAL) {
+      fxTimestamp.textContent =
+        "Rates last updated: " + new Date(cachedTime).toLocaleString();
+      return JSON.parse(cached);
+    }
+
+    const res = await fetch(FX_API_URL);
+    const data = await res.json();
+    const rates = { USD: 1, ...data.rates };
+
+    localStorage.setItem(FX_CACHE_KEY, JSON.stringify(rates));
+    localStorage.setItem(FX_CACHE_TIME_KEY, Date.now());
+
+    fxTimestamp.textContent =
+      "Rates last updated: " + new Date().toLocaleString();
+
+    return rates;
+  }
+
+  const rates = await getRates();
+  /* ========= KEY REFERENCE RATES ========= */
+
+  const keyPairs = [
+    ["USD", "EUR"],
+    ["USD", "GBP"],
+    ["USD", "INR"],
+    ["USD", "JPY"],
+    ["USD", "CHF"],
+    ["USD", "AUD"],
+    ["USD", "SGD"],
+    ["USD", "CNY"],
+    ["USD", "CAD"],
+    ["USD", "THB"],
+  ];
+
+quickRatesEl.innerHTML = ""; // clear existing content
+
+keyPairs.forEach(([base, quote]) => {
+  if (rates[base] && rates[quote]) {
+    const value = (1 / rates[base]) * rates[quote];
+
+    const card = document.createElement("div");
+    card.className = "world-clock"; // reuse exact world clock styling
+
+    card.innerHTML = `
+      <h4>${base} / ${quote}</h4>
+      <div class="digital-time">
+        1 ${base} = ${value.toFixed(4)} ${quote}<br>
+        1 ${quote} = ${(1 / value).toFixed(4)} ${base}
+      </div>
+    `;
+
+    quickRatesEl.appendChild(card);
+  }
+});
+
+const currencyList = document.getElementById("currencyList");
+currencyList.innerHTML = "";
+
+Object.entries(currencyAliases).forEach(([code, aliases]) => {
+  // Currency code itself
+  currencyList.insertAdjacentHTML(
+    "beforeend",
+    `<option value="${code}"></option>`
+  );
+
+  // All country / name aliases
+  aliases.forEach(name => {
+    currencyList.insertAdjacentHTML(
+      "beforeend",
+      `<option value="${name}"></option>`
+    );
+  });
+});
+
+
+  fromCurrency.value = "USD";
+  toCurrency.value = "EUR";
+
+runConversion();
+
+
+
+function runConversion() {
+
+  const fromCode = resolveCurrency(fromCurrency.value);
+  const toCode = resolveCurrency(toCurrency.value);
+
+  if (!fromCode || !toCode) return;
+
+  const amount = parseFloat(amountInput.value);
+  if (isNaN(amount) || amount <= 0) return;
+
+  const result =
+    (amount / rates[fromCode]) * rates[toCode];
+
+  convertedAmount.textContent =
+    `${amount} ${fromCode} = ${result.toFixed(4)} ${toCode}`;
+
+  resultFxBox.style.display = "block";
+}
+
+  fromCurrency.addEventListener("input", handleFxTyping);
+  toCurrency.addEventListener("input", handleFxTyping);
+  amountInput.addEventListener("input", handleFxTyping);
+
+  runConversion();
+const TIME_TICKER_ZONES = [
+    { label: "New York", tz: "America/New_York" },
+    { label: "London", tz: "Europe/London" },
+    { label: "Mumbai", tz: "Asia/Kolkata" },
+    { label: "Singapore", tz: "Asia/Singapore" },
+    { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+
+const timeTickerEl = document.getElementById("timeTicker");
+
+function updateTimeTicker() {
+    timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+        const t = new Date().toLocaleTimeString("en-US", {
+            timeZone: z.tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        return `<span>${z.label}: ${t}</span>`;
+    }).join("");
+}
+
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+
+
+
+</script>
+
+<script src="js/fx-ticker.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Containers | The Logistics Mindset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+    <link rel="stylesheet" href="css/header.css">
+
+    <style>
+        :root {
+            --primary-color: #1a2a3a;
+            --accent-color: #2c7be5;
+            --text-color: #333;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.45;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+.highlight {
+    background: #ffffff;
+    padding: 25px;
+    border-left: 5px solid var(--accent-color);
+    margin-bottom: 40px;
+}
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 2.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        nav {
+            margin-top: 15px;
+        }
+
+        nav a {
+            margin-right: 20px;
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-left: 5px solid var(--primary-color);
+            padding-left: 15px;
+            margin: 40px 0 20px 0;
+            text-transform: uppercase;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .mindset {
+            background: #ffffff;
+            padding: 25px;
+            border-left: 5px solid #27ae60;
+        }
+
+        .mindset ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .mindset li {
+            margin-bottom: 10px;
+        }
+
+        .credentials {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .badge {
+            background: #e9eef3;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #ccd5df;
+        }
+
+        footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    th, td {
+        border: 1px solid #cfcfcf;
+        padding: 10px;
+        vertical-align: top;
+    }
+    th {
+        background-color: #f2f4f7;
+        font-weight: bold;
+        text-align: left;
+    }
+    .image-cell {
+        width: 260px;
+        text-align: center;
+        background: #fafafa;
+    }
+    svg {
+        width: 240px;
+        height: auto;
+        border: 1px solid #bbb;
+        background: #ffffff;
+    }
+    .note {
+        margin-top: 15px;
+        font-size: 13px;
+        color: #555;
+    }
+
+@media (max-width: 768px) {
+    .justified {
+        text-align: left;
+    }
+}
+
+.justified {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+}
+
+.justified li {
+    margin-bottom: 8px;
+}
+
+.time-ticker {
+    margin-top: 6px;
+    background: #ffffff;
+    color: #000000;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 4px;
+}
+
+.time-ticker span {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.time-ticker {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.time-ticker:hover {
+    background: #ffffff;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .page-logo {
+        width: 60px;
+    }
+}
+
+
+/* PRINT: force watermark on every page */
+@media print {
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    body {
+        background: #fff;
+    }
+}
+
+.container-hover {
+    position: relative;
+    cursor: help;
+    color: #0b4aa2;
+    text-decoration: underline;
+}
+
+.container-hover .hover-image {
+    display: none;
+    position: absolute;
+    top: 22px;
+    left: 0;
+    width: 260px;
+    padding: 6px;
+    background: #ffffff;
+    border: 1px solid #cfd6dd;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    z-index: 9999;
+}
+
+.container-hover .hover-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 3px;
+}
+
+.container-hover:hover .hover-image {
+    display: block;
+}
+
+.filter-bar {
+    margin: 20px 0;
+    padding: 12px 15px;
+    background: #ffffff;
+    border: 1px solid #ccd5df;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.filter-bar label {
+    margin-right: 10px;
+    font-weight: 600;
+    color: #333;
+}
+
+.filter-bar select {
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+   
+  <header class="page-header">
+    <img src="img/logo.png" alt="Logo" class="page-logo">
+    <div class="header-text">
+
+        <h1>Shipping Container Types</h1>
+               <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+           <a href="conversion.html">Conversions</a>
+            <a href="reference.html">References</a>
+            <a href="currency.html">Currencies</a>
+            <a href="clock.html">World Time</a>
+            <a href="underconst.html">News</a>
+            <a href="underconst.html">Blog</a>
+        </nav>
+      </div>
+    </header>
+
+<div id="fxTicker"
+     class="fx-ticker"
+     role="link"
+     tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+<body>
+
+
+
+<p class="justified">
+This reference page outlines commonly used ISO standard and specialized freight containers, including
+their dimensional specifications, structural limits, and operational use cases. Data reflects typical
+industry values used by ocean carriers, freight forwarders, and cargo planners.
+</p>
+
+<h3>Shipping Containers, Tanks & IBCs – Complete Technical Reference</h3>
+
+<div class="filter-bar">
+  <label>Filter by container type:</label>
+  <select id="containerFilter" onchange="filterContainers()">
+    <option value="all">All Containers</option>
+    <option value="dry">Dry / Standard</option>
+    <option value="hc">High Cube</option>
+    <option value="ot">Open Top</option>
+    <option value="fr">Flat Rack</option>
+    <option value="reefer">Reefer</option>
+    <option value="tank">Tank / IBC</option>
+  </select>
+</div>
+
+
+<div class="table-wrap">
+<table>
+
+<tr>
+<th>Container Type</th>
+<th>Internal Dimensions<br><span class="unit">(L × W × H)</span></th>
+<th>External Dimensions<br><span class="unit">(L × W × H)</span></th>
+<th>Door Opening<br><span class="unit">(W × H)</span></th>
+<th>Roof Opening<br><span class="unit">(W × L)</span></th>
+<th>Max Payload</th>
+<th>Deck Strength</th>
+<th>Typical Use Cases</th>
+</tr>
+
+<!-- 20FT DRY -->
+<tr data-type="dry">
+<td>
+    <span class="container-hover">
+        20ft Dry Standard
+        <span class="hover-image">
+            <img src=>
+        </span>
+    </span>
+</td>
+<td>
+5898 × 2352 × 2393 mm<br>
+(19'4" × 7'8" × 7'10")
+</td>
+<td>
+6058 × 2438 × 2591 mm<br>
+(19'10" × 8'0" × 8'6")
+</td>
+<td>
+2340 × 2280 mm<br>
+(7'8" × 7'6")
+</td>
+<td>N/A</td>
+<td>
+28,200 kg<br>
+(62,170 lb)
+</td>
+<td>
+~7,500 psi
+</td>
+<td class="use-case">
+General cargo, cartons, pallets, machinery, consumer goods.
+</td>
+</tr>
+
+<!-- 40FT DRY -->
+<tr data-type="dry">
+<td>
+    <span class="container-hover">
+        40ft Dry Standard
+        <span class="hover-image">
+          <img src=>
+        </span>
+    </span>
+</td>
+<td>
+12032 × 2352 × 2393 mm<br>
+(39'5" × 7'8" × 7'10")
+</td>
+<td>
+12192 × 2438 × 2591 mm<br>
+(40'0" × 8'0" × 8'6")
+</td>
+<td>
+2340 × 2280 mm<br>
+(7'8" × 7'6")
+</td>
+<td>N/A</td>
+<td>
+28,800 kg<br>
+(63,500 lb)
+</td>
+<td>
+~7,500 psi
+</td>
+<td class="use-case">
+High-volume general cargo, retail distribution, consolidated freight.
+</td>
+</tr>
+
+<!-- 40FT HC -->
+<tr data-type="hc">
+<td>
+  <span class="container-hover">
+    40ft High Cube
+    <span class="hover-image">
+           <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+12032 × 2352 × 2698 mm<br>
+(39'5" × 7'8" × 8'10")
+</td>
+<td>
+12192 × 2438 × 2896 mm<br>
+(40'0" × 8'0" × 9'6")
+</td>
+<td>
+2340 × 2585 mm<br>
+(7'8" × 8'5")
+</td>
+<td>N/A</td>
+<td>
+28,600 kg<br>
+(63,050 lb)
+</td>
+<td>
+~7,500 psi
+</td>
+<td class="use-case">
+Lightweight, high-cube cargo, paper goods, furniture.
+</td>
+</tr>
+
+<!-- 20FT OPEN TOP -->
+<tr data-type="ot">
+<td>
+  <span class="container-hover">
+    20ft Open Top
+    <span class="hover-image">
+          <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+5890 × 2340 × 2350 mm<br>
+(19'4" × 7'8" × 7'8")
+</td>
+<td>
+6058 × 2438 × 2591 mm<br>
+(19'10" × 8'0" × 8'6")
+</td>
+<td>
+2340 × 2280 mm<br>
+(7'8" × 7'6")
+</td>
+<td>
+2235 × 5450 mm<br>
+7'4" × 17'11"
+</td>
+<td>
+28,000 kg<br>
+(61,730 lb)
+</td>
+<td>
+~7,000 psi
+</td>
+<td class="use-case">
+Over-height machinery, steel coils, marble blocks.
+</td>
+</tr>
+
+
+<!-- 40FT OPEN TOP -->
+<tr data-type="ot">
+<td>
+  <span class="container-hover">
+    40ft Open Top
+    <span class="hover-image">
+          <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+12030 × 2340 × 2350 mm<br>
+(39'5" × 7'8" × 7'8")
+</td>
+<td>
+12192 × 2438 × 2591 mm<br>
+(40'0" × 8'0" × 8'6")
+</td>
+<td>
+2340 × 2280 mm<br>
+(7'8" × 7'6")
+</td>
+<td>
+2235 × 11800 mm<br>
+(7'4" × 38'9")
+</td>
+<td>
+28,500 kg<br>
+(62,830 lb)
+</td>
+<td>
+~7,000 psi
+</td>
+<td class="use-case">
+Over-height cargo requiring crane loading without HC height.
+</td>
+</tr>
+
+
+<!-- 40FT OPEN TOP HC -->
+<tr data-type="ot">
+<td>
+  <span class="container-hover">
+    40ft Open Top High Cube
+    <span class="hover-image">
+          <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+12030 × 2340 × 2650 mm<br>
+(39'5" × 7'8" × 8'8")
+</td>
+<td>
+12192 × 2438 × 2896 mm<br>
+(40'0" × 8'0" × 9'6")
+</td>
+<td>
+2340 × 2580 mm<br>
+(7'8" × 8'5")
+</td>
+<td>
+2235 × 11800 mm<br>
+(7'4" × 38'9")
+</td>
+<td>
+28,500 kg<br>
+(62,830 lb)
+</td>
+<td>
+~7,000 psi
+</td>
+<td class="use-case">
+Tall industrial cargo loaded by crane.
+</td>
+</tr>
+
+<!-- 20FT FLAT RACK -->
+<tr data-type="fr">
+<td>
+  <span class="container-hover">
+    20ft Flat Rack
+    <span class="hover-image">
+             <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+5610 × 2210 mm (deck)<br>
+(18'5" × 7'3")
+</td>
+<td>
+6058 × 2438 × 2591 mm<br>
+(19'10" × 8'0" × 8'6")
+</td>
+<td>N/A</td>
+<td>Top-loadable (no roof)</td>
+<td>
+34,000 kg<br>
+(74,960 lb)
+</td>
+<td>
+~12,000 psi
+</td>
+<td class="use-case">
+Heavy machinery, vehicles, project cargo.
+</td>
+</tr>
+
+<!-- 40FT FLAT RACK -->
+<tr data-type="fr">
+<td>
+  <span class="container-hover">
+    40ft Flat Rack
+    <span class="hover-image">
+          <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+11700 × 2200 mm (deck)<br>
+(38'4" × 7'3")
+</td>
+<td>
+12192 × 2438 × 2591 mm<br>
+(40'0" × 8'0" × 8'6")
+</td>
+<td>N/A</td>
+<td>Top-loadable (no roof)</td>
+<td>
+40,000 kg<br>
+(88,185 lb)
+</td>
+<td>
+~12,000 psi
+</td>
+<td class="use-case">
+Heavy machinery, pipes, vehicles not requiring HC clearance.
+</td>
+</tr>
+
+
+<!-- 40FT FLAT RACK HC -->
+<tr data-type="fr">
+<td>
+  <span class="container-hover">
+    40ft Flat Rack High Cube
+    <span class="hover-image">
+          <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+11700 × 2200 mm (deck)<br>
+(38'4" × 7'3")
+</td>
+<td>
+12192 × 2438 × 2896 mm<br>
+(40'0" × 8'0" × 9'6")
+</td>
+<td>N/A</td>
+<td>Top-loadable (no roof)</td>
+<td>
+45,000 kg<br>
+(99,200 lb)
+</td>
+<td>
+~12,000 psi
+</td>
+<td class="use-case">
+Transformers, large construction equipment.
+</td>
+</tr>
+
+<!-- 20FT REEFER -->
+<tr data-type="reefer">
+<td>
+  <span class="container-hover">
+    20ft Reefer
+    <span class="hover-image">
+           <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+5450 × 2290 × 2275 mm<br>
+(17'11" × 7'6" × 7'6")
+</td>
+<td>
+6058 × 2438 × 2591 mm<br>
+(19'10" × 8'0" × 8'6")
+</td>
+<td>
+2290 × 2265 mm<br>
+(7'6" × 7'5")
+</td>
+<td>N/A</td>
+<td>
+27,500 kg<br>
+(60,620 lb)
+</td>
+<td>
+~6,500 psi
+</td>
+<td class="use-case">
+Frozen and chilled cargo, pharma, foodstuffs.
+</td>
+</tr>
+ 
+<!-- 40FT REEFER -->
+<tr data-type="reefer">
+<td>
+  <span class="container-hover">
+    40ft Reefer
+    <span class="hover-image">
+          <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+11590 × 2290 × 2275 mm<br>
+(38'0" × 7'6" × 7'6")
+</td>
+<td>
+12192 × 2438 × 2591 mm<br>
+(40'0" × 8'0" × 8'6")
+</td>
+<td>
+2290 × 2265 mm<br>
+(7'6" × 7'5")
+</td>
+<td>N/A</td>
+<td>
+27,700 kg<br>
+(61,070 lb)
+</td>
+<td>
+~6,500 psi
+</td>
+<td class="use-case">
+Temperature-controlled cargo without HC height.
+</td>
+</tr>
+
+
+<!-- 40FT HC REEFER -->
+<tr data-type="reefer">
+<td>
+  <span class="container-hover">
+    40ft High Cube Reefer
+    <span class="hover-image">
+          <img src=>
+    </span>
+  </span>
+</td>
+
+
+<td>
+11590 × 2290 × 2550 mm<br>
+(38'0" × 7'6" × 8'4")
+</td>
+<td>
+12192 × 2438 × 2896 mm<br>
+(40'0" × 8'0" × 9'6")
+</td>
+<td>
+2290 × 2560 mm<br>
+(7'6" × 8'5")
+</td>
+<td>N/A</td>
+<td>
+27,500 kg<br>
+(60,620 lb)
+</td>
+<td>
+~6,500 psi
+</td>
+<td class="use-case">
+Temperature-controlled food, pharma, chemicals.
+</td>
+</tr>
+
+<!-- ISO TANK -->
+<tr data-type="tank">
+<td>
+  <span class="container-hover">
+    20ft ISO Tank Container
+    <span class="hover-image">
+          <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+Capacity: 21,000–26,000 liters
+</td>
+<td>
+6058 × 2438 × 2591 mm<br>
+(19'10" × 8'0" × 8'6")
+</td>
+<td>Top manway: Ø500 mm</td>
+<td>Top loading hatch</td>
+<td>
+26,000 kg<br>
+(57,320 lb)
+</td>
+<td>
+~7,000 psi
+</td>
+<td class="use-case">
+Bulk liquids, hazardous and non-hazardous chemicals.
+</td>
+</tr>
+
+<!-- IBC -->
+<tr data-type="tank">
+<td>
+  <span class="container-hover">
+    IBC (Intermediate Bulk Container)
+    <span class="hover-image">
+          <img src=>
+    </span>
+  </span>
+</td>
+
+<td>
+1200 × 1000 × 1160 mm<br>
+(47" × 39" × 46")
+</td>
+<td>
+Same as internal
+</td>
+<td>Top fill: Ø150 mm</td>
+<td>Top opening</td>
+<td>
+1,000 kg<br>
+(2,205 lb)
+</td>
+<td>
+~3,000 psi (pallet base)
+</td>
+<td class="use-case">
+Chemicals, food ingredients, liquids in domestic or export transport.
+</td>
+</tr>
+
+</table>
+</div>
+<div class="highlight">
+<h4>Carrier Acceptance & Operational Notes</h4>
+
+<ul class="justified">
+  <li><strong>Dry Containers:</strong> Accepted by all major ocean carriers subject to CSC validity, payload limits, and proper weight distribution.</li>
+
+  <li><strong>High Cube Containers:</strong> Accepted on most trade lanes; inland rail or chassis height restrictions may apply in North America and parts of Europe.</li>
+
+  <li><strong>Open Top Containers:</strong> Require carrier pre-approval. Cargo must be tarped, lashed, and compliant with out-of-gauge (OOG) policies.</li>
+
+  <li><strong>Flat Rack Containers:</strong> Subject to OOG approval, lashing diagrams, and port handling capability. Stackability may be restricted.</li>
+
+  <li><strong>Reefer Containers:</strong> Acceptance depends on temperature range, ventilation requirements, and carrier-specific commodity restrictions.</li>
+
+  <li><strong>ISO Tank Containers:</strong> Must comply with IMDG, ADR, RID, or CFR regulations as applicable. Cleaning certificates and tank approvals are mandatory.</li>
+
+  <li><strong>IBCs:</strong> Generally accepted for inland transport. Ocean acceptance varies by carrier and commodity; often restricted to non-hazardous liquids.</li>
+</ul>
+</div>
+
+
+
+<p class="justified">
+All values shown are typical industry averages. Payload, floor loading, and acceptance limits
+depend on CSC plate ratings, manufacturer specifications, carrier rules, and load distribution.
+It can vary from carrier to carrier. Always confirm prior to booking or loading.
+</p>
+
+    <footer>
+        © The Logistics Mindset — Personal educational reference
+    </footer>
+
+<script>
+function filterContainers() {
+    const filter = document.getElementById("containerFilter").value;
+    const rows = document.querySelectorAll("table tr[data-type]");
+
+    rows.forEach(row => {
+        if (filter === "all" || row.dataset.type === filter) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+
+const TIME_TICKER_ZONES = [
+    { label: "New York", tz: "America/New_York" },
+    { label: "London", tz: "Europe/London" },
+    { label: "Mumbai", tz: "Asia/Kolkata" },
+    { label: "Singapore", tz: "Asia/Singapore" },
+    { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+
+const timeTickerEl = document.getElementById("timeTicker");
+
+function updateTimeTicker() {
+    timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+        const t = new Date().toLocaleTimeString("en-US", {
+            timeZone: z.tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        return `<span>${z.label}: ${t}</span>`;
+    }).join("");
+}
+
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+
+
+</script>
+<script src="js/fx-ticker.js" defer></script>
+</body>
+</html>

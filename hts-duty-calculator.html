@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>U.S. HTS Duty Calculator | The Logistics Mindset</title>
+<meta name="description" content="Look up a U.S. HTS code and estimate published customs duty, MPF and HMF using live USITC data.">
+<link rel="stylesheet" href="css/header.css">
+<style>
+:root {
+  --primary-color: #1a2a3a;
+  --accent-color: #2c7be5;
+  --text-color: #333;
+  --bg-color: #f4f4f4;
+  --card-bg: #ffffff;
+  --muted: #667085;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.45;
+  color: var(--text-color);
+  background: var(--bg-color);
+  margin: 0;
+}
+.container { max-width: 1050px; margin: 40px auto; padding: 20px; }
+h1 { margin: 0; color: var(--primary-color); font-size: 2.35rem; }
+.subtitle { font-size: 1.05rem; color: #555; margin-top: 6px; }
+nav { margin-top: 15px; }
+nav a { margin-right: 20px; text-decoration: none; color: var(--accent-color); font-weight: 500; }
+nav a:hover { text-decoration: underline; }
+.time-ticker {
+  margin-top: 6px;
+  background: #fff;
+  color: #000;
+  padding: 8px 12px;
+  font-size: .85rem;
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.time-ticker span { white-space: nowrap; font-weight: 500; }
+.back-link { margin: 20px 0 0; }
+.back-link a { color: var(--accent-color); text-decoration: none; font-weight: 600; }
+.back-link a:hover { text-decoration: underline; }
+.tool-card, .result-card {
+  background: var(--card-bg);
+  border-radius: 5px;
+  box-shadow: 0 2px 7px rgba(0,0,0,.08);
+  padding: 22px;
+  margin-top: 28px;
+}
+.tool-card { border-top: 5px solid var(--primary-color); }
+.grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.full { grid-column: 1 / -1; }
+label { display: block; font-size: .9rem; font-weight: 700; color: var(--primary-color); margin-bottom: 6px; }
+input, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c9d1d9;
+  border-radius: 4px;
+  background: #fff;
+  font: inherit;
+}
+input:focus, select:focus { outline: 2px solid rgba(44,123,229,.18); border-color: var(--accent-color); }
+.helper { color: var(--muted); font-size: .82rem; margin-top: 5px; }
+.checkbox { display: flex; gap: 10px; align-items: flex-start; background: #f8fafc; border: 1px solid #e3e8ef; padding: 12px; border-radius: 4px; }
+.checkbox input { width: auto; margin-top: 3px; }
+.checkbox label { margin: 0; color: #333; font-weight: 600; }
+.checkbox small { display: block; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+button { border: 0; border-radius: 4px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; }
+.primary { background: var(--primary-color); color: #fff; }
+.secondary { background: #e9eef3; color: var(--primary-color); }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.status { font-size: .9rem; color: var(--muted); }
+.result-header { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; border-bottom: 1px solid #e7ebef; padding-bottom: 15px; }
+.result-header h2 { margin: 0; color: var(--primary-color); font-size: 1.35rem; }
+.hts-pill { white-space: nowrap; background: #e9eef3; color: var(--primary-color); font-weight: 800; padding: 7px 10px; border-radius: 4px; }
+.summary-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-top: 18px; }
+.metric { background: #f8fafc; border: 1px solid #e5e9ee; border-radius: 4px; padding: 14px; }
+.metric span { display: block; color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .5px; }
+.metric strong { display: block; color: var(--primary-color); font-size: 1.15rem; margin-top: 4px; }
+.metric.total { background: var(--primary-color); }
+.metric.total span, .metric.total strong { color: #fff; }
+.section-title { color: var(--primary-color); border-left: 5px solid var(--primary-color); padding-left: 12px; margin: 26px 0 12px; text-transform: uppercase; font-size: .93rem; letter-spacing: .8px; }
+.rate-table { width: 100%; border-collapse: collapse; }
+.rate-table th, .rate-table td { text-align: left; border-bottom: 1px solid #e7ebef; padding: 10px 8px; vertical-align: top; }
+.rate-table th { width: 28%; color: var(--primary-color); font-size: .87rem; }
+.rate-table td { overflow-wrap: anywhere; }
+.notice { padding: 12px 14px; border-radius: 4px; margin-top: 12px; font-size: .9rem; }
+.notice.warn { background: #fff7e6; border-left: 4px solid #d99a20; color: #6b4b00; }
+.notice.ok { background: #eef9f3; border-left: 4px solid #3a9d65; color: #245c3d; }
+.notice.info { background: #eef5ff; border-left: 4px solid var(--accent-color); color: #264d75; }
+.notice.danger { background: #fff1f1; border-left: 4px solid #c84848; color: #7d2525; }
+.hidden { display: none !important; }
+.ch99 { margin: 8px 0; padding: 10px; background: #fafafa; border: 1px solid #e6e6e6; border-radius: 4px; }
+.ch99 strong { color: var(--primary-color); }
+.tiny { font-size: .8rem; color: var(--muted); }
+.source-note { margin-top: 18px; font-size: .86rem; color: var(--muted); }
+.source-note a { color: var(--accent-color); }
+footer { text-align: center; color: #666; font-size: .9rem; margin: 50px 0 25px; }
+@media (max-width: 800px) { .summary-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 640px) {
+  .container { margin: 24px auto; padding: 0 14px; }
+  h1 { font-size: 1.8rem; }
+  .grid, .summary-grid { grid-template-columns: 1fr; }
+  .full { grid-column: auto; }
+  .result-header { display: block; }
+  .hts-pill { display: inline-block; margin-top: 10px; }
+  .rate-table th { width: 37%; }
+}
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header class="page-header">
+  <img src="img/logo.png" alt="Logo" class="page-logo">
+  <div class="header-text">
+    <h1>U.S. HTS Duty Calculator</h1>
+    <p class="subtitle">Live HTS lookup with estimated customs duty and import user fees</p>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="conversion.html">Conversions</a>
+      <a href="reference.html">References</a>
+      <a href="currency.html">Currencies</a>
+      <a href="clock.html">World Time</a>
+      <a href="underconst.html">News</a>
+      <a href="underconst.html">Blog</a>
+    </nav>
+  </div>
+</header>
+
+<div id="fxTicker" class="fx-ticker" role="link" tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+<p class="back-link"><a href="customs.html">← Back to Customs &amp; Trade Concepts</a></p>
+
+<section class="tool-card">
+<form id="calcForm">
+<div class="grid">
+  <div>
+    <label for="hts">HTS code</label>
+    <input id="hts" inputmode="numeric" autocomplete="off" placeholder="e.g. 8504.40.9580" required>
+    <div class="helper">Enter 4 to 10 digits. Dots and spaces are accepted.</div>
+  </div>
+  <div>
+    <label for="country">Country of origin</label>
+    <select id="country" required><option value="">Select country</option></select>
+    <div class="helper">Use the legal country of origin, not merely the country of shipment.</div>
+  </div>
+  <div>
+    <label for="value">Customs value (USD)</label>
+    <input id="value" type="number" min="0.01" step="0.01" placeholder="10000.00" required>
+  </div>
+  <div>
+    <label for="mode">Mode of import</label>
+    <select id="mode"><option value="ocean">Ocean</option><option value="air">Air</option><option value="land">Land / rail</option></select>
+  </div>
+  <div>
+    <label for="qty">Quantity <span class="tiny">(optional)</span></label>
+    <input id="qty" type="number" min="0" step="any" placeholder="Needed for $/kg, ¢/unit, etc.">
+  </div>
+  <div>
+    <label for="qtyUnit">Quantity unit <span class="tiny">(optional)</span></label>
+    <input id="qtyUnit" placeholder="kg, No., L, m²...">
+  </div>
+  <div class="full checkbox">
+    <input id="fta" type="checkbox">
+    <label for="fta">Merchandise qualifies for the applicable U.S. FTA / special tariff program
+      <small>Do not select this merely because the origin country has a trade agreement. The merchandise must satisfy the program's origin and claim requirements.</small>
+    </label>
+  </div>
+</div>
+<div class="actions">
+  <button class="primary" id="submitBtn" type="submit">Estimate duties</button>
+  <button class="secondary" type="button" id="resetBtn">Clear</button>
+  <span class="status" id="status"></span>
+</div>
+</form>
+</section>
+
+<section id="result" class="result-card hidden" aria-live="polite">
+<div class="result-header">
+  <div><h2 id="desc"></h2><div class="tiny" id="sourceLine"></div></div>
+  <div class="hts-pill" id="resultHts"></div>
+</div>
+<div class="summary-grid">
+  <div class="metric"><span>Base duty</span><strong id="baseDuty"></strong></div>
+  <div class="metric"><span>MPF</span><strong id="mpf"></strong></div>
+  <div class="metric"><span>HMF</span><strong id="hmf"></strong></div>
+  <div class="metric total"><span>Estimated charges</span><strong id="total"></strong></div>
+</div>
+<div id="calcNotice" class="notice info"></div>
+
+<h3 class="section-title">Published HTS rates</h3>
+<table class="rate-table"><tbody>
+<tr><th>Applied basis</th><td id="appliedBasis"></td></tr>
+<tr><th>Applied rate</th><td id="appliedRate"></td></tr>
+<tr><th>Column 1 General</th><td id="generalRate"></td></tr>
+<tr><th>Special</th><td id="specialRate"></td></tr>
+<tr><th>Column 2</th><td id="column2Rate"></td></tr>
+<tr><th>Units</th><td id="units"></td></tr>
+</tbody></table>
+
+<div id="preferenceNotice" class="notice ok hidden"></div>
+<h3 class="section-title">Additional-duty review</h3>
+<div id="additionalReview"></div>
+
+<div class="notice warn"><strong>Important:</strong> This is a screening estimate, not an entry calculation or binding classification. Chapter 99 measures, Section 301/232, exclusions, quotas, antidumping/countervailing duties, excise taxes and entry-specific facts may change the amount due. State and local taxes are not collected by CBP and are not included.</div>
+
+<div class="actions">
+  <button class="secondary" type="button" id="copyBtn">Copy results</button>
+  <button class="secondary" type="button" onclick="window.print()">Print</button>
+</div>
+<p class="source-note">Tariff data source: <a href="https://hts.usitc.gov/" target="_blank" rel="noopener noreferrer">U.S. International Trade Commission Harmonized Tariff Schedule</a>.</p>
+</section>
+
+<footer>© The Logistics Mindset — Personal educational project</footer>
+</div>
+
+<script>
+const ISO_CODES = `AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BV BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF TF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HM VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB UM US UY UZ VU VE VN VG VI WF EH YE ZM ZW`.split(' ');
+const countryEl = document.getElementById('country');
+const dn = new Intl.DisplayNames(['en'], { type: 'region' });
+ISO_CODES.map(code => [code, dn.of(code) || code])
+  .sort((a,b) => a[1].localeCompare(b[1]))
+  .forEach(([code,name]) => {
+    const o = document.createElement('option');
+    o.value = code;
+    o.textContent = name;
+    countryEl.appendChild(o);
+  });
+
+const $ = id => document.getElementById(id);
+const money = v => v == null ? 'Not calculated' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
+const text = v => v == null || v === '' ? '—' : String(v);
+
+$('hts').addEventListener('input', e => {
+  const d = e.target.value.replace(/\D/g,'').slice(0,10);
+  e.target.value = d.length > 8 ? `${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6,8)}.${d.slice(8)}`
+    : d.length > 6 ? `${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6)}`
+    : d.length > 4 ? `${d.slice(0,4)}.${d.slice(4)}` : d;
+});
+
+$('calcForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('submitBtn').disabled = true;
+  $('status').textContent = 'Checking live USITC data…';
+  $('result').classList.add('hidden');
+  try {
+    const payload = {
+      hts: $('hts').value,
+      country: $('country').value,
+      customsValue: $('value').value,
+      mode: $('mode').value,
+      quantity: $('qty').value,
+      quantityUnit: $('qtyUnit').value,
+      ftaQualified: $('fta').checked
+    };
+    const r = await fetch('/api/hts-duty', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Lookup failed');
+    render(data);
+    $('status').textContent = 'Live lookup complete.';
+  } catch (err) {
+    $('status').textContent = err.message || 'Lookup failed.';
+  } finally {
+    $('submitBtn').disabled = false;
+  }
+});
+
+function render(d) {
+  $('result').classList.remove('hidden');
+  $('desc').textContent = text(d.classification.description);
+  $('resultHts').textContent = text(d.classification.displayHts || d.classification.hts);
+  $('sourceLine').textContent = `USITC live data retrieved ${new Date(d.source.retrievedAt).toLocaleString()}`;
+  $('baseDuty').textContent = money(d.estimate.baseDuty);
+  $('mpf').textContent = money(d.estimate.mpf);
+  $('hmf').textContent = money(d.estimate.hmf);
+  $('total').textContent = money(d.estimate.totalEstimatedImportCharges);
+  $('appliedBasis').textContent = text(d.rates.appliedBasis);
+  $('appliedRate').textContent = text(d.rates.appliedRate);
+  $('generalRate').textContent = text(d.rates.general);
+  $('specialRate').textContent = text(d.rates.special);
+  $('column2Rate').textContent = text(d.rates.column2);
+  $('units').textContent = Array.isArray(d.classification.units) && d.classification.units.length ? d.classification.units.join(', ') : '—';
+
+  const calc = $('calcNotice');
+  if (d.estimate.baseDutySupported) {
+    calc.className = 'notice info';
+    calc.textContent = `Estimated charges shown include base duty, MPF and ${d.query.mode === 'ocean' ? 'HMF' : 'no HMF for the selected mode'}. ${d.estimate.mpfNote}`;
+  } else {
+    calc.className = 'notice danger';
+    calc.textContent = `Dollar duty could not be calculated automatically: ${d.estimate.baseDutyReason} The published rate is still shown below. ${d.estimate.mpfNote}`;
+  }
+
+  const p = $('preferenceNotice');
+  if (d.rates.potentialPreference) {
+    p.classList.remove('hidden');
+    p.textContent = `Potential preference: ${d.rates.potentialPreference.name}. Published special rate found: ${d.rates.potentialPreference.publishedRate || 'see Special column'}. Eligibility must be established before claiming it.`;
+  } else {
+    p.classList.add('hidden');
+  }
+
+  const ar = $('additionalReview');
+  ar.innerHTML = '';
+  if (!d.review.additionalTariffReviewRequired) {
+    ar.innerHTML = '<div class="notice ok">No Chapter 99 reference was detected in the returned line set. This is not proof that no additional measure applies.</div>';
+  } else {
+    const intro = document.createElement('div');
+    intro.className = 'notice warn';
+    intro.textContent = 'The HTS response contains a Chapter 99 or additional-duty signal. Review these provisions before relying on the total above.';
+    ar.appendChild(intro);
+    (d.review.chapter99References || []).forEach(ref => {
+      const div = document.createElement('div');
+      div.className = 'ch99';
+      div.innerHTML = `<strong>${escapeHtml(ref)}</strong> — referenced in the HTS footnotes`;
+      ar.appendChild(div);
+    });
+    (d.review.chapter99Rows || []).forEach(row => {
+      const div = document.createElement('div');
+      div.className = 'ch99';
+      div.innerHTML = `<strong>${escapeHtml(row.hts || 'Chapter 99')}</strong><br>${escapeHtml(row.description || '')}<br><span class="tiny">Rate: ${escapeHtml(row.general || row.additionalDuties || 'see provision')}</span>`;
+      ar.appendChild(div);
+    });
+  }
+
+  window.__lastResult = d;
+  $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+
+$('resetBtn').addEventListener('click', () => {
+  $('calcForm').reset();
+  $('result').classList.add('hidden');
+  $('status').textContent = '';
+});
+
+$('copyBtn').addEventListener('click', async () => {
+  const d = window.__lastResult;
+  if (!d) return;
+  const out = [
+    `HTS: ${d.classification.displayHts || d.classification.hts}`,
+    `Description: ${d.classification.description}`,
+    `Country: ${dn.of(d.query.country) || d.query.country}`,
+    `Applied rate: ${d.rates.appliedRate} (${d.rates.appliedBasis})`,
+    `Base duty: ${money(d.estimate.baseDuty)}`,
+    `MPF: ${money(d.estimate.mpf)}`,
+    `HMF: ${money(d.estimate.hmf)}`,
+    `Estimated charges: ${money(d.estimate.totalEstimatedImportCharges)}`
+  ].join('\n');
+  await navigator.clipboard.writeText(out);
+  $('copyBtn').textContent = 'Copied';
+  setTimeout(() => $('copyBtn').textContent = 'Copy results', 1200);
+});
+</script>
+
+<script>
+const TIME_TICKER_ZONES = [
+  { label: "New York", tz: "America/New_York" },
+  { label: "London", tz: "Europe/London" },
+  { label: "Mumbai", tz: "Asia/Kolkata" },
+  { label: "Singapore", tz: "Asia/Singapore" },
+  { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+const timeTickerEl = document.getElementById("timeTicker");
+function updateTimeTicker() {
+  timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+    const t = new Date().toLocaleTimeString("en-US", {
+      timeZone: z.tz,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+    return `<span>${z.label}: ${t}</span>`;
+  }).join("");
+}
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+</script>
+<script src="js/fx-ticker.js" defer></script>
+</body>
+</html>

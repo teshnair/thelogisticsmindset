@@ -1,0 +1,3468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Conversion | The Logistics Mindset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+    <link rel="stylesheet" href="css/header.css">
+
+    <style>
+        :root {
+            --primary-color: #1a2a3a;
+            --accent-color: #2c7be5;
+            --text-color: #333;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+        }
+
+ html, body {
+    height: 100%;
+}
+
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.45;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    margin: 0;
+    padding: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 2.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        nav {
+            margin-top: 15px;
+        }
+
+        nav a {
+            margin-right: 20px;
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .summary-box {
+            background: var(--primary-color);
+            color: #ffffff;
+            padding: 22px;
+            border-radius: 4px;
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-left: 5px solid var(--primary-color);
+            padding-left: 15px;
+            margin: 40px 0 20px 0;
+            text-transform: uppercase;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .mindset {
+            background: #ffffff;
+            padding: 25px;
+            border-left: 5px solid #27ae60;
+        }
+
+        .mindset ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .mindset li {
+            margin-bottom: 10px;
+        }
+
+        .credentials {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .badge {
+            background: #e9eef3;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #ccd5df;
+        }
+
+        footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+@media (max-width: 768px) {
+    .justified {
+        text-align: left;
+    }
+}
+
+.justified {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+}
+
+.justified li {
+    margin-bottom: 8px;
+}
+
+.time-ticker {
+    margin-top: 6px;
+    background: #ffffff;
+    color: #000000;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 4px;
+}
+
+.time-ticker span {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.time-ticker {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.time-ticker:hover {
+    background: #ffffff;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .page-logo {
+        width: 60px;
+    }
+}
+
+
+/* PRINT: force watermark on every page */
+@media print {
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+
+
+    body {
+        background: #fff;
+    }
+}
+
+.conversion-result {
+    margin-top: 16px;
+    padding: 12px;
+    background: #f7f9fc;
+    border: 1px solid #ccd5df;
+    border-radius: 4px;
+    font-weight: 600;
+    min-height: 42px;
+}
+
+.dim-grid {
+  display: grid;
+  grid-template-columns:
+    44px        /* Qty */
+    64px 12px   /* L × */
+    64px 12px   /* W × */
+    64px        /* H */
+    52px        /* Unit */
+    64px        /* Wt */
+    52px        /* Wt U */
+    64px        /* CBM */
+    64px        /* CFT */
+    64px        /* SQM */
+    64px        /* SQFT */
+    72px        /* Density */
+    56px;       /* NMFC */
+
+  gap: 4px;
+  align-items: center;
+  width: max-content;
+}
+
+.dim-grid input,
+.dim-grid select {
+  height: 26px;
+  padding: 2px 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.dim-grid input::placeholder {
+  font-size: 12px;
+}
+
+.dim-header > div {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#dimRows .dim-grid {
+  margin-bottom: 2px;
+}
+
+
+.dim-grid input {
+    min-width: 0;
+}
+.dim-grid select {
+    padding: 6px;
+    width: 100%;
+}
+
+.dim-header {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #555;
+}
+.dim-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.dim-results {
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccd5df;
+}
+.dim-notes {
+    font-size: 0.85rem;
+    color: #555;
+    margin-top: 12px;
+    line-height: 1.4;
+}
+
+.dim-calc-btn {
+    margin-top: 12px;
+    padding: 10px 16px;
+}
+.card.full-width {
+    grid-column: 1 / -1;
+}
+
+html, body {
+  height: 100%;
+}
+
+.page-wrapper {
+    flex: 1;
+}
+
+.unit-select {
+  position: relative;
+}
+
+.unit-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  background: #fff;
+  z-index: 1000;
+  display: none;
+}
+
+.unit-dropdown div {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.unit-dropdown div:hover {
+  background: #f0f0f0;
+}
+
+.unit-select {
+  position: relative;
+  width: 95%;
+}
+
+.unit-select input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+.dim-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.dim-grid {
+  position: relative;
+  overflow: visible;
+}
+
+.dim-grid .unit-select {
+  position: relative;
+  overflow: visible;
+}
+
+.dim-grid .unit-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 5000;
+}
+.unit-select {
+  position: relative;
+}
+
+.unit-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 5000;
+  background: #fff;
+}
+
+.dim-grid.inactive {
+  opacity: 0.45;
+}
+
+.dim-grid.inactive input {
+  pointer-events: none;
+}
+    </style>
+</head>
+
+
+<body>
+
+
+<div class="page-wrapper">
+
+<div class="container">
+
+  <header class="page-header">
+    <img src="img/logo.png" alt="Logo" class="page-logo">
+    <div class="header-text">
+
+        <h1>Conversions</h1>
+        <div class="subtitle">Practical utilities and reference material for everyday logistics work</div>
+
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="reference.html">References</a>
+            <a href="currency.html">Currencies</a>
+            <a href="clock.html">World Time</a>
+            <a href="underconst.html">News</a>
+            <a href="underconst.html">Blog</a>
+        </nav>
+      </div>
+    </header>
+
+<div id="fxTicker"
+     class="fx-ticker"
+     role="link"
+     tabindex="0"
+     onclick="location.href='currency.html'"
+     onkeydown="if(event.key==='Enter') location.href='currency.html'">
+  Loading FX…
+</div>
+
+<a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
+
+    <div class="intro">
+        <p class="justified">
+            This page serves as a working collection of simple tools and reference
+            material commonly used in logistics, trade, and project cargo environments.
+        </p>
+        <p class="justified">
+            Conversions and calculators are available directly on this page.
+            Reference topics link to dedicated pages for deeper explanation.
+        </p>
+    </div>
+
+    <h2 class="section-title">Conversions & calculators</h2>
+    <div class="grid">
+
+<div class="converter-card">
+            <h3>Length Conversion</h3>
+            <p class="justified">Convert across various units of volume.</p>
+<label for="lengthValue">Value</label>
+<input type="number" id="lengthValue" step="any" placeholder="Enter value"
+       style="width:95%; padding:8px; margin-bottom:12px;">
+
+<label for="lengthFrom">From</label>
+<div class="unit-select">
+  <input id="lengthFrom" placeholder="From" autocomplete="off">
+  <div class="unit-dropdown" id="lengthFromDropdown"></div>
+</div>
+<button type="button"
+        onclick="swapUnits('lengthFrom','lengthTo', convertLength)"
+        title="Swap units"
+        style="margin:6px 0;">
+  ⇄
+</button>
+<label for="lengthTo">To</label>
+<div class="unit-select">
+  <input id="lengthTo" placeholder="From" autocomplete="off">
+  <div class="unit-dropdown" id="lengthToDropdown"></div>
+</div>
+
+<datalist id="lengthUnitsList"></datalist>
+
+<button onclick="convertLength()" style="padding:10px 16px;">Convert</button>
+
+<div id="lengthResult" class="conversion-result"></div>
+
+</div>
+
+<div class="converter-card">
+            <h3>Weight Conversion</h3>
+            <p class="justified">Convert across various units of weight.</p>
+
+  <label for="weightValue">Value</label>
+<input type="number" id="weightValue" step="any" placeholder="Enter value" style="width:95%; padding:8px; margin-bottom:12px;">
+
+<label for="fromUnit">From</label>
+<div class="unit-select">
+  <input id="fromUnit" placeholder="From" autocomplete="off">
+  <div class="unit-dropdown" id="fromUnitDropdown"></div>
+</div>
+
+<button type="button"
+        onclick="swapUnits('fromUnit','toUnit', convertWeight)"
+        title="Swap units">
+  ⇄
+</button>
+<label for="toUnit">To</label>
+<div class="unit-select">
+  <input id="toUnit" placeholder="From" autocomplete="off">
+  <div class="unit-dropdown" id="toUnitDropdown"></div>
+</div>
+
+
+<datalist id="weightUnitsList"></datalist>
+
+<button onclick="convertWeight()" style="padding:10px 16px;">Convert</button>
+
+<div id="conversionResult" class="conversion-result"></div>
+</div>
+
+<div class="converter-card">
+            <h3>Volume Conversion</h3>
+            <p class="justified">Convert across various units of volume.</p>
+
+<label for="volumeValue">Value</label>
+
+<input type="number" id="volumeValue" step="any" placeholder="Enter value"
+       style="width:95%; padding:8px; margin-bottom:12px;">
+
+<label for="volumeFrom">From</label>
+<div class="unit-select">
+  <input id="volumeFrom" placeholder="From" autocomplete="off">
+  <div class="unit-dropdown" id="volumeFromDropdown"></div>
+</div>
+
+<button type="button"
+        onclick="swapUnits('volumeFrom','volumeTo', convertVolume)"
+        title="Swap units"
+        style="margin:6px 0;">
+  ⇄
+</button>
+<label for="volumeTo">To</label>
+<div class="unit-select">
+  <input id="volumeTo" placeholder="From" autocomplete="off">
+  <div class="unit-dropdown" id="volumeToDropdown"></div>
+</div>
+
+<datalist id="volumeUnitsList"></datalist>
+
+<button onclick="convertVolume()" style="padding:10px 16px;">Convert</button>
+
+<div id="volumeResult" class="conversion-result"></div>
+
+</div>
+
+
+<div class="converter-card">
+            <h3>Temperature Conversion</h3>
+            <p class="justified">Temperature conversions for transport and storage.</p>
+            <label for="tempValue">Value</label>
+<input type="number" id="tempValue" step="any" placeholder="Enter value"
+       style="width:95%; padding:8px; margin-bottom:12px;">
+
+<label for="tempFrom">From</label>
+<div class="unit-select">
+  <input id="tempFrom" placeholder="From" autocomplete="off">
+  <div class="unit-dropdown" id="tempFromDropdown"></div>
+</div>
+<button type="button" onclick="swapTemperature()">⇄</button>
+
+<label for="tempTo">To</label>
+<div class="unit-select">
+  <input id="tempTo" placeholder="From" autocomplete="off">
+  <div class="unit-dropdown" id="tempToDropdown"></div>
+</div>
+
+
+<button onclick="convertTemperature()" style="padding:10px 16px;">Convert</button>
+
+<div id="tempResult" class="conversion-result"></div>
+
+        </div>
+
+</div>
+
+<div>
+<h3>Dimensional / Volume Weight Calculator</h3>
+<p class="justified">Any combination of measurements in cm/in and kg/lb may be entered. Useful when you have multiple packing list in different measurements. It recognizes comma "," as thousands separator and period "." as decimal separators.<br>Please note that the table might parse wrong numbers if entered in the incorrect format, so recheck that quantity, dimensions, weight and unit of dimensions/weight are correct before calculating. Ideal format is Qty, LxWxH in cm; Weight in kg. Acceptable formats are *.PDF, *.TXT, *.CSV, *.DOCX.</p>
+<div style="margin-bottom:12px;">
+  <label style="font-weight:600;">Paste dimensions (one line per item)</label>
+  <textarea id="pasteDims" rows="5" style="width:100%; margin-top:6px;"
+    placeholder="Examples:
+2 120x80x150 cm 500 kg
+1 48x40x60 in 1100 lb
+120 x 80 x 150 cm
+"></textarea>
+
+  <button type="button" style="margin-top:8px;" onclick="parsePastedDimensions()">
+    Parse
+  </button>
+</div>
+
+<div class="dim-grid dim-header">
+  <div>Qty</div>
+  <div>L</div><div></div>
+  <div>W</div><div></div>
+  <div>H</div>
+  <div>Unit</div>
+  <div>Wt</div>
+  <div>Wt U</div>
+  <div>CBM</div>
+  <div>CFT</div>
+  <div>SQM</div>
+  <div>SQFT</div>
+  <div>Density</div>
+  <div>NMFC</div>
+</div>
+
+
+
+<div id="dimLines"></div>
+<div style="margin:12px 0; display:flex; gap:8px;">
+  <button type="button" onclick="addDimRow()">+ Add Row</button>
+  <button type="button" onclick="removeDimRow()">− Remove Row</button>
+</div>
+
+<datalist id="dimUnits">
+  <option value="m">
+  <option value="cm">
+  <option value="ft">
+  <option value="in">
+</datalist>
+
+<datalist id="weightUnits">
+  <option value="kg">
+  <option value="lb">
+  <option value="mt">
+  <option value="st">
+</datalist>
+
+<input type="file"
+       id="dimAnyUpload"
+       accept=".xlsx,.xls,.csv,.pdf,.txt,.doc,.docx,.png,.jpg,.jpeg,.webp"
+       style="display:none;">
+
+<div id="dimDropZone" style="border:2px dashed #bbb; padding:12px; border-radius:8px; margin:10px 0; color:#666; text-align:center;  user-select:none;">
+  <button type="button" id="dimAnyUploadBtn">
+    Choose file
+  </button>
+
+  <span id="dimAnyUploadName" style="margin-left:10px; color:#555;">
+    No file chosen
+  </span>
+
+  <div style="margin-top:6px; color:#777; font-size:0.9rem;">
+    Drag & drop a file here, or click “Choose file”.
+  </div>
+
+  <div id="dimAnyUploadStatus" style="font-size:0.9rem; color:#555; margin-top:6px;"></div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+
+<script>
+
+function setupUnitDropdown(inputId, units) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(inputId + "Dropdown");
+
+  function render(filter = "") {
+    dropdown.innerHTML = "";
+
+    Object.keys(units).forEach(unit => {
+      if (!filter || unit.toLowerCase().includes(filter.toLowerCase())) {
+        const item = document.createElement("div");
+        item.textContent = unit;
+
+item.addEventListener("click", e => {
+  e.stopPropagation();
+  input.value = unit;
+  dropdown.style.display = "none";
+  input.dispatchEvent(new Event("input"));
+});
+
+
+        dropdown.appendChild(item);
+      }
+    });
+
+    dropdown.style.display = "block";
+  }
+
+input.addEventListener("focus", () => {
+  render(""); // show ALL units on focus
+});
+
+input.addEventListener("click", e => {
+  e.stopPropagation();
+  render(""); // show ALL units on click
+});
+
+
+
+  input.addEventListener("input", () => {
+    render(input.value); // filtered list while typing
+  });
+
+  document.addEventListener("click", e => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = "none";
+    }
+  });
+}
+</script>
+
+
+
+<button onclick="safeCalculateDimWeight()" class="dim-calc-btn">
+  Calculate
+</button>
+<button onclick="exportDimTableToExcel()" class="dim-calc-btn">
+  Export to Excel
+</button>
+
+
+<div id="dimResult" class="conversion-result">
+  Enter dimensions and click Calculate.
+</div>
+<div class="dim-notes">
+  <em>
+    ST means Short Tons (2,000 lb). <br>This calculator is provided for guidance only.
+    Actual chargeable weight, volume, and density may vary by carrier,
+    airline, or freight forwarder. Always confirm with your service provider.
+  </em>
+</div>
+
+</div>
+<script>
+const dimLines = document.getElementById("dimLines");
+
+let DIM_UPLOAD_VALID = false;
+let dimRowCount = 10;
+let nextPasteRow = 1;
+
+function renderDimRows(count) {
+  dimLines.innerHTML = "";
+nextPasteRow = 1;
+
+
+  for (let i = 1; i <= count; i++) {
+    dimLines.insertAdjacentHTML("beforeend", `
+   <div class="dim-grid">
+
+      <input type="number" id="q${i}" min="0" placeholder="Qty">
+
+
+        <input type="number" id="l${i}" placeholder="L" onpaste="handlePaste(event)">
+        <div>×</div>
+
+        <input type="number" id="w${i}" placeholder="W" onpaste="handlePaste(event)">
+        <div>×</div>
+
+        <input type="number" id="h${i}" placeholder="H" onpaste="handlePaste(event)">
+
+<div class="unit-select">
+  <input id="u${i}" placeholder="unit" autocomplete="off">
+  <div class="unit-dropdown" id="u${i}Dropdown"></div>
+</div>
+
+
+        <input type="number" id="wtv${i}" placeholder="Wt">
+
+<div class="unit-select">
+  <input id="wtu${i}" placeholder="unit" autocomplete="off">
+  <div class="unit-dropdown" id="wtu${i}Dropdown"></div>
+</div>
+
+
+        <span id="cbm${i}">–</span>
+        <span id="cft${i}">–</span>
+        <span id="sqm${i}">–</span>
+        <span id="sqft${i}">–</span>
+        <span id="dens${i}">–</span>
+        <span id="nmfc${i}">–</span>
+
+      </div>
+    `);
+
+
+
+    setupUnitDropdown(`u${i}`, { m:1, cm:1, mm:1, ft:1, in:1 });
+    setupUnitDropdown(`wtu${i}`, { kg:1, lb:1, mt:1, st:1 });
+  }
+
+  bindDimAutoRecalc();
+}
+
+function parsePastedDimensions() {
+  const text = document.getElementById("pasteDims").value.trim();
+  if (!text) return;
+
+  const lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return;
+
+  // Detect TSV/CSV paste (tab or comma separated)
+  const first = lines[0];
+  const delim = first.includes("\t") ? "\t" : (first.includes(",") ? "," : null);
+
+  // If table-like paste, map columns: L W H Weight Qty (like your example)
+  if (delim) {
+    const rows = lines
+      .map(l => l.split(delim).map(x => x.trim()))
+      .filter(r => r.length >= 4);
+
+    if (!rows.length) return;
+
+    // Drop header row if it looks like headers
+    const headerJoin = rows[0].join(" ").toLowerCase();
+    if (
+      headerJoin.includes("length") ||
+      headerJoin.includes("width") ||
+      headerJoin.includes("height") ||
+      headerJoin.includes("gross") ||
+      headerJoin.includes("weight") ||
+      headerJoin.includes("quantity") ||
+      headerJoin.includes("qty")
+    ) {
+      rows.shift();
+    }
+
+    if (!rows.length) return;
+
+    dimRowCount = rows.length;
+    renderDimRows(dimRowCount);
+
+    rows.forEach((r, idx) => {
+      const rowNum = idx + 1;
+
+      const L  = String(r[0] ?? "").replace(/,/g, "");
+      const W  = String(r[1] ?? "").replace(/,/g, "");
+      const H  = String(r[2] ?? "").replace(/,/g, "");
+      const WT = String(r[3] ?? "").replace(/,/g, "");
+      const Q  = String(r[4] ?? "1").replace(/,/g, "");
+
+      document.getElementById(`q${rowNum}`).value = parseInt(Q, 10) || 1;
+
+      document.getElementById(`l${rowNum}`).value = parseFloat(L) || "";
+      document.getElementById(`w${rowNum}`).value = parseFloat(W) || "";
+      document.getElementById(`h${rowNum}`).value = parseFloat(H) || "";
+
+      // Your pasted table is explicitly cm + kg
+      document.getElementById(`u${rowNum}`).value = "cm";
+
+      document.getElementById(`wtv${rowNum}`).value = parseFloat(WT) || "";
+      document.getElementById(`wtu${rowNum}`).value = "kg";
+
+      calculateLineMetrics(rowNum);
+    });
+
+    calculateDimWeight();
+    bindDimAutoRecalc();
+    return;
+  }
+
+  // Fallback: original “one line per item” parser
+  dimRowCount = lines.length;
+  renderDimRows(dimRowCount);
+
+  lines.forEach((line, idx) => {
+    parseLineIntoRow(line, idx + 1);
+  });
+
+  calculateDimWeight();
+  bindDimAutoRecalc();
+}
+
+
+function addDimRow() {
+  dimRowCount++;
+  renderDimRows(dimRowCount);
+}
+
+function removeDimRow() {
+  if (dimRowCount <= 1) return;
+  dimRowCount--;
+  renderDimRows(dimRowCount);
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderDimRows(dimRowCount);
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+
+});
+
+
+
+function bindDimAutoRecalc() {
+  for (let i = 1; i <= dimRowCount; i++) {
+    ["q","l","w","h","u","wtv","wtu"].forEach(f => {
+      const el = document.getElementById(`${f}${i}`);
+      if (!el) return;
+
+      el.oninput = () => triggerAutoRecalc(i);
+el.onpaste = () => setTimeout(() => triggerAutoRecalc(i), 0);
+
+      el.addEventListener("paste", () => {
+        setTimeout(() => triggerAutoRecalc(i), 0);
+      });
+    });
+  }
+}
+
+
+
+</script>
+
+<script>
+function parseDimensionString(raw) {
+  if (!raw) return null;
+
+  const cleaned = raw
+    .toLowerCase()
+    .replace(/×|\*/g, "x")
+    .replace(/,/g, "")
+    .trim();
+
+  const unitMatch = cleaned.match(/\b(mm|cm|m|in|ft)\b/);
+  const unit = unitMatch ? unitMatch[1] : null;
+
+  const numbers = cleaned
+    .replace(/[a-z]/g, "")
+    .split("x")
+    .map(v => parseLocaleNumber(v.trim()))
+    .filter(v => !isNaN(v));
+
+  if (numbers.length !== 3) return null;
+
+  return {
+    l: numbers[0],
+    w: numbers[1],
+    h: numbers[2],
+    unit
+  };
+}
+</script>
+<script>
+function handleDimPaste(e) {
+  const raw = (e.clipboardData || window.clipboardData).getData("text");
+  const parsed = parseDimensionString(raw);
+  if (!parsed) return;
+
+  e.preventDefault();
+
+  const id = e.target.id;     // l3, w3, h3
+  const row = id.match(/\d+$/);
+  if (!row) return;
+
+  const i = row[0];
+
+  document.getElementById(`l${i}`).value = parsed.l;
+  document.getElementById(`w${i}`).value = parsed.w;
+  document.getElementById(`h${i}`).value = parsed.h;
+
+if (parsed.unit) {
+  document.getElementById(`u${i}`).value = parsed.unit;
+} else if (!document.getElementById(`u${i}`).value) {
+  document.getElementById(`u${i}`).value = "cm";
+}
+
+triggerAutoRecalc(i);
+
+
+
+}
+function handleMultiLinePaste(e) {
+  e.preventDefault();
+
+  const raw = (e.clipboardData || window.clipboardData).getData("text");
+  const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+  const match = e.target.id.match(/\d+$/);
+  if (!match) return;
+
+  let startRow = parseInt(match[0], 10);
+
+  lines.forEach((line, idx) => {
+    const parsed = parseDimensionString(line);
+    if (!parsed) return;
+
+    const i = startRow + idx;
+    if (!document.getElementById(`l${i}`)) return;
+
+    document.getElementById(`l${i}`).value = parsed.l;
+    document.getElementById(`w${i}`).value = parsed.w;
+    document.getElementById(`h${i}`).value = parsed.h;
+
+    if (parsed.unit) {
+      document.getElementById(`u${i}`).value = parsed.unit;
+    }
+if (!parsed.unit && !document.getElementById(`u${i}`).value) {
+  document.getElementById(`u${i}`).value = "cm";
+}
+
+
+
+    if (!document.getElementById(`q${i}`).value) {
+      document.getElementById(`q${i}`).value = 1;
+    }
+triggerAutoRecalc(i);
+
+  });
+}
+</script>
+
+<script>
+function extractDimsFromSingleColumn(row) {
+  for (const key of Object.keys(row)) {
+    const parsed = parseDimensionString(row[key]);
+    if (parsed) {
+      return {
+        l: parsed.l,
+        w: parsed.w,
+        h: parsed.h,
+        unit: parsed.unit || ""
+      };
+    }
+  }
+  return null;
+
+}
+</script>
+
+<script>
+function handlePaste(e) {
+  e.preventDefault();
+
+  const raw = (e.clipboardData || window.clipboardData).getData("text");
+  if (!raw) return;
+
+  const lines = raw
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  if (!lines.length) return;
+
+  // Ensure enough rows exist
+  const neededRows = lines.length;
+  if (dimRowCount < neededRows) {
+    dimRowCount = neededRows;
+    renderDimRows(dimRowCount);
+  }
+
+  // Parse EACH line into its own row
+  lines.forEach((line, index) => {
+    parseLineIntoRow(line, index + 1);
+  });
+
+  calculateDimWeight();
+}
+</script>
+<script>
+function parseLocaleNumber(val) {
+  if (val == null) return NaN;
+  let s = String(val).trim();
+
+  // remove spaces (incl. NBSP) used as thousands separators
+  s = s.replace(/\u00A0/g, " ").replace(/\s+/g, "");
+
+  // keep only digits, signs, and separators
+  s = s.replace(/[^0-9.,+-]/g, "");
+  if (!s) return NaN;
+
+  const hasDot = s.includes(".");
+  const hasComma = s.includes(",");
+
+  // If both separators exist, decide which is decimal by the last occurrence.
+  // 1,234.56 -> comma thousands, dot decimal
+  // 1.234,56 -> dot thousands, comma decimal
+  if (hasDot && hasComma) {
+    if (s.lastIndexOf(",") > s.lastIndexOf(".")) {
+      // EU: 1.234,56 -> 1234.56
+      s = s.replace(/\./g, "").replace(",", ".");
+    } else {
+      // US: 1,234.56 -> 1234.56
+      s = s.replace(/,/g, "");
+    }
+  } else if (hasComma && !hasDot) {
+    // Only comma present: could be decimal or thousands.
+    // If comma looks like decimal (1–2 or 3 digits after AND not 3-group thousands), treat as decimal.
+    // 26,51 -> 26.51
+    // 1,234 -> 1234 (thousands)
+    const parts = s.split(",");
+    const last = parts[parts.length - 1];
+    const isThousandsGroup = parts.length > 1 && last.length === 3 && parts.slice(0, -1).every(p => p.length === 3 || p.length === 1 || p.length === 2);
+    if (isThousandsGroup) s = s.replace(/,/g, "");
+    else s = s.replace(",", ".");
+  } else if (hasDot && !hasComma) {
+    // Only dot present: could be decimal or thousands (rare).
+    // If dot is thousands grouping like 1.234.567, strip all dots.
+    if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+  }
+
+  const n = Number(s);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+</script>
+
+<script>
+function parseLineIntoRow(line, row) {
+
+  // Normalize quotes + clean common labels
+  const text = line
+    .replace(/[’]/g, "'")
+    .replace(/[“”″]/g, '"')         // normalize curly + double-prime to "
+    .toLowerCase();
+
+  // Remove L/W/H labels so patterns like 405"L x 163"W x 167"H match cleanly
+  const cleaned = text
+    .replace(/\b(l|w|h)\b/g, "")    // standalone l/w/h
+    .replace(/[lwh](?=\s*\d)/g, "") // l/w/h right before a number (rare)
+    .replace(/[;|]/g, " ");         // separators
+
+
+  // -------- DIMENSIONS --------
+  // Supports:
+  // 405"L x 163"W x 167"H
+  // 7'6" x 4' x 5'
+  // 120 x 80 x 150 cm
+  // 1200 x 800 x 1500 mm
+  // 1.2 x 0.8 x 1.5 m
+
+    // -------- DIMENSIONS --------
+  let L, W, H, dimUnit = "";
+
+  // -------- QTY (extract early so it doesn't get mistaken as a dimension) --------
+  let qty = null;
+  // Normalize separators and EU-style decimals before any dimension regex runs
+function normalizeNumberText(str) {
+  let out = String(str || "");
+
+  // Replace "*" with "x" for dimensions like 241.3*200.66*261.62
+  out = out.replace(/\*/g, "x");
+
+  // Convert EU numbers:
+  // 1.549,26 -> 1549.26
+  out = out.replace(/\b\d{1,3}(?:\.\d{3})+,\d+\b/g, (m) => m.replace(/\./g, "").replace(",", "."));
+  // 26,51 -> 26.51
+  out = out.replace(/\b\d+,\d+\b/g, (m) => m.replace(",", "."));
+
+  return out;
+}
+
+let s = normalizeNumberText(cleaned);
+
+
+  const qtyMatch =
+    s.match(/\b(?:qty|quantity|q)\s*[:=]?\s*(\d+)\b/i) ||
+    s.match(/\b(\d+)\s*(?:pcs|pc|pieces|units|unit)\b/i) ||
+  s.match(/^\s*(\d{1,2})\s*[x×]\s*(?=\d.*[x×].*[x×])/i)  ||
+  s.match(/^\s*(\d{1,2})\s+(?=\d.*[x×].*[x×])/i);
+
+
+  if (qtyMatch) {
+    qty = parseInt(qtyMatch[1], 10);
+    // Remove the qty expression from the dimension string to prevent shifting
+    s = s.replace(qtyMatch[0], " ").trim();
+  }
+
+
+  // Helper: detect unit from nearby text
+function detectDimUnit(str) {
+  // millimeters / centimeters / meters
+  if (/\bmm\b|millimeters?\b|millimetres?\b/i.test(str)) return "mm";
+  if (/\bcm\b|centimeters?\b|centimetres?\b/i.test(str)) return "cm";
+  // 'm' must be checked after mm/cm
+  if (/\bm\b|meters?\b|metres?\b/i.test(str)) return "m";
+
+  // inches
+  if (/\bin\b|inches?\b|inch\b/i.test(str)) return "in";
+  if (/"/.test(str)) return "in";
+
+  // feet
+  if (/\bft\b|feet\b|foot\b/i.test(str)) return "ft";
+  if (/'/.test(str)) return "ft";
+
+  return "";
+}
+
+
+  // Helper: convert feet/inches like 7'6" into inches number (90)
+  function ftInToInches(token) {
+    const t = token.trim();
+    const m = t.match(/^(\d+)\s*'\s*(\d+)?\s*"?$/);
+    if (m) return (+m[1] * 12) + (+m[2] || 0);
+    return parseFloat(t);
+  }
+
+  // Find ALL LxWxH triples in the line (to support “alternate dimensions”)
+  const tripleRe = /(\d+(?:\.\d+)?(?:\s*'\s*\d+(?:\.\d+)?\s*"?|(?:\s*")?)?)\s*[x×]\s*(\d+(?:\.\d+)?(?:\s*'\s*\d+(?:\.\d+)?\s*"?|(?:\s*")?)?)\s*[x×]\s*(\d+(?:\.\d+)?(?:\s*'\s*\d+(?:\.\d+)?\s*"?|(?:\s*")?)?)/gi;
+
+  const matches = [];
+  let m;
+  while ((m = tripleRe.exec(s)) !== null) {
+    // Look at a small window after the match to detect unit like cm/mm/m or quotes
+    const after = s.slice(m.index, m.index + m[0].length + 12);
+    const u = detectDimUnit(after);
+    matches.push({
+      L: m[1], W: m[2], H: m[3],
+      unit: u,
+      idx: m.index
+    });
+  }
+
+  if (matches.length) {
+    // Choose the “best” triple:
+    // 1) Prefer one with an explicit unit (mm/cm/m/in/ft)
+    // 2) If multiple have units, prefer the last one (often the alternate dims appear later)
+    // 3) Otherwise take the first
+    let chosen = matches.findLast(x => x.unit) || matches[0];
+
+    // Convert values
+    const vL = ftInToInches(chosen.L);
+    const vW = ftInToInches(chosen.W);
+    const vH = ftInToInches(chosen.H);
+
+    // If any token had feet/inch notation, store unit as inches (because we convert to inches)
+    const hasFtInNotation = /'/.test(chosen.L + chosen.W + chosen.H);
+    L = vL; W = vW; H = vH;
+
+    // Decide unit:
+    // - If chosen unit is mm/cm/m -> keep it
+    // - If unit is ft or in or quotes -> set to in if we converted ft'in to inches
+    if (chosen.unit === "mm" || chosen.unit === "cm" || chosen.unit === "m") {
+      dimUnit = chosen.unit;
+    } else if (hasFtInNotation) {
+      dimUnit = "in";
+    } else if (chosen.unit) {
+      dimUnit = chosen.unit === "ft" ? "ft" : "in";
+    } else {
+      // fallback: if line contains quotes anywhere, assume inches
+      dimUnit = /"/.test(s) ? "in" : "";
+    }
+  }
+
+
+  // -------- WEIGHT --------
+  let wtVal, wtUnit = "";
+
+ const wtMatch = text.match(/([\d,.]+)\s*(kg|kgs|kilo|kilos|kilogram|kilograms|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/i);
+
+
+  if (wtMatch) {
+    wtVal = parseLocaleNumber(wtMatch[1]);
+    wtUnit = wtMatch[2]
+  .toLowerCase()
+  .replace("lbs", "lb")
+  .replace("kgs", "kg")
+  .replace(/short[-\s]?ton/g, "st")
+  .replace("st", "st")
+  .replace("tons", "mt")
+  .replace("ton", "mt");
+  }
+
+  // -------- WRITE TO GRID --------
+  if (L && W && H) {
+    document.getElementById(`l${row}`).value = L;
+    document.getElementById(`w${row}`).value = W;
+    document.getElementById(`h${row}`).value = H;
+    document.getElementById(`u${row}`).value = dimUnit || "";
+  }
+
+  if (wtVal) {
+    document.getElementById(`wtv${row}`).value = wtVal;
+    document.getElementById(`wtu${row}`).value = wtUnit || "";
+  }
+
+
+  const qEl = document.getElementById(`q${row}`);
+  if (qEl) qEl.value = (qty && qty > 0) ? qty : 1;
+
+
+calculateLineMetrics(row);
+calculateDimWeight();
+
+}
+</script>
+
+
+
+<script>
+function parseDimLineIntoRow(text, row) {
+
+  // Quantity defaults to 1
+  document.getElementById(`q${row}`).value = 1;
+
+  // --- DIMENSIONS ---
+  // Matches:
+  // 120 x 80 x 150 cm
+  // 7'6" x 4' x 5'
+  // 405” x 163” x 167”
+  const dimMatch = text.match(
+    /([\d.]+(?:'\d+(?:")?)?)\s*[x×]\s*([\d.]+(?:'\d+(?:")?)?)\s*[x×]\s*([\d.]+(?:'\d+(?:")?)?)\s*(mm|cm|m|in|ft)?/i
+  );
+
+  if (dimMatch) {
+    const [ , L, W, H, unit ] = dimMatch;
+
+    document.getElementById(`l${row}`).value = normalizeFeetInches(L);
+    document.getElementById(`w${row}`).value = normalizeFeetInches(W);
+    document.getElementById(`h${row}`).value = normalizeFeetInches(H);
+
+    if (unit) {
+      document.getElementById(`u${row}`).value = unit.toLowerCase();
+    }
+  }
+
+  // --- WEIGHT ---
+  const wtMatch = text.match(/([\d,.]+)\s*(kg|kgs|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/i);
+
+  if (wtMatch) {
+    document.getElementById(`wtv${row}`).value =
+      parseFloat(wtMatch[1].replace(/,/g, ""));
+
+const u0 = wtMatch[2].toLowerCase();
+const u =
+  /short[-\s]?ton/.test(u0) ? "st" :
+  u0 === "st" ? "st" :
+  u0 === "lbs" ? "lb" :
+  (u0 === "tons" || u0 === "ton") ? "mt" :
+  u0 === "kgs" ? "kg" :
+  u0;
+
+document.getElementById(`wtu${row}`).value = u;
+
+  }
+
+  calculateLineMetrics(row);
+}
+</script>
+
+
+<script>
+function swapUnits(fromId, toId, onConvert) {
+  const from = document.getElementById(fromId);
+  const to = document.getElementById(toId);
+  const tmp = from.value;
+  from.value = to.value;
+  to.value = tmp;
+  if (onConvert) onConvert();
+}
+
+
+function getFreightClass(densityLbPerCft) {
+  if (densityLbPerCft >= 50) return 50;
+  if (densityLbPerCft >= 35) return 55;
+  if (densityLbPerCft >= 30) return 60;
+  if (densityLbPerCft >= 22.5) return 65;
+  if (densityLbPerCft >= 15) return 70;
+  if (densityLbPerCft >= 13.5) return 77.5;
+  if (densityLbPerCft >= 12) return 85;
+  if (densityLbPerCft >= 10.5) return 92.5;
+  if (densityLbPerCft >= 9) return 100;
+  if (densityLbPerCft >= 8) return 110;
+  if (densityLbPerCft >= 7) return 125;
+  if (densityLbPerCft >= 6) return 150;
+  if (densityLbPerCft >= 5) return 175;
+  if (densityLbPerCft >= 4) return 200;
+  if (densityLbPerCft >= 3) return 250;
+  if (densityLbPerCft >= 2) return 300;
+  if (densityLbPerCft >= 1) return 400;
+  return 500;
+}
+</script>
+
+<script>
+const METERS_PER_UNIT = {
+  m: 1,
+  cm: 0.01,
+     mm: 0.001,
+  ft: 0.3048,
+  in: 0.0254
+};
+
+const KG_PER_UNIT = {
+  kg: 1,
+  lb: 0.45359237,
+  mt: 1000,
+  st: 907.18474
+};
+
+const KG_TO_LB = 2.20462;
+const M3_TO_CFT = 35.3147;
+const KG_TO_MT = 0.001;
+const KG_TO_ST = 1 / 907.18474;
+</script>
+
+<script>
+function calculateDimWeight() {
+
+  let totalVolumeM3 = 0;
+  let totalWeightKg = 0;
+ let totalAreaSqm = 0;
+ let revenueTons = 0;
+
+
+  for (let i = 1; i <= dimRowCount; i++) {
+
+    const L = parseFloat(document.getElementById(`l${i}`).value);
+    const W = parseFloat(document.getElementById(`w${i}`).value);
+    const H = parseFloat(document.getElementById(`h${i}`).value);
+    const dimUnit = document.getElementById(`u${i}`).value;
+
+    const wtVal = parseFloat(document.getElementById(`wtv${i}`).value);
+    const wtUnit = document.getElementById(`wtu${i}`).value;
+    const qty = parseFloat(document.getElementById(`q${i}`).value) || 0;
+    if (qty <= 0) continue;
+
+    // Skip fully empty rows
+if (
+  isNaN(L) &&
+  isNaN(W) &&
+  isNaN(H) &&
+  !wtVal
+) {
+  continue;
+}
+
+// Qty exists but dimensions missing → real error
+if (qty > 0 && (isNaN(L) || isNaN(W) || isNaN(H))) {
+  document.getElementById("dimResult").innerHTML =
+    "<strong>Input error</strong><br>" +
+    "One or more rows have Quantity but missing Length, Width, or Height.";
+  return;
+}
+
+
+    if (!METERS_PER_UNIT[dimUnit]) {
+      document.getElementById("dimResult").innerHTML =
+        "<strong>Input error</strong><br>" +
+        "One or more rows are missing a valid dimension unit.";
+      return;
+    }
+
+    const factorM = METERS_PER_UNIT[dimUnit];
+    const lineVolumeM3 = L * factorM * W * factorM * H * factorM * qty;
+    totalVolumeM3 += lineVolumeM3;
+  const lineAreaSqm = L * factorM * W * factorM * qty;
+  totalAreaSqm += lineAreaSqm;
+
+
+    calculateLineMetrics(i);
+
+    if (!isNaN(wtVal)) {
+      if (!KG_PER_UNIT[wtUnit]) {
+        document.getElementById("dimResult").innerHTML =
+          "<strong>Input error</strong><br>" +
+          "One or more rows have a weight but no valid weight unit.";
+        return;
+      }
+      totalWeightKg += wtVal * KG_PER_UNIT[wtUnit] * qty;
+  const lineWeightMt = (wtVal * KG_PER_UNIT[wtUnit] * qty) / 1000;
+  const lineRevenueTon = Math.max(lineVolumeM3, lineWeightMt);
+  revenueTons += lineRevenueTon;
+
+    }
+
+  } 
+const totalVolumeCft = totalVolumeM3 * M3_TO_CFT;
+const totalWeightLb = totalWeightKg * KG_TO_LB;
+const totalWeightMt = totalWeightKg * KG_TO_MT;
+const totalWeightST = totalWeightKg * KG_TO_ST;
+const totalAreaSqft = totalAreaSqm * 10.7639;
+const overallDensityKgPerM3 =
+  totalVolumeM3 > 0 ? totalWeightKg / totalVolumeM3 : 0;
+
+// Airline chargeable weight (IATA standard: 167 kg / m³)
+const AIR_VOL_FACTOR = 167;
+const airVolumetricWeightKg = totalVolumeM3 * AIR_VOL_FACTOR;
+const airChargeableWeightKg = Math.max(
+  totalWeightKg,
+  airVolumetricWeightKg
+);
+
+// Overall density & NMFC
+const overallDensityLbPerCft =
+  totalVolumeCft > 0 ? totalWeightLb / totalVolumeCft : 0;
+
+const overallNmfc =
+  overallDensityLbPerCft > 0
+    ? getFreightClass(overallDensityLbPerCft)
+    : "–";
+
+document.getElementById("dimResult").innerHTML = `
+<strong>Total Weight:</strong>
+${totalWeightKg.toFixed(1)} kg
+<strong>|</strong>
+${totalWeightMt.toFixed(3)} MT
+<strong>|</strong>
+${totalWeightLb.toFixed(1)} lb
+<strong>|</strong>
+${totalWeightST.toFixed(3)} ST
+  <br><br>
+
+<strong>Total Volume:</strong>
+${totalVolumeM3.toFixed(3)} m³
+<strong>|</strong>
+${totalVolumeCft.toFixed(2)} ft³
+
+  <br><br>
+
+  <strong>Total Area:</strong>
+  ${totalAreaSqm.toFixed(2)} m² 
+<strong>|</strong>
+  ${totalAreaSqft.toFixed(2)} ft²
+  <br><br>
+
+  <strong>Chargeable Weight (Air):</strong>
+  ${airChargeableWeightKg.toFixed(1)} kg
+  <br><br>
+
+  <strong>Freight / Revenue Ton:</strong>
+  ${revenueTons.toFixed(3)}
+  <br><br>
+
+ <strong>Density:</strong>
+${overallDensityKgPerM3.toFixed(1)} kg/m³
+<strong>|</strong>
+${overallDensityLbPerCft.toFixed(2)} lb/ft³
+ <br><br>
+
+  <strong>NMFC Class:</strong>
+  ${overallNmfc}
+`;
+}
+
+function safeCalculateDimWeight() {
+  calculateDimWeight();
+}
+
+</script>
+<script>
+function calculateLineMetrics(i) {
+  const q = +document.getElementById(`q${i}`)?.value || 0;
+  const l = +document.getElementById(`l${i}`)?.value;
+  const w = +document.getElementById(`w${i}`)?.value;
+  const h = +document.getElementById(`h${i}`)?.value;
+  const u = document.getElementById(`u${i}`)?.value;
+
+  const wtVal = +document.getElementById(`wtv${i}`)?.value;
+  const wtUnit = document.getElementById(`wtu${i}`)?.value;
+
+  if (!q || !l || !w || !h || !METERS_PER_UNIT[u]) return;
+
+  const m = METERS_PER_UNIT[u];
+  const cbm = l * m * w * m * h * m * q;
+  const cft = cbm * M3_TO_CFT;
+  const sqm = l * m * w * m * q;
+  const sqft = sqm * 10.7639;
+
+
+  document.getElementById(`cbm${i}`).textContent = cbm.toFixed(3);
+  document.getElementById(`cft${i}`).textContent = cft.toFixed(2);
+  document.getElementById(`sqm${i}`).textContent = sqm.toFixed(2);
+  document.getElementById(`sqft${i}`).textContent = sqft.toFixed(2);
+
+
+  if (!wtVal || !KG_PER_UNIT[wtUnit]) {
+    document.getElementById(`dens${i}`).textContent = "–";
+    document.getElementById(`nmfc${i}`).textContent = "–";
+    return;
+  }
+
+  const kg = wtVal * KG_PER_UNIT[wtUnit] * q;
+  const lb = kg * KG_TO_LB;
+
+  const densityLbPerCft = lb / cft;
+  document.getElementById(`dens${i}`).textContent =
+    densityLbPerCft.toFixed(2);
+
+  document.getElementById(`nmfc${i}`).textContent =
+    getFreightClass(densityLbPerCft);
+
+
+}
+
+function triggerAutoRecalc(i) {
+  calculateLineMetrics(i);
+}
+
+
+</script>
+
+</div>
+</div>
+
+</div>
+
+    <footer>
+        © The Logistics Mindset — Personal educational reference
+    </footer>
+
+
+
+<script>
+function autoSelectOnTab(input, unitMap, onConvert) {
+  input.addEventListener("keydown", e => {
+    if (e.key === "Tab") {
+      const val = input.value.trim().toLowerCase();
+      const match = Object.keys(unitMap).find(
+        k => k.toLowerCase().startsWith(val)
+      );
+      if (match) {
+        e.preventDefault();
+        input.value = match;
+        if (onConvert) onConvert();
+      }
+    }
+  });
+}
+
+
+const weightUnits = {
+  "Carat (ct)": 0.2,
+  "Centigram (cg)": 0.01,
+  "Decigram (dg)": 0.1,
+  "Dekagram (dag)": 10,
+  "Gram (g)": 1,
+  "Grain (gr)": 0.06479891,
+  "Kilogram (kg)": 1000,
+  "Long hundredweight (UK)": 50802.34544,
+  "Long ton (UK)": 1016046.9088,
+  "Metric ton (tonne)": 1000000,
+  "Milligram (mg)": 0.001,
+  "Ounce (oz)": 28.349523125,
+  "Pennyweight (dwt)": 1.55517384,
+  "Pound (lb)": 453.59237,
+  "Short hundredweight (US)": 45359.237,
+  "Short ton (US)": 907184.74,
+  "Stone (st)": 6350.29318,
+  "Tola": 11.6638038,
+};
+
+const sortedUnits = Object.keys(weightUnits).sort();
+
+const fromSelect = document.getElementById("fromUnit");
+const toSelect = document.getElementById("toUnit");
+
+const weightList = document.getElementById("weightUnitsList");
+
+sortedUnits.forEach(unit => {
+  weightList.appendChild(new Option(unit, unit));
+});
+
+
+function convertWeight() {
+  const value = parseFloat(document.getElementById("weightValue").value);
+  const from = fromSelect.value;
+  const to = toSelect.value;
+  const resultBox = document.getElementById("conversionResult");
+
+  if (isNaN(value)) {
+    resultBox.textContent = "Please enter a valid number.";
+    return;
+  }
+
+if (!weightUnits[from] || !weightUnits[to]) {
+  resultBox.textContent = "Please select a valid unit from the list.";
+  return;
+}
+
+
+  const grams = value * weightUnits[from];
+  const result = grams / weightUnits[to];
+
+  resultBox.textContent = `${value} ${from} = ${result.toLocaleString()} ${to}`;
+}
+</script>
+<script>
+["weightValue", "fromUnit", "toUnit"].forEach(id => {
+  document.getElementById(id).addEventListener("input", convertWeight);
+  document.getElementById(id).addEventListener("change", convertWeight);
+});
+</script>
+
+
+<script>
+const volumeUnits = {
+  "Barrel (beer, US)": 117.34777,
+  "Barrel (oil)": 158.987294,
+  "Board foot": 2.359737,
+  "Bushel (US)": 35.23907,
+  "Butt / Pipe": 476.96188,
+  "Centilitre (cL)": 0.01,
+  "Cubic meter (m³)": 1000,
+     "Cubic centimeter (cm³)": 0.001,
+     "Cubic foot (ft³)": 28.316846592,
+     "Cubic inch (in³)": 0.016387064,
+  "Cup (US)": 0.236588,
+  "Fluid ounce (US fl oz)": 0.0295735,
+  "Gallon (Imperial)": 4.54609,
+  "Gallon (US)": 3.78541,
+  "Litre (L)": 1,
+  "Pinch / Dash": 0.000308057,
+  "Pint (Imperial)": 0.568261,
+  "Pint (US)": 0.473176,
+  "Quart (Imperial)": 1.13652,
+  "Quart (US)": 0.946353,
+  "Register ton": 2831.68466,
+  "Tablespoon (tbsp)": 0.0147868,
+  "Teaspoon (tsp)": 0.005,
+};
+
+const sortedVolumeUnits = Object.keys(volumeUnits).sort();
+
+const volumeFrom = document.getElementById("volumeFrom");
+const volumeTo = document.getElementById("volumeTo");
+
+const volumeList = document.getElementById("volumeUnitsList");
+
+sortedVolumeUnits.forEach(unit => {
+  volumeList.appendChild(new Option(unit, unit));
+});
+
+
+function convertVolume() {
+  const value = parseFloat(document.getElementById("volumeValue").value);
+  const from = volumeFrom.value;
+  const to = volumeTo.value;
+  const resultBox = document.getElementById("volumeResult");
+
+  if (isNaN(value)) {
+    resultBox.textContent = "Please enter a valid number.";
+    return;
+  }
+if (!volumeUnits[from] || !volumeUnits[to]) {
+  resultBox.textContent = "Please select a valid unit from the list.";
+  return;
+}
+
+
+  const liters = value * volumeUnits[from];
+  const result = liters / volumeUnits[to];
+
+  resultBox.textContent =
+    `${value} ${from} = ${result.toLocaleString()} ${to}`;
+}
+</script>
+
+<script>
+["volumeValue", "volumeFrom", "volumeTo"].forEach(id => {
+  document.getElementById(id).addEventListener("input", convertVolume);
+  document.getElementById(id).addEventListener("change", convertVolume);
+});
+</script>
+
+<script>
+const lengthUnits = {
+  "Astronomical Unit (AU)": 1.495978707e11,
+  "Cable": 185.2,
+  "Centimeter (cm)": 0.01,
+  "Chain": 20.1168,
+  "Cubit": 0.4572,
+  "Decimeter (dm)": 0.1,
+  "Digit": 0.01905,
+  "Foot (ft)": 0.3048,
+  "Furlong": 201.168,
+  "Hand": 0.1016,
+  "Inch (in)": 0.0254,
+  "Kilometer (km)": 1000,
+  "Light-hour": 1.07925285e12,
+  "Light-minute": 1.79875475e10,
+  "Light-second": 299792458,
+  "Light-year (ly)": 9.460730472e15,
+  "Lunar Distance (LD)": 384402000,
+  "Meter (m)": 1,
+  "Mile (mi)": 1609.344,
+  "Millimeter (mm)": 0.001,
+  "Nautical Mile (nmi)": 1852,
+  "Parsec (pc)": 3.085677581e16,
+  "Span": 0.2286,
+  "Yard (yd)": 0.9144
+};
+
+const sortedLengthUnits = Object.keys(lengthUnits).sort();
+
+const lengthFrom = document.getElementById("lengthFrom");
+const lengthTo = document.getElementById("lengthTo");
+const lengthList = document.getElementById("lengthUnitsList");
+
+sortedLengthUnits.forEach(unit => {
+  lengthList.appendChild(new Option(unit, unit));
+});
+
+
+function convertLength() {
+  const value = parseFloat(document.getElementById("lengthValue").value);
+  const from = lengthFrom.value;
+  const to = lengthTo.value;
+  const resultBox = document.getElementById("lengthResult");
+
+  if (isNaN(value)) {
+    resultBox.textContent = "Please enter a valid number.";
+    return;
+  }
+
+if (!lengthUnits[from] || !lengthUnits[to]) {
+  resultBox.textContent = "Please select a valid unit from the list.";
+  return;
+}
+
+const meters = value * lengthUnits[from];
+const result = meters / lengthUnits[to];
+
+
+  resultBox.textContent =
+    `${value} ${from} = ${result.toLocaleString()} ${to}`;
+}
+</script>
+<script>
+["lengthValue", "lengthFrom", "lengthTo"].forEach(id => {
+  document.getElementById(id).addEventListener("input", convertLength);
+  document.getElementById(id).addEventListener("change", convertLength);
+});
+</script>
+
+
+<script>
+function swapTemperature() {
+    const from = document.getElementById("tempFrom");
+    const to = document.getElementById("tempTo");
+
+    const temp = from.value;
+    from.value = to.value;
+    to.value = temp;
+
+    convertTemperature();
+}
+
+function convertTemperature() {
+    const value = parseFloat(document.getElementById("tempValue").value);
+    const from = document.getElementById("tempFrom").value;
+    const to = document.getElementById("tempTo").value;
+    const resultBox = document.getElementById("tempResult");
+
+    if (isNaN(value)) {
+        resultBox.textContent = "Please enter a valid number.";
+        return;
+    }
+
+    const validTemps = ["Celsius (°C)", "Fahrenheit (°F)", "Kelvin (K)", "Rankine (°R)"];
+
+    if (!validTemps.includes(from) || !validTemps.includes(to)) {
+        resultBox.textContent = "Please select a valid temperature unit.";
+        return;
+    }
+
+    let kelvin;
+
+    switch (from) {
+        case "Celsius (°C)": kelvin = value + 273.15; break;
+        case "Fahrenheit (°F)": kelvin = (value + 459.67) * 5 / 9; break;
+        case "Kelvin (K)": kelvin = value; break;
+        case "Rankine (°R)": kelvin = value * 5 / 9; break;
+    }
+
+    let result;
+
+    switch (to) {
+        case "Celsius (°C)": result = kelvin - 273.15; break;
+        case "Fahrenheit (°F)": result = kelvin * 9 / 5 - 459.67; break;
+        case "Kelvin (K)": result = kelvin; break;
+        case "Rankine (°R)": result = kelvin * 9 / 5; break;
+    }
+
+    resultBox.textContent = `${value} ${from} = ${result.toLocaleString()} ${to}`;
+}
+
+
+const TIME_TICKER_ZONES = [
+    { label: "New York", tz: "America/New_York" },
+    { label: "London", tz: "Europe/London" },
+    { label: "Mumbai", tz: "Asia/Kolkata" },
+    { label: "Singapore", tz: "Asia/Singapore" },
+    { label: "Tokyo", tz: "Asia/Tokyo" }
+];
+
+const timeTickerEl = document.getElementById("timeTicker");
+
+function updateTimeTicker() {
+    timeTickerEl.innerHTML = TIME_TICKER_ZONES.map(z => {
+        const t = new Date().toLocaleTimeString("en-US", {
+            timeZone: z.tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        return `<span>${z.label}: ${t}</span>`;
+    }).join("");
+}
+
+updateTimeTicker();
+setInterval(updateTimeTicker, 1000);
+
+
+</script>
+
+<script>
+["tempValue", "tempFrom", "tempTo"].forEach(id => {
+  document.getElementById(id).addEventListener("input", convertTemperature);
+  document.getElementById(id).addEventListener("change", convertTemperature);
+});
+</script>
+<script>
+function enableDatalistShowAll(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  let lastValue = "";
+
+  input.addEventListener("focus", () => {
+    lastValue = input.value;
+    input.value = "";
+    input.dispatchEvent(new Event("input"));
+  });
+
+  input.addEventListener("blur", () => {
+    if (input.value === "") {
+      input.value = lastValue;
+    }
+  });
+}
+</script>
+<script>
+const tempUnits = {
+  "Celsius (°C)": 1,
+  "Fahrenheit (°F)": 1,
+  "Kelvin (K)": 1,
+  "Rankine (°R)": 1
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+
+  // Length
+  setupUnitDropdown("lengthFrom", lengthUnits);
+  setupUnitDropdown("lengthTo", lengthUnits);
+
+  // Weight
+setupUnitDropdown("fromUnit", weightUnits);
+setupUnitDropdown("toUnit", weightUnits);
+
+  // Volume
+setupUnitDropdown("volumeFrom", volumeUnits);
+setupUnitDropdown("volumeTo", volumeUnits);
+
+  // Temperature
+setupUnitDropdown("tempFrom", tempUnits);
+setupUnitDropdown("tempTo", tempUnits);
+
+});
+
+</script>
+<script>
+function exportDimTableToExcel() {
+
+  /* ---------- SHEET 1: DIMENSION LINES ---------- */
+
+  const dimRows = [];
+
+  dimRows.push([
+    "Qty",
+    "Length",
+    "Width",
+    "Height",
+    "Dim Unit",
+    "Weight",
+    "Weight Unit",
+    "CBM",
+    "CFT",
+    "SQM",
+    "SQFT",
+    "Density (lb/ft³)",
+    "NMFC"
+  ]);
+
+  for (let i = 1; i <= dimRowCount; i++) {
+    const qty = document.getElementById(`q${i}`)?.value;
+    const l   = document.getElementById(`l${i}`)?.value;
+    const w   = document.getElementById(`w${i}`)?.value;
+    const h   = document.getElementById(`h${i}`)?.value;
+    const u   = document.getElementById(`u${i}`)?.value;
+    const wt  = document.getElementById(`wtv${i}`)?.value;
+    const wtu = document.getElementById(`wtu${i}`)?.value;
+
+    const cbm  = document.getElementById(`cbm${i}`)?.textContent;
+    const cft  = document.getElementById(`cft${i}`)?.textContent;
+    const sqm  = document.getElementById(`sqm${i}`)?.textContent;
+    const sqft = document.getElementById(`sqft${i}`)?.textContent;
+    const dens = document.getElementById(`dens${i}`)?.textContent;
+    const nmfc = document.getElementById(`nmfc${i}`)?.textContent;
+
+    if (!qty && !l && !w && !h && !wt) continue;
+
+    dimRows.push([
+      qty || "",
+      l || "",
+      w || "",
+      h || "",
+      u || "",
+      wt || "",
+      wtu || "",
+      cbm || "",
+      cft || "",
+      sqm || "",
+      sqft || "",
+      dens || "",
+      nmfc || ""
+    ]);
+  }
+
+  if (dimRows.length === 1) {
+    alert("No dimension data to export.");
+    return;
+  }
+
+  /* ---------- SHEET 2: TOTAL RESULTS ---------- */
+
+  const resultEl = document.getElementById("dimResult");
+  const resultText = resultEl
+    ? resultEl.innerText.split("\n").map(l => l.trim()).filter(Boolean)
+    : [];
+
+  const resultRows = [["Metric", "Value"]];
+
+  resultText.forEach(line => {
+    if (line.includes(":")) {
+      const parts = line.split(":");
+      resultRows.push([
+        parts[0].trim(),
+        parts.slice(1).join(":").trim()
+      ]);
+    } else {
+      resultRows.push(["", line]);
+    }
+  });
+
+  /* ---------- WORKBOOK ---------- */
+
+  const wb = XLSX.utils.book_new();
+
+  const wsDims = XLSX.utils.aoa_to_sheet(dimRows);
+  XLSX.utils.book_append_sheet(wb, wsDims, "Dimensions");
+
+  const wsResults = XLSX.utils.aoa_to_sheet(resultRows);
+  XLSX.utils.book_append_sheet(wb, wsResults, "Results");
+
+  XLSX.writeFile(wb, "dimensions_with_results.xlsx");
+}
+</script>
+
+<script>
+(function () {
+  const uploader = document.getElementById("dimAnyUpload");
+  const statusEl = document.getElementById("dimAnyUploadStatus");
+  const btn = document.getElementById("dimAnyUploadBtn");
+  const nameEl = document.getElementById("dimAnyUploadName");
+  const dz = document.getElementById("dimDropZone");
+
+  if (!uploader) return;
+
+  // Choose-file button
+  if (btn) {
+    btn.addEventListener("click", () => uploader.click());
+  }
+
+  // Drag/drop zone
+  if (dz) {
+    function setActive(active) {
+      dz.style.borderColor = active ? "#4a90e2" : "#bbb";
+      dz.style.background = active ? "rgba(74,144,226,0.08)" : "transparent";
+    }
+
+    dz.addEventListener("click", (e) => {
+      if (e.target && e.target.id === "dimAnyUploadBtn") return;
+      uploader.click();
+    });
+
+    dz.addEventListener("dragenter", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      setActive(true);
+    });
+
+    dz.addEventListener("dragover", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      setActive(true);
+    });
+
+    dz.addEventListener("dragleave", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (e.relatedTarget && dz.contains(e.relatedTarget)) return;
+      setActive(false);
+    });
+
+    dz.addEventListener("drop", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      setActive(false);
+
+      const files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
+      if (!files || !files.length) return;
+
+      const dt = new DataTransfer();
+      dt.items.add(files[0]);
+      uploader.files = dt.files;
+
+      if (nameEl) nameEl.textContent = files[0].name;
+
+      uploader.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
+
+  function setStatus(msg) {
+    if (statusEl) statusEl.textContent = msg || "";
+  }
+
+
+  function setStatus(msg) {
+    if (statusEl) statusEl.textContent = msg || "";
+  }
+
+  function getExt(name) {
+    const m = String(name || "").toLowerCase().match(/\.([a-z0-9]+)$/);
+    return m ? m[1] : "";
+  }
+
+function asNum(x) {
+  return parseLocaleNumber(x);
+}
+
+function normHeader(s) {
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[^a-z0-9]/g, ""); // strip (), ., /, etc so L(mm) -> lmm
+}
+
+
+  function looksLikeHeaderRow(row) {
+  if (!Array.isArray(row)) return false;
+
+  // Consider it a header row if we see at least 2 strong header signals
+  let hits = 0;
+
+  for (const c of row) {
+    const h = normHeader(c); // already lower + whitespace removed
+    if (!h) continue;
+
+    if (h === "qty" || h === "q" || h.includes("quantity")) hits++;
+    if (h === "wt" || h.includes("weight") || h.includes("gwt") || h.includes("grossweight") || h === "gw") hits++;
+    if (h.includes("nwt") || h.includes("netweight") || h === "nw") hits++;
+    if (h === "dim" || h === "dims" || h === "dimensions" || h.includes("dimension") || h.includes("lxwxh")) hits++;
+if (h === "length" || h === "width" || h === "height" || h === "long" || h === "wide" || h === "high" || h === "l" || h === "w" || h === "h") hits++;
+
+
+    if (hits >= 2) return true;
+  }
+  return false;
+}
+
+  function buildHeaderIndex(headerRow) {
+  const idx = {};
+  if (!Array.isArray(headerRow)) return idx;
+
+  let grossWt = null;
+  let anyWt = null;
+  let netWt = null;
+
+  headerRow.forEach((cell, i) => {
+    const h = normHeader(cell);
+    if (!h) return;
+
+    // Qty / quantity
+    if (h === "qty" || h === "quantity" || h === "q" || h.includes("quantity")) idx.qty = i;
+
+    // L/W/H
+    if (h === "l" || h === "long" || h === "lng" || /^l(mm|cm|m|in|ft)?$/.test(h) || h.includes("length")) idx.l = i;
+    if (h === "w" || h === "wide" || /^w(mm|cm|m|in|ft)?$/.test(h) || h.includes("width")) idx.w = i;
+    if (h === "h" || h === "high" || h === "ht" || h === "hgt" || /^h(mm|cm|m|in|ft)?$/.test(h) || h.includes("height")) idx.h = i;
+
+    // Dimension unit column
+    if (h === "unit" || h.includes("dimunit") || h === "u") idx.u = i;
+
+    // Dimensions column
+    if (h === "dimension" || h === "dimensions" || h.includes("dimension") || h.includes("lxwxh")) idx.dims = i;
+
+    // Weight unit column
+    if (h.includes("wtunit") || h.includes("weightunit") || h === "wtu") idx.wtu = i;
+
+    // Weight columns: ALWAYS prefer GROSS; else any weight; else NET
+    const isGross =
+      h.includes("grossweight") || h.includes("grosswt") || h === "gross" ||
+      h === "grwt" || h.includes("grwt") || h === "gwt" || h.includes("gwt") ||
+      h === "gw" || h.includes("grswt");
+
+    const isNet =
+      h.includes("netweight") || h.includes("netwt") || h === "net" ||
+      h === "nwt" || h.includes("nwt") || h === "nw";
+
+    const isAny = (h === "wt" || h === "weight" || h.includes("weight"));
+
+    if (isGross && grossWt == null) grossWt = i;
+    if (isAny && anyWt == null) anyWt = i;
+    if (isNet && netWt == null) netWt = i;
+  });
+
+  idx.wt = (grossWt != null) ? grossWt : ((anyWt != null) ? anyWt : netWt);
+  return idx;
+}
+
+
+  function rowToText(row) {
+  if (!Array.isArray(row)) return "";
+  return row.map(c => String(c ?? "")).join(" ");
+}
+
+
+  function hasDimPattern(text) {
+    return /(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)/i.test(String(text || ""));
+  }
+
+  function hasWeightPattern(text) {
+   return /\b(kg|kgs|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/i.test(String(text || "")) && /\d/.test(String(text || ""));
+  }
+
+  function sheetNameBonus(name) {
+    const n = String(name || "").toLowerCase();
+    if (/(packing|pack\s*list|\bpl\b)/.test(n)) return 12;
+    if (/(invoice|commercial)/.test(n)) return 2;
+    if (/(dimension|dims|measure)/.test(n)) return 8;
+    return 0;
+  }
+
+  function scoreSheet(aoa, sheetName) {
+    if (!Array.isArray(aoa) || !aoa.length) return -1;
+
+    let score = 0;
+    score += sheetNameBonus(sheetName);
+
+    const header = aoa[0];
+    const hasHeader = looksLikeHeaderRow(header);
+    const idx = hasHeader ? buildHeaderIndex(header) : {};
+    const start = hasHeader ? 1 : 0;
+
+    // Scan a limited number of rows for speed
+    const maxRows = Math.min(aoa.length, 250);
+
+    for (let r = start; r < maxRows; r++) {
+      const row = aoa[r];
+      if (!Array.isArray(row)) continue;
+
+      const text = rowToText(row);
+      if (!text.trim()) continue;
+
+      const L = Number.isFinite(asNum(row[idx.l])) ? asNum(row[idx.l]) : NaN;
+      const W = Number.isFinite(asNum(row[idx.w])) ? asNum(row[idx.w]) : NaN;
+      const H = Number.isFinite(asNum(row[idx.h])) ? asNum(row[idx.h]) : NaN;
+
+      if (Number.isFinite(L) && Number.isFinite(W) && Number.isFinite(H)) score += 6;
+      if (idx.dims != null && hasDimPattern(String(row[idx.dims] ?? ""))) score += 6;
+
+      if (hasDimPattern(text)) score += 3;
+      if (hasWeightPattern(text)) score += 1;
+    }
+
+    return score;
+  }
+
+  function extractDimLinesFromSheet(aoa) {
+    const lines = [];
+    if (!Array.isArray(aoa) || !aoa.length) return lines;
+
+    // Find the first header row within the first 50 rows (handles title/blank rows)
+    let headerRowIndex = -1;
+    for (let r = 0; r < Math.min(aoa.length, 50); r++) {
+          if (looksLikeHeaderRow(aoa[r])) { headerRowIndex = r; break; }
+          }
+
+    let idx = {};
+    let start = 0;
+    if (headerRowIndex >= 0) {
+                 idx = buildHeaderIndex(aoa[headerRowIndex]);
+                 start = headerRowIndex + 1;
+         }
+
+// Default units inferred from header text (for sheets like "Dimensions mm (in)" and "GWT kg (lbs.)")
+let defaultDimUnit = "";
+let defaultWtUnit = "";
+
+if (headerRowIndex >= 0) {
+  const header = aoa[headerRowIndex] || [];
+
+  const dimsHeader = idx.dims != null ? String(header[idx.dims] ?? "").toLowerCase() : "";
+ if (/\bcm\b/.test(dimsHeader)) defaultDimUnit = "cm";
+ else if (/\bmm\b/.test(dimsHeader)) defaultDimUnit = "mm";
+  else if (/\bm\b/.test(dimsHeader)) defaultDimUnit = "m";
+  else if (/\bin\b|\binches\b/.test(dimsHeader)) defaultDimUnit = "in";
+  else if (/\bft\b|\bfeet\b/.test(dimsHeader)) defaultDimUnit = "ft";
+
+// If this sheet uses separate L/W/H columns (no "dims" column), infer unit from those headers
+function inferDimUnitFromHeaderCell(hc) {
+  const s = String(hc ?? "").toLowerCase();
+  if (/\bmm\b/.test(s)) return "mm";
+  if (/\bcm\b/.test(s)) return "cm";
+  if (/\bft\b|\bfeet\b/.test(s)) return "ft";
+  if (/\bin\b|\binch\b|\binches\b/.test(s)) return "in";
+  // be careful: "m" is common in words, so require boundaries or parentheses like "(m)"
+  if (/(^|[^a-z])m($|[^a-z])|\(m\)/.test(s)) return "m";
+  return "";
+}
+
+if (!defaultDimUnit) {
+  const hL = idx.l != null ? header[idx.l] : "";
+  const hW = idx.w != null ? header[idx.w] : "";
+  const hH = idx.h != null ? header[idx.h] : "";
+  defaultDimUnit = inferDimUnitFromHeaderCell(hL) || inferDimUnitFromHeaderCell(hW) || inferDimUnitFromHeaderCell(hH);
+}
+
+
+  const wtHeader = idx.wt != null ? String(header[idx.wt] ?? "").toLowerCase() : "";
+  if (/\bkg\b|\bkgs\b/.test(wtHeader)) defaultWtUnit = "kg";
+  else if (/\blb\b|\blbs\b/.test(wtHeader)) defaultWtUnit = "lb";
+  else if (/\bmt\b|\bton\b|\btons\b/.test(wtHeader)) defaultWtUnit = "mt";
+}
+
+function inferDimUnitFromNearbyHeaderRows(aoa, headerRowIndex) {
+  // Look at header row and up to 4 rows above it (merged titles often live there)
+  const start = Math.max(0, headerRowIndex - 4);
+  const end = Math.min(aoa.length - 1, headerRowIndex);
+
+  for (let r = start; r <= end; r++) {
+    const row = aoa[r];
+    if (!Array.isArray(row)) continue;
+
+    const joined = row.map(c => String(c ?? "")).join(" ").toLowerCase();
+const compact = joined
+    .replace(/\s+/g, "")
+           .replace(/[^a-z0-9]/g, "");
+
+if (compact.includes("cm") || joined.includes("(cm)")) return "cm";
+if (compact.includes("mm") || joined.includes("(mm)")) return "mm";
+if (compact.includes("ft") || joined.includes("(ft)") || joined.includes("feet") || joined.includes("foot")) return "ft";
+if (joined.includes("(in)") || joined.includes("inch")) return "in";
+if (joined.includes("(m)") || joined.includes("meter") || joined.includes("metre")) return "m";
+
+  }
+
+  // Fallback: if the sheet isn't a structured table, scan all cells as plain text.
+  // This catches cases like: "L 450 cm X W 144.2 cm X H 90.5 cm" inside a single cell.
+  if (!lines.length) {
+    const flat = aoa
+      .flat()
+      .map(v => (v == null ? "" : String(v)))
+      .join("\n");
+
+    const extra = extractDimLinesFromPdfText(flat);
+    if (extra && extra.length) return extra;
+  }
+
+  return "";
+}
+
+function pickDualCell(cell) {
+  const s = String(cell ?? "").replace(/\s+/g, " ").trim();
+  const re = /(\d+(?:\.\d+)?)\s*(in|ft|cm|mm|m)\b/gi;
+
+  const matches = [];
+  let m;
+  while ((m = re.exec(s)) !== null) {
+    matches.push({ v: parseFloat(m[1]), u: m[2].toLowerCase() });
+  }
+  if (!matches.length) return { v: NaN, u: "" };
+
+  // Prefer metric if present (mm/cm/m), else fallback to imperial
+  const metric = matches.find(x => x.u === "mm") ||
+                 matches.find(x => x.u === "cm") ||
+                 matches.find(x => x.u === "m");
+  return metric || matches[0];
+}
+
+function pickDualWeight(cell) {
+  const s = String(cell ?? "").replace(/\s+/g, " ").trim();
+  const re = /(\d+(?:\.\d+)?)\s*(kg|kgs|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/gi;
+
+  const matches = [];
+  let m;
+  while ((m = re.exec(s)) !== null) {
+    let u = m[2].toLowerCase()
+      .replace("kgs", "kg")
+      .replace("lbs", "lb")
+      .replace(/short[-\s]?ton/g, "st")
+      .replace("tons", "mt")
+      .replace("ton", "mt");
+
+    matches.push({ v: parseFloat(m[1]), u });
+  }
+  if (!matches.length) return { v: NaN, u: "" };
+
+  // Prefer metric if present (kg/mt), else fallback
+  const metric = matches.find(x => x.u === "kg") || matches.find(x => x.u === "mt");
+  return metric || matches[0];
+}
+
+// Sheet-level unit hint: if the sheet clearly mentions cm (and not mm), honor that
+const sheetDimUnitHint = (() => {
+  const top = aoa.slice(0, Math.min(aoa.length, 40));
+  const txt = top
+    .map(row => Array.isArray(row) ? row.map(c => String(c ?? "")).join(" ") : "")
+    .join(" ")
+    .toLowerCase();
+
+  const hasCM = txt.includes("cm") || txt.includes("(cm)");
+  const hasMM = txt.includes("mm") || txt.includes("(mm)");
+
+  if (hasCM && !hasMM) return "cm";
+  if (hasMM && !hasCM) return "mm";
+  return ""; // unknown or mixed
+})();
+
+
+    for (let r = start; r < aoa.length; r++) {
+      const row = aoa[r];
+      if (!Array.isArray(row)) continue;
+      if (!row.some(c => String(c ?? "").trim() !== "")) continue;
+     // If we hit another header row later (e.g., "Alternate format"), switch indexes and continue
+// If we hit another header row later (e.g., "Alternate format"), switch indexes AND refresh default units
+if (looksLikeHeaderRow(row)) {
+  idx = buildHeaderIndex(row);
+
+  // refresh defaultDimUnit/defaultWtUnit from THIS header row too
+  const header = row || [];
+
+  const dimsHeader = idx.dims != null ? String(header[idx.dims] ?? "").toLowerCase() : "";
+if (/\bcm\b/.test(dimsHeader)) defaultDimUnit = "cm";
+ else if (/\bmm\b/.test(dimsHeader)) defaultDimUnit = "mm";
+  else if (/\bm\b/.test(dimsHeader)) defaultDimUnit = "m";
+  else if (/\bin\b|\binches\b/.test(dimsHeader)) defaultDimUnit = "in";
+  else if (/\bft\b|\bfeet\b/.test(dimsHeader)) defaultDimUnit = "ft";
+
+  // If L/W/H headers carry the unit (e.g., L(mm), Long mm), infer from them
+ function inferDimUnitFromHeaderCell(hc) {
+  // detect units even when attached, e.g. "long(mm)" -> "longmm"
+  const raw = String(hc ?? "").toLowerCase();
+  const compact = raw.replace(/\s+/g, "").replace(/[^a-z0-9]/g, "");
+
+  if (compact.includes("mm") || raw.includes("(mm)")) return "mm";
+  if (compact.includes("cm") || raw.includes("(cm)")) return "cm";
+  if (compact.includes("ft") || raw.includes("(ft)") || raw.includes("feet") || raw.includes("foot")) return "ft";
+
+  // "in" is tricky (invoice, etc). Prefer explicit "(in)" or "inch"
+  if (raw.includes("(in)") || raw.includes("inch")) return "in";
+
+  // meters: accept "(m)" or "metre/meter"
+  if (raw.includes("(m)") || raw.includes("meter") || raw.includes("metre")) return "m";
+
+  return "";
+}
+
+
+  if (!defaultDimUnit) {
+    const hL = idx.l != null ? header[idx.l] : "";
+    const hW = idx.w != null ? header[idx.w] : "";
+    const hH = idx.h != null ? header[idx.h] : "";
+    defaultDimUnit =
+      inferDimUnitFromHeaderCell(hL) ||
+      inferDimUnitFromHeaderCell(hW) ||
+      inferDimUnitFromHeaderCell(hH);
+  }
+
+if (!defaultDimUnit && headerRowIndex >= 0) {
+  defaultDimUnit = inferDimUnitFromNearbyHeaderRows(aoa, headerRowIndex);
+}
+
+  const wtHeader = idx.wt != null ? String(header[idx.wt] ?? "").toLowerCase() : "";
+  if (/\bkg\b|\bkgs\b/.test(wtHeader)) defaultWtUnit = "kg";
+  else if (/\blb\b|\blbs\b/.test(wtHeader)) defaultWtUnit = "lb";
+  else if (/\bmt\b|\bton\b|\btons\b/.test(wtHeader)) defaultWtUnit = "mt";
+
+if (!defaultDimUnit) {
+  // r is the current row index in the main loop
+  defaultDimUnit = inferDimUnitFromNearbyHeaderRows(aoa, r);
+}
+
+  continue;
+}
+
+      let qty = 1;
+      if (idx.qty != null && Number.isFinite(asNum(row[idx.qty]))) qty = Math.max(1, asNum(row[idx.qty]));
+
+      // Preferred path: L/W/H columns
+const pL = idx.l != null ? pickDualCell(row[idx.l]) : { v: NaN, u: "" };
+const pW = idx.w != null ? pickDualCell(row[idx.w]) : { v: NaN, u: "" };
+const pH = idx.h != null ? pickDualCell(row[idx.h]) : { v: NaN, u: "" };
+
+const L = Number.isFinite(pL.v) ? pL.v : (idx.l != null ? asNum(row[idx.l]) : NaN);
+const W = Number.isFinite(pW.v) ? pW.v : (idx.w != null ? asNum(row[idx.w]) : NaN);
+const H = Number.isFinite(pH.v) ? pH.v : (idx.h != null ? asNum(row[idx.h]) : NaN);
+
+
+      let unitCell = idx.u != null ? String(row[idx.u] ?? "").trim() : "";
+
+               // Normalize common unit spellings
+     const u = unitCell.toLowerCase();
+     if (u === "inches" || u === "inch") unitCell = "in";
+     if (u === "feet" || u === "foot") unitCell = "ft";
+     if (u === "millimeter" || u === "millimeters" || u === "millimetre" || u === "millimetres") unitCell = "mm";
+     if (u === "centimeter" || u === "centimeters" || u === "centimetre" || u === "centimetres") unitCell = "cm";
+     if (u === "meter" || u === "meters" || u === "metre" || u === "metres") unitCell = "m";
+
+	if (!unitCell) unitCell = defaultDimUnit;
+  
+if (!unitCell && (idx.l != null || idx.w != null || idx.h != null)) unitCell = pL.u || pW.u || pH.u;
+
+// LAST RESORT: infer dim unit from magnitude (only if still unknown)
+if (!unitCell && Number.isFinite(L) && Number.isFinite(W) && Number.isFinite(H)) {
+
+  // If the sheet strongly hints a unit, use it
+  if (sheetDimUnitHint) {
+    unitCell = sheetDimUnitHint;
+  } else {
+    const mx = Math.max(Math.abs(L), Math.abs(W), Math.abs(H));
+
+    // Safer thresholds:
+    // >= 1000 -> mm (typical mm values: 1143, 2100, 2600)
+    // >= 50   -> cm (typical cm values: 114.3, 210, 261)
+    // else    -> in
+    if (mx >= 1000) unitCell = "mm";
+    else if (mx >= 50) unitCell = "cm";
+    else unitCell = "in";
+  }
+}
+
+
+      let wtVal = idx.wt != null ? asNum(row[idx.wt]) : NaN;
+      let wtUnit = idx.wtu != null ? String(row[idx.wtu] ?? "").trim() : "";
+
+// Handle weights like "12420 (27385)" where units are only in the header
+if (!Number.isFinite(wtVal) && idx.wt != null) {
+  const raw = String(row[idx.wt] ?? "").trim();
+  const m = raw.match(/([\d,.]+)(?:\s*\(|\s*$)/); // take first number before "("
+  if (m) wtVal = parseFloat(m[1].replace(/,/g, ""));
+}
+if (!wtUnit) wtUnit = defaultWtUnit;
+
+
+wtUnit = String(wtUnit || "").trim().toLowerCase()
+  .replace("kgs", "kg")
+  .replace("lbs", "lb")
+  .replace(/short[-\s]?ton/g, "st")
+  .replace("tons", "mt")
+  .replace("ton", "mt");
+
+
+// If Weight cell contains dual units (e.g., "2052 LB (930.77 KG)"), pick first value+unit
+if (idx.wt != null) {
+  const pw = pickDualWeight(row[idx.wt]);
+  if (!Number.isFinite(wtVal) && Number.isFinite(pw.v)) wtVal = pw.v;
+  if (!wtUnit && pw.u) wtUnit = pw.u;
+}
+
+
+      // If no explicit weight unit, try to sniff from row text
+      const rowText = rowToText(row);
+      if ((!wtUnit || wtUnit.length > 8) && /\bkg\b|\bkgs\b/i.test(rowText)) wtUnit = "kg";
+      if ((!wtUnit || wtUnit.length > 8) && /\blb\b|\blbs\b/i.test(rowText)) wtUnit = "lb";
+      if ((!wtUnit || wtUnit.length > 8) && /\bmt\b|\bton\b|\btons\b/i.test(rowText)) wtUnit = "mt";
+
+      // If L/W/H are missing, look for a dims cell OR dims anywhere in text
+      let dimText = "";
+      if (Number.isFinite(L) && Number.isFinite(W) && Number.isFinite(H)) {
+        dimText = `${L}x${W}x${H}${unitCell ? " " + unitCell : ""}`;
+      
+} else if (idx.dims != null) {
+
+  // NEW: handle sheets where "Dimensions in cm" is split across 3 adjacent columns:
+  // e.g. 450 | 144.2 | 90.5 (no "x" in any single cell)
+  const d0 = asNum(row[idx.dims]);
+  const d1 = asNum(row[idx.dims + 1]);
+  const d2 = asNum(row[idx.dims + 2]);
+
+  if (Number.isFinite(d0) && Number.isFinite(d1) && Number.isFinite(d2)) {
+    dimText = `${d0}x${d1}x${d2}${unitCell ? " " + unitCell : ""}`;
+  } else {
+    // Existing single-cell dims logic
+    let maybe = String(row[idx.dims] ?? "").trim();
+
+    // If value contains a second unit-system in parentheses, keep only the first triplet
+    if (maybe.includes("(")) maybe = maybe.split("(")[0].trim();
+
+    if (hasDimPattern(maybe)) {
+      const hasUnitAlready = /\b(mm|cm|m|in|ft)\b/i.test(maybe) || /['"]/.test(maybe);
+      if (!hasUnitAlready && unitCell) {
+        maybe = `${maybe} ${unitCell}`;
+      }
+      dimText = maybe;
+    }
+  }
+}
+
+      if (!dimText && hasDimPattern(rowText)) {
+        // Take a small window around the first dim match
+        const t = rowText.replace(/\s+/g, " ");
+        const m = t.match(/(\d+(?:\.\d+)?\s*[x×]\s*\d+(?:\.\d+)?\s*[x×]\s*\d+(?:\.\d+)?\s*(?:mm|cm|m|in|ft)?)/i);
+        if (m) dimText = m[1];
+      }
+
+      // Weight: if the numeric weight is missing, try regex in row text
+      if (!Number.isFinite(wtVal) && hasWeightPattern(rowText)) {
+        const m = rowText.match(/([\d,]+(?:\.\d+)?)\s*(kg|kgs|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/i);
+        if (m) {
+          wtVal = parseFloat(m[1]
+         .replace(/,/g, ""));
+
+          wtUnit = m[2].toLowerCase()
+                         .replace("kgs", "kg")
+                          .replace("lbs", "lb")
+                          .replace(/short[-\s]?ton/g, "st")
+                          .replace("tons", "mt")
+                           .replace("ton", "mt");
+        }
+      }
+
+      if (!dimText) continue;
+
+      // Build a canonical line that your existing parseLineIntoRow() understands
+      let line = `${qty} ${dimText}`;
+      if (Number.isFinite(wtVal)) line += ` ${wtVal}${wtUnit ? " " + wtUnit : ""}`;
+
+      lines.push(line);
+    }
+
+    return lines;
+  }
+
+// --- OCR helpers (PDF pages + images) ---
+async function ocrImageToText(file, { lang = "eng", onProgress } = {}) {
+  const img = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+  canvas.width = img.width;
+  canvas.height = img.height;
+  ctx.drawImage(img, 0, 0);
+
+  // preprocess to B/W
+  const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const d = id.data;
+
+  let sum = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    const g = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
+    sum += g;
+  }
+  const mean = sum / (d.length / 4);
+  const thresh = Math.max(140, Math.min(210, mean * 0.95));
+
+  for (let i = 0; i < d.length; i += 4) {
+    const g = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
+    const v = g > thresh ? 255 : 0;
+    d[i] = d[i + 1] = d[i + 2] = v;
+    d[i + 3] = 255;
+  }
+  ctx.putImageData(id, 0, 0);
+
+  const { data } = await Tesseract.recognize(canvas, lang, {
+    logger: m => onProgress && onProgress(m)
+  });
+
+  return (data && data.text) ? data.text : "";
+}
+
+async function ocrPdfToText(file, { lang = "eng", scale = 4.0, onProgress } = {}) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+
+  function preprocessToBW(srcCanvas) {
+    const c = document.createElement("canvas");
+    c.width = srcCanvas.width;
+    c.height = srcCanvas.height;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(srcCanvas, 0, 0);
+
+    const img = ctx.getImageData(0, 0, c.width, c.height);
+    const d = img.data;
+
+    // grayscale + adaptive-ish threshold
+    // (simple global threshold works surprisingly well on packing-list scans)
+    let sum = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      const g = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
+      sum += g;
+    }
+    const mean = sum / (d.length / 4);
+    const thresh = Math.max(140, Math.min(210, mean * 0.95));
+
+    for (let i = 0; i < d.length; i += 4) {
+      const g = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
+      const v = g > thresh ? 255 : 0;
+      d[i] = d[i + 1] = d[i + 2] = v;
+      d[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    return c;
+  }
+
+  async function runOcr(canvas, progressMeta) {
+    const { data } = await Tesseract.recognize(canvas, lang, {
+      logger: (m) => {
+        if (onProgress && m && m.status) {
+          onProgress({ ...m, ...progressMeta });
+        }
+      }
+    });
+    return (data && data.text) ? data.text : "";
+  }
+
+  let full = "";
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const viewport = page.getViewport({ scale });
+
+    // render page
+    const pageCanvas = document.createElement("canvas");
+    const pageCtx = pageCanvas.getContext("2d", { willReadFrequently: true });
+    pageCanvas.width = Math.ceil(viewport.width);
+    pageCanvas.height = Math.ceil(viewport.height);
+
+    await page.render({ canvasContext: pageCtx, viewport }).promise;
+
+    // preprocess for OCR
+    const bw = preprocessToBW(pageCanvas);
+
+    // OCR pass 1: full page
+    const t1 = await runOcr(bw, { page: p, pages: pdf.numPages, pass: "full" });
+
+    // OCR pass 2: crop the middle-right table area (dims/weight columns)
+    // These ratios are general for many packing lists (table is usually central).
+    const W = bw.width, H = bw.height;
+    const cropX = Math.floor(W * 0.40);
+    const cropY = Math.floor(H * 0.30);
+    const cropW = Math.floor(W * 0.58);
+    const cropH = Math.floor(H * 0.45);
+
+    const cropCanvas = document.createElement("canvas");
+    cropCanvas.width = cropW;
+    cropCanvas.height = cropH;
+    const cropCtx = cropCanvas.getContext("2d", { willReadFrequently: true });
+    cropCtx.drawImage(bw, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+    const t2 = await runOcr(cropCanvas, { page: p, pages: pdf.numPages, pass: "crop" });
+
+    full += `\n\n[PAGE ${p} FULL]\n${t1}\n\n[PAGE ${p} CROP]\n${t2}`;
+  }
+
+  return full;
+}
+
+async function readPdfText(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+
+  let full = "";
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+
+    // Group text items by Y position to reconstruct lines (critical for tables)
+    const items = (content.items || [])
+      .map(it => ({
+        str: (it.str || "").trim(),
+        x: it.transform ? it.transform[4] : 0,
+        y: it.transform ? it.transform[5] : 0
+      }))
+      .filter(it => it.str);
+
+    // Sort top-to-bottom then left-to-right
+    items.sort((a, b) => (b.y - a.y) || (a.x - b.x));
+
+    const lines = [];
+    const yTol = 2.5; // tolerance; tweak if needed
+
+    for (const it of items) {
+      const last = lines[lines.length - 1];
+      if (!last || Math.abs(last.y - it.y) > yTol) {
+        lines.push({ y: it.y, parts: [it.str] });
+      } else {
+        last.parts.push(it.str);
+      }
+    }
+
+    const pageText = lines.map(l => l.parts.join(" ")).join("\n");
+    full += `\n\n[PAGE ${p}]\n` + pageText;
+  }
+
+  return full;
+}
+
+async function readTxtText(file) {
+  return await file.text();
+}
+
+async function readDocxText(file) {
+  const buf = await file.arrayBuffer();
+
+  // convertToHtml preserves tables; extractRawText often drops table cell content
+  const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+
+  const html = (result && result.value) ? result.value : "";
+
+  // Strip tags to plain text with line breaks so your existing extract/parsers work
+  const text = html
+    .replace(/<\/(tr|p|div|li|h\d)>/gi, "\n")
+    .replace(/<\/t[dh]>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+\n/g, "\n")
+    .replace(/\n\s+/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+
+  return text;
+}
+
+// --- DOCX recap-table helpers (handles EU decimals like 1.549,26 and 26,51) ---
+function normalizeEuroNumber(s) {
+  if (s == null) return NaN;
+  let t = String(s).trim();
+
+  // If both "." and "," exist, assume "." is thousands sep and "," is decimal sep.
+  // Example: "1.549,26" -> "1549.26"
+  if (t.includes(".") && t.includes(",")) {
+    t = t.replace(/\./g, "").replace(",", ".");
+  } else if (t.includes(",") && !t.includes(".")) {
+    // Example: "26,51" -> "26.51"
+    t = t.replace(",", ".");
+  }
+
+  // Strip any remaining non-numeric chars
+  t = t.replace(/[^0-9.+-]/g, "");
+  return parseFloat(t);
+}
+
+function looksLikeRecapTableDocx(text) {
+  const t = String(text || "").toLowerCase();
+  return (
+    t.includes("material description") &&
+    (t.includes("length (m)") || t.includes("length(m)")) &&
+    (t.includes("width (m)") || t.includes("width(m)")) &&
+    (t.includes("height (m)") || t.includes("height(m)"))
+  );
+}
+
+// Converts recap rows into canonical lines your existing parseLineIntoRow understands:
+// "1 26.51x4.2x4.2 m 78.22 mt"
+function extractDimLinesFromDocxRecap(text) {
+  const out = [];
+  const rawLines = String(text || "")
+    .split(/\r?\n/)
+    .map(l => l.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  for (const line of rawLines) {
+    // Match: "<description> 26,51 4,2 4,2 78,22 467,64"
+    // (desc)      (L)    (W)   (H)  (WeightMt) (CBM)
+    const m = line.match(
+      /^(.+?)\s+([-+]?\d[\d.,]*)\s+([-+]?\d[\d.,]*)\s+([-+]?\d[\d.,]*)\s+([-+]?\d[\d.,]*)\s+([-+]?\d[\d.,]*)$/
+    );
+    if (!m) continue;
+
+    const L = normalizeEuroNumber(m[2]);
+    const W = normalizeEuroNumber(m[3]);
+    const H = normalizeEuroNumber(m[4]);
+    const wt = normalizeEuroNumber(m[5]); // recap shows Weight (Mt)
+
+    if (![L, W, H].every(n => Number.isFinite(n) && n > 0)) continue;
+
+    // Canonical line: qty + LxWxH + unit + optional weight
+    let canon = `1 ${L}x${W}x${H} m`;
+    if (Number.isFinite(wt) && wt > 0) canon += ` ${wt} mt`;
+
+    out.push(canon);
+  }
+
+  return out;
+}
+
+
+function extractDimLinesFromPdfText(text) {
+  const lines = [];
+
+  const t = String(text || "").replace(/\s+/g, " ").trim();
+
+  function normDimUnit(u) {
+    u = String(u || "").toLowerCase().replace(/\./g, "").trim();
+    if (u === "centimeter" || u === "centimeters" || u === "centimetre" || u === "centimetres") return "cm";
+    if (u === "millimeter" || u === "millimeters" || u === "millimetre" || u === "millimetres") return "mm";
+    if (u === "meter" || u === "meters" || u === "metre" || u === "metres") return "m";
+    if (u === "inch" || u === "inches") return "in";
+    if (u === "foot" || u === "feet") return "ft";
+    if (u === "cm" || u === "mm" || u === "m" || u === "in" || u === "ft") return u;
+    return "";
+  }
+
+  const tripleRe =
+    /(\d+(?:\.\d+)?)\s*(mm|cm|m|in|ft)?(?:\s*\(\s*[lwh]\s*\))?\s*[x×]\s*(\d+(?:\.\d+)?)\s*(mm|cm|m|in|ft)?(?:\s*\(\s*[lwh]\s*\))?\s*[x×]\s*(\d+(?:\.\d+)?)(?:\s*(mm|cm|m|in|ft))?(?:\s*\(\s*[lwh]\s*\))?/gi;
+
+  let m;
+  while ((m = tripleRe.exec(t)) !== null) {
+    const L = m[1], W = m[3], H = m[5];
+
+    const u1 = normDimUnit(m[2]);
+    const u2 = normDimUnit(m[4]);
+    const u3 = normDimUnit(m[6]);
+    let u = u1 || u2 || u3;
+
+    if (!u) {
+      const chunk = m[0].toLowerCase();
+      const um = chunk.match(/\b(mm|cm|m|in|ft)\b/i);
+      if (um) u = normDimUnit(um[1]);
+    }
+
+// Try to capture weight near the dimensions.
+// Rule: if both exist, choose GROSS; else choose the only one available.
+let wtVal = null;
+let wtUnit = "";
+
+function normWU(u) {
+  return String(u || "").toLowerCase()
+    .replace("kgs", "kg")
+    .replace("lbs", "lb")
+    .replace("tons", "mt")
+    .replace("ton", "mt");
+}
+
+// Look around the match (gross is often BEFORE dims, net often AFTER)
+const around = t.slice(Math.max(0, m.index - 180), Math.min(t.length, m.index + 220));
+
+// Prefer explicit Gross Weight
+let wm =
+  around.match(/\bgross\s*weight\b\s*[:\-]?\s*([\d,.]+)\s*(kg|kgs|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/i) ||
+  around.match(/\bgw\b\s*[:\-]?\s*([\d,.]+)\s*(kg|kgs|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/i);
+
+// If no gross, accept Net Weight
+if (!wm) {
+  wm =
+    around.match(/\bnet\s*weight\b\s*[:\-]?\s*([\d,.]+)\s*(kg|kgs|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/i) ||
+    around.match(/\bnw\b\s*[:\-]?\s*([\d,.]+)\s*(kg|kgs|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/i);
+}
+
+// If still nothing, last fallback: any weight close-by (keeps other PDFs working)
+if (!wm) {
+  wm = around.match(/([\d,.]+)\s*(kg|kgs|lb|lbs|mt|ton|tons|st|short[-\s]?ton)\b/i);
+}
+
+if (wm) {
+  wtVal = parseFloat(String(wm[1]).replace(/,/g, ""));
+  wtUnit = normWU(wm[2]).replace(/short[-\s]?ton/g, "st");
+}
+
+let out = `1 ${L}x${W}x${H}${u ? " " + u : ""}`;
+if (wtVal != null) out += ` ${wtVal} ${wtUnit}`;
+lines.push(out);
+
+  }
+// ---  packing list table pattern: "45.00 IN 114.30 CM 45.00 IN 114.30 CM 57.00 IN 144.78 CM"
+// and weights like "930.77 KG 2052.00 LB"
+(function extractGeTableRows() {
+  // Normalize spacing but keep numbers/units order
+  const s = t.replace(/\s+/g, " ");
+
+  // Dimension triplet where each dimension has IN then CM (or vice versa)
+  const dimDualRe = /(\d+(?:\.\d+)?)\s*(IN|CM)\s*(\d+(?:\.\d+)?)\s*(IN|CM)\s*(\d+(?:\.\d+)?)\s*(IN|CM)\s*(\d+(?:\.\d+)?)\s*(IN|CM)\s*(\d+(?:\.\d+)?)\s*(IN|CM)\s*(\d+(?:\.\d+)?)\s*(IN|CM)/gi;
+
+  // Weight dual like "930.77 KG 2052.00 LB" (order can vary)
+  const wtDualRe = /(\d+(?:\.\d+)?)\s*(KG|LB|LBS|KGS)\s*(\d+(?:\.\d+)?)\s*(KG|LB|LBS|KGS)/i;
+
+// Collect all dimension matches first so we can define row segments
+const dimMatches = [];
+let m2;
+while ((m2 = dimDualRe.exec(s)) !== null) {
+  dimMatches.push({
+    index: m2.index,
+    end: dimDualRe.lastIndex,
+    m: m2
+  });
+}
+
+// Helper: pick the heaviest LB (gross) within a given segment
+function pickGrossFromSegment(segText) {
+  const re = /(\d+(?:\.\d+)?)\s*(KG|KGS|LB|LBS)\s*(\d+(?:\.\d+)?)\s*(KG|KGS|LB|LBS)\b/gi;
+
+  function normWU(u) {
+    u = String(u || "").toLowerCase();
+    if (u === "kgs") return "kg";
+    if (u === "lbs") return "lb";
+    return u;
+  }
+
+  let best = null; // {lb, aV,aU,bV,bU}
+  let mm;
+  while ((mm = re.exec(segText)) !== null) {
+    const aV = parseFloat(mm[1]), aU = normWU(mm[2]);
+    const bV = parseFloat(mm[3]), bU = normWU(mm[4]);
+
+    // Prefer LB if present, else convert KG->LB for comparison
+    let lb = null;
+    if (aU === "lb") lb = aV;
+    else if (bU === "lb") lb = bV;
+    else if (aU === "kg") lb = aV * 2.20462;
+    else if (bU === "kg") lb = bV * 2.20462;
+
+    if (lb != null && (!best || lb > best.lb)) {
+      best = { lb, aV, aU, bV, bU };
+    }
+  }
+  return best;
+}
+
+// Now process each dimension match within its own segment
+for (let i = 0; i < dimMatches.length; i++) {
+  const cur = dimMatches[i];
+  const next = dimMatches[i + 1];
+
+  // Segment for this item: from previous match end (or 0) to next match start (or end)
+  const segStart = (i === 0) ? 0 : dimMatches[i - 1].end;
+  let segEnd = next ? next.index : s.length;
+
+  // For the last item, cut off totals section if present
+  const tail = s.slice(cur.index, segEnd);
+  const totalPos = tail.toLowerCase().indexOf("total packages count");
+  if (totalPos >= 0) segEnd = cur.index + totalPos;
+
+  const segText = s.slice(segStart, segEnd);
+
+  // Unpack the captured groups for this row
+  const mm = cur.m;
+  const L1 = mm[1], LU1 = mm[2], L2 = mm[3], LU2 = mm[4];
+  const W1 = mm[5], WU1 = mm[6], W2 = mm[7], WU2 = mm[8];
+  const H1 = mm[9], HU1 = mm[10], H2 = mm[11], HU2 = mm[12];
+
+  function pick(valA, unitA, valB, unitB) {
+  unitA = unitA.toLowerCase(); unitB = unitB.toLowerCase();
+
+  // Prefer metric first
+  if (unitA === "cm") return { v: valA, u: "cm" };
+  if (unitB === "cm") return { v: valB, u: "cm" };
+  if (unitA === "mm") return { v: valA, u: "mm" };
+  if (unitB === "mm") return { v: valB, u: "mm" };
+  if (unitA === "m")  return { v: valA, u: "m" };
+  if (unitB === "m")  return { v: valB, u: "m" };
+
+  // Fallback to imperial
+  if (unitA === "in") return { v: valA, u: "in" };
+  if (unitB === "in") return { v: valB, u: "in" };
+  if (unitA === "ft") return { v: valA, u: "ft" };
+  if (unitB === "ft") return { v: valB, u: "ft" };
+
+  return { v: valA, u: unitA };
+}
+  const pL = pick(L1, LU1, L2, LU2);
+  const pW = pick(W1, WU1, W2, WU2);
+  const pH = pick(H1, HU1, H2, HU2);
+
+  if (pL.u !== pW.u || pL.u !== pH.u) continue;
+
+  // Pick gross (heavier) within this row segment only (prevents totals bleed)
+  const wbest = pickGrossFromSegment(segText);
+
+  let out = `1 ${pL.v}x${pW.v}x${pH.v} ${pL.u}`;
+ if (wbest) {
+  // Prefer metric when both are present
+  if (wbest.aU === "kg") out += ` ${wbest.aV} kg`;
+  else if (wbest.bU === "kg") out += ` ${wbest.bV} kg`;
+  else if (wbest.aU === "lb") out += ` ${wbest.aV} lb`;
+  else if (wbest.bU === "lb") out += ` ${wbest.bV} lb`;
+}
+
+
+  lines.push(out);
+}
+
+
+})();
+// --- Air Products style packing list: dims are separate columns on the "Box Total" row ---
+(function extractAirProductsBoxTotal() {
+  // t is already normalized to single spaces above
+  const s = t;
+
+  // Only run this heuristic if the header columns exist
+  if (!/length\s*\(cm\)\s+width\s*\(cm\)\s+height\s*\(cm\)/i.test(s)) return;
+
+  // Example in your PDF text:
+  // "1 Box Total 257.187 173.772 88.90 88.90 99.06"
+  //            gross     net      L     W     H
+  const m = s.match(/\bbox\s*total\b\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+  if (!m) return;
+
+  const gross = parseFloat(m[1]);
+  const net = parseFloat(m[2]);
+  const L = m[3], W = m[4], H = m[5];
+
+  let out = `1 ${L}x${W}x${H} cm`;
+
+  // Prefer gross weight if present (kg in this document)
+  const wt = Number.isFinite(gross) ? gross : (Number.isFinite(net) ? net : null);
+  if (wt != null) out += ` ${wt} kg`;
+
+  lines.push(out);
+})();
+// --- Generic header/table extractor: works when PDFs have separate L/W/H columns ---
+(function extractByHeaderColumns() {
+  const rawLines = String(text || "")
+    .split(/\r?\n/)
+    .map(l => l.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  // Parse numbers robustly (handles "26,51" and "1.549,26")
+  function parseLooseNumber(s) {
+    if (s == null) return NaN;
+    let t = String(s).trim();
+
+    // both . and , -> assume . thousands and , decimal
+    if (t.includes(".") && t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+    else if (t.includes(",") && !t.includes(".")) t = t.replace(",", ".");
+
+    t = t.replace(/[^0-9.+-]/g, "");
+    const v = parseFloat(t);
+    return Number.isFinite(v) ? v : NaN;
+  }
+
+  // Find any header line that declares L/W/H columns (and unit)
+  let headerIdx = -1;
+  let unit = "cm"; // default if unit not found
+
+  for (let i = 0; i < rawLines.length; i++) {
+    const h = rawLines[i].toLowerCase();
+
+    const hasLWH =
+      (h.includes("length") && h.includes("width") && h.includes("height")) ||
+      (/\blength\s*\([^)]+\)\s+width\s*\([^)]+\)\s+height\s*\([^)]+\)/i.test(rawLines[i])) ||
+      (/\b(l|len)\b.*\b(w|wid)\b.*\b(h|ht)\b/i.test(h) && (h.includes("cm") || h.includes("mm") || h.includes("m") || h.includes("in") || h.includes("ft")));
+
+    if (!hasLWH) continue;
+
+    headerIdx = i;
+
+    // Try to pull unit from header e.g. "Length (cm)" "Width (mm)" "Height (m)"
+    const u = rawLines[i].match(/\b(length|width|height)\s*\(\s*([a-zA-Z]+)\s*\)/i);
+    if (u && u[2]) unit = u[2].toLowerCase();
+
+    // Normalize unit names to your existing unit set
+    if (unit === "centimeter" || unit === "centimeters" || unit === "centimetre" || unit === "centimetres") unit = "cm";
+    if (unit === "millimeter" || unit === "millimeters" || unit === "millimetre" || unit === "millimetres") unit = "mm";
+    if (unit === "meter" || unit === "meters" || unit === "metre" || unit === "metres") unit = "m";
+    if (unit === "inches" || unit === "inch") unit = "in";
+    if (unit === "feet" || unit === "foot") unit = "ft";
+
+    break;
+  }
+
+  if (headerIdx < 0) return;
+
+  // Read subsequent lines until we hit another section header; extract last 3 numeric tokens as L/W/H
+  for (let i = headerIdx + 1; i < rawLines.length; i++) {
+    const line = rawLines[i];
+
+    // stop at obvious new headers
+    const lc = line.toLowerCase();
+    if (
+      lc.includes("quantity description") ||
+      lc.startsWith("packing list") ||
+      lc.includes("powered by") ||
+      lc.includes("project ") && lc.includes("package no")
+    ) break;
+
+    // Pull all number-like tokens
+    const tokens = line.match(/[-+]?\d[\d.,]*/g);
+    if (!tokens || tokens.length < 3) continue;
+
+    // Use last 3 numeric tokens as L/W/H (covers tables where weight/volume/package no appear earlier)
+    const a = parseLooseNumber(tokens[tokens.length - 3]);
+    const b = parseLooseNumber(tokens[tokens.length - 2]);
+    const c = parseLooseNumber(tokens[tokens.length - 1]);
+
+    if (![a, b, c].every(v => Number.isFinite(v) && v > 0)) continue;
+
+    // Build canonical line consumed by your existing parseLineIntoRow
+    // Try to also attach weight if the row has a plausible kg/mt value (common in packing lists)
+let weightPart = "";
+
+// Candidates = all numeric tokens except the last 3 (dims)
+const cand = [];
+for (let k = 0; k < tokens.length - 3; k++) {
+  const v = parseLooseNumber(tokens[k]);
+  // ignore obvious IDs (very large), and ignore tiny decimals (like volumes)
+  if (!Number.isFinite(v)) continue;
+  if (v >= 1e7) continue;       // filters package numbers like 4101446996
+  cand.push(v);
+}
+
+// Heuristic: pick the largest candidate as “weight” (works for Net/Gross rows like HSY)
+if (cand.length) {
+  const w = Math.max(...cand);
+  // If header mentions kg, assume kg; if not, leave blank (your UI still gets dims)
+  if (rawLines[headerIdx].toLowerCase().includes("kg")) {
+    weightPart = ` ${w} kg`;
+  }
+}
+
+lines.push(`1 ${a}x${b}x${c} ${unit}${weightPart}`);
+
+  }
+})();
+
+  return Array.from(new Set(lines));
+}
+
+
+  uploader.addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (nameEl) nameEl.textContent = file.name;
+
+
+    const ext = getExt(file.name);
+    setStatus(`Reading: ${file.name}`);
+
+try {
+
+const SUPPORTED = new Set([
+  "xlsx","xls","csv","pdf","txt","docx","doc",
+  "png","jpg","jpeg","webp"
+]);
+
+if (!SUPPORTED.has(ext)) {
+  throw new Error("Supported: XLSX/XLS/CSV/PDF/TXT/DOCX + PNG/JPG/JPEG/WEBP (DOC must be converted).");
+}
+
+
+if (ext === "txt") {
+  const text = await readTxtText(file);
+  const lines = extractDimLinesFromPdfText(text);
+
+  if (!lines.length) {
+    setStatus("No dimensions detected in TXT.");
+    return;
+  }
+
+  dimRowCount = lines.length;
+  renderDimRows(dimRowCount);
+  lines.forEach((line, i) => parseLineIntoRow(line, i + 1));
+  calculateDimWeight();
+  bindDimAutoRecalc();
+
+  setStatus(`Loaded: ${file.name} (TXT, lines: ${lines.length})`);
+  return;
+}
+
+if (ext === "docx") {
+  const text = await readDocxText(file);
+
+  if (!text || text.trim().length < 20) {
+    setStatus("DOCX has no readable text.");
+    return;
+  }
+
+  // 1) Try your existing “PDF-style” dimension extraction first
+  let lines = extractDimLinesFromPdfText(text);
+
+  // 2) If that fails, try DOCX recap-table extraction (DOCX PL1 format)
+  if (!lines.length && looksLikeRecapTableDocx(text)) {
+    lines = extractDimLinesFromDocxRecap(text);
+  }
+
+  if (!lines.length) {
+    setStatus("No dimensions detected in DOCX text.");
+    return;
+  }
+
+  dimRowCount = lines.length;
+  renderDimRows(dimRowCount);
+  lines.forEach((line, i) => parseLineIntoRow(line, i + 1));
+  calculateDimWeight();
+  bindDimAutoRecalc();
+
+  setStatus(`Loaded: ${file.name} (DOCX, lines: ${lines.length})`);
+  return;
+}
+
+if (ext === "doc") {
+  setStatus("DOC is not supported in-browser. Save as DOCX or TXT and re-upload.");
+  return;
+}
+
+if (ext === "pdf") {
+  let pdfText = await readPdfText(file);
+
+  // If scanned (little/no selectable text), run OCR and continue automatically
+  if (!pdfText || pdfText.trim().length < 50) {
+    setStatus("PDF appears scanned. Running OCR...");
+    pdfText = await ocrPdfToText(file, {
+      lang: "eng",
+      onProgress: (m) => {
+        if (m && m.status) {
+          const pg = (m.page && m.pages) ? ` (page ${m.page}/${m.pages})` : "";
+          setStatus(
+            `OCR: ${m.status}${pg} ${
+              m.progress != null ? Math.round(m.progress * 100) + "%" : ""
+            }`
+          );
+        }
+      }
+    });
+  }
+
+  const lines = extractDimLinesFromPdfText(pdfText);
+
+  if (!lines.length) {
+    setStatus("No dimensions detected in PDF text (including OCR).");
+    return;
+  }
+
+  dimRowCount = lines.length;
+  renderDimRows(dimRowCount);
+  lines.forEach((line, i) => parseLineIntoRow(line, i + 1));
+
+  calculateDimWeight();
+  bindDimAutoRecalc();
+
+  setStatus(`Loaded: ${file.name} (PDF, lines: ${lines.length})`);
+  return; // IMPORTANT: stop here; do not run Excel parser
+}
+
+if (["png","jpg","jpeg","webp"].includes(ext)) {
+  setStatus("Running OCR on image...");
+  const imgText = await ocrImageToText(file, {
+    lang: "eng",
+    onProgress: (m) => {
+      if (m && m.status) {
+        setStatus(`OCR: ${m.status} ${m.progress != null ? Math.round(m.progress * 100) + "%" : ""}`);
+      }
+    }
+  });
+
+  const lines = extractDimLinesFromPdfText(imgText);
+
+  if (!lines.length) {
+    setStatus("No dimensions detected in image OCR text.");
+    return;
+  }
+
+  dimRowCount = lines.length;
+  renderDimRows(dimRowCount);
+  lines.forEach((line, i) => parseLineIntoRow(line, i + 1));
+  calculateDimWeight();
+  bindDimAutoRecalc();
+
+  setStatus(`Loaded: ${file.name} (IMAGE OCR, lines: ${lines.length})`);
+  return;
+}
+
+  let lines = [];
+  let bestName = "";
+ // Existing Excel/CSV logic (keep as-is)
+    let wb;
+    if (ext === "csv") {
+      const text = await file.text();
+      wb = XLSX.read(text, { type: "string" });
+    } else {
+      const buf = await file.arrayBuffer();
+      wb = XLSX.read(buf, { type: "array" });
+    }
+
+    if (!wb.SheetNames || !wb.SheetNames.length) throw new Error("No worksheets found.");
+
+    let bestSheet = wb.SheetNames[0];
+let bestLines = [];
+let bestLineCount = -1;
+let bestScore = -1;
+
+for (const name of wb.SheetNames) {
+  const sh = wb.Sheets[name];
+  const aoa = XLSX.utils.sheet_to_json(sh, { header: 1, defval: "" });
+
+  // Extract first (this is the real signal of usefulness)
+  const candidateLines = extractDimLinesFromSheet(aoa);
+
+  // Keep score as a tie-breaker only
+  const sc = scoreSheet(aoa, name);
+
+  const lc = candidateLines.length;
+
+  // Prefer the sheet that yields MORE parsed lines
+  if (lc > bestLineCount || (lc === bestLineCount && sc > bestScore)) {
+    bestLineCount = lc;
+    bestScore = sc;
+    bestSheet = name;
+    bestLines = candidateLines;
+  }
+}
+
+bestName = bestSheet;
+lines = bestLines;
+
+  
+
+  if (!lines.length) {
+    setStatus(`No dimensions detected (${bestName}).`);
+    document.getElementById("dimResult").innerHTML =
+      `<strong>No dimensions detected</strong><br>` +
+      `Source: <strong>${bestName}</strong>.`;
+    return;
+  }
+
+  dimRowCount = lines.length;
+  renderDimRows(dimRowCount);
+
+  lines.forEach((line, idx) => {
+    parseLineIntoRow(line, idx + 1);
+  });
+
+  calculateDimWeight();
+  bindDimAutoRecalc();
+
+  setStatus(`Loaded: ${file.name} (${bestName}, lines: ${lines.length})`);
+
+    } catch (err) {
+      setStatus("");
+      const msg = err && err.message ? err.message : String(err);
+      document.getElementById("dimResult").innerHTML =
+        "<strong>Upload error</strong><br>" + msg;
+} finally {
+  uploader.value = ""; // allow re-upload same file
+  // Do NOT overwrite the label; keep showing the last selected file
+}
+
+
+  });
+})();
+</script>
+
+<script src="js/fx-ticker.js" defer></script>
+
+</body>
+</html>
