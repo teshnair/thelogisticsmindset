@@ -167,18 +167,18 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 
 <h3 class="section-title">Additional requirements to review</h3>
 <div class="review-grid">
-  <div class="review-card" id="adCvdCard">
+  <div class="review-card hidden" id="adCvdCard">
     <span class="badge review">May apply</span>
     <h4>Antidumping / Countervailing Duties</h4>
     <p id="adCvdText"></p>
-    <div class="review-detail">Where a general rate is shown, it should be treated as an all-others, China-wide, or country-wide cash deposit rate for reference only. It may or may not apply to your merchandise.</div>
+    <div class="review-detail" id="adCvdDetail"></div>
   </div>
 
-  <div class="review-card" id="quotaCard">
+  <div class="review-card hidden" id="quotaCard">
     <span class="badge review" id="quotaBadge">May apply</span>
     <h4>Quota / TRQ</h4>
     <p id="quotaText"></p>
-    <div class="review-detail">Quota availability and duty treatment can change based on quantity, country, entry date, preference program, and current quota fill status.</div>
+    <div class="review-detail" id="quotaDetail"></div>
   </div>
 
   <div class="review-card hidden" id="meltPourCard">
@@ -188,11 +188,11 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
     <div class="review-detail" id="meltPourRate"></div>
   </div>
 
-  <div class="review-card" id="cbpCard">
+  <div class="review-card hidden" id="cbpCard">
     <span class="badge review">Review</span>
     <h4>Other CBP / Import Requirements</h4>
     <p id="cbpText"></p>
-    <div class="review-detail">Shipment-specific requirements can include documentation, reporting, Chapter 99, exclusions, special programs, Partner Government Agency requirements, and other restrictions.</div>
+    <div class="review-detail" id="cbpDetail"></div>
   </div>
 </div>
 
@@ -205,6 +205,7 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
   <button class="secondary" type="button" onclick="window.print()">Print</button>
 </div>
 <p class="source-note">Tariff data source: <a href="https://hts.usitc.gov/" target="_blank" rel="noopener noreferrer">U.S. International Trade Commission Harmonized Tariff Schedule</a>.</p>
+<p class="source-note" id="feeSourceLine"></p>
 </section>
 
 <footer>© The Logistics Mindset — Personal educational project</footer>
@@ -471,7 +472,10 @@ function render(data) {
   const calc = $('calcNotice');
   if (data.estimate.baseDutySupported) {
     calc.className = 'notice info';
-    calc.textContent = `Applicable base tariff: ${text(data.rates.appliedRate)} under ${text(data.rates.appliedBasis)}${inherited ? `, inherited from ${data.rates.appliedRateSourceHts}` : ''}. ${data.estimate.mpfNote}`;
+    const feeMode = data?.fees?.sourceMode === 'live'
+      ? 'CBP user-fee schedule checked live.'
+      : 'Using last verified CBP user-fee schedule because the live fee source was unavailable.';
+    calc.textContent = `Applicable base tariff: ${text(data.rates.appliedRate)} under ${text(data.rates.appliedBasis)}${inherited ? `, inherited from ${data.rates.appliedRateSourceHts}` : ''}. ${data.estimate.mpfNote} ${feeMode}`;
   } else {
     calc.className = 'notice danger';
     calc.textContent = `The applicable published rate is shown, but the dollar duty could not be calculated automatically: ${text(data.estimate.baseDutyReason)} ${data.estimate.mpfNote}`;
@@ -579,21 +583,39 @@ function render(data) {
 
   const checks = data?.review?.screeningChecks || {};
 
-  // AD/CVD: intentionally a review warning, not a determination of scope.
-  $('adCvdText').textContent =
-    checks?.adCvd?.note ||
-    'AD/CVD may apply depending on the product scope, country, manufacturer/exporter, and current Commerce instructions. Confirm scope and the applicable cash deposit rate with your customs broker.';
+  // AD/CVD card appears only when the backend finds a country-compatible
+  // AD/CVD signal in the returned government data.
+  const adCvd = checks?.adCvd || {};
+  $('adCvdCard').classList.toggle('hidden', !adCvd.mayApply);
+  if (adCvd.mayApply) {
+    const cases = Array.isArray(adCvd.caseReferences) && adCvd.caseReferences.length
+      ? ` Potential case reference${adCvd.caseReferences.length > 1 ? 's' : ''}: ${adCvd.caseReferences.join(', ')}.`
+      : '';
 
-  // Quota / TRQ
-  const quotaIndicator = Boolean(checks?.quota?.htsIndicatorFound);
-  $('quotaBadge').textContent = quotaIndicator ? 'Potential indicator' : 'May apply';
-  $('quotaBadge').className = quotaIndicator ? 'badge identified' : 'badge review';
-  $('quotaText').textContent = quotaIndicator
-    ? 'The returned HTS information contains a quota-related indicator. Confirm the applicable quota/TRQ program, quantity limits, current fill status, and entry treatment.'
-    : (checks?.quota?.note ||
-       'Quota, tariff-rate quota (TRQ), absolute quota, tariff preference level, or similar restrictions may apply. Confirm whether the merchandise is subject to a current quota program.');
+    $('adCvdText').textContent =
+      `${adCvd.note || 'Potential AD/CVD applicability identified.'}${cases}`;
 
-  // Steel melt & pour
+    $('adCvdDetail').textContent =
+      'Where a general cash-deposit rate is shown, it is an all-others, China-wide, or country-wide rate for reference only. It may or may not apply to your merchandise. Confirm scope and the applicable rate with your customs broker.';
+  }
+
+  // Quota / TRQ card appears only when the returned HTS data produces a
+  // country-compatible quota signal.
+  const quota = checks?.quota || {};
+  $('quotaCard').classList.toggle('hidden', !quota.mayApply);
+  if (quota.mayApply) {
+    $('quotaBadge').textContent = quota.countryMatch
+      ? 'Country / HTS indicator'
+      : 'HTS indicator';
+    $('quotaBadge').className = 'badge identified';
+    $('quotaText').textContent =
+      quota.note ||
+      'A quota or tariff-rate quota indicator was identified for this HTS/country combination.';
+    $('quotaDetail').textContent =
+      'Confirm the applicable quota/TRQ program, quantity limits, current fill status, entry date treatment, and any required certificate or license before entry.';
+  }
+
+  // Steel melt & pour appears only when the Section 232 steel rules apply.
   const melt = checks?.steelMeltPour || {};
   const has232 = section232Amount > 0 || Boolean(melt?.mayApply);
   $('meltPourCard').classList.toggle('hidden', !has232);
@@ -603,16 +625,48 @@ function render(data) {
       || 'See applicable Section 232 provision';
 
     $('meltPourText').textContent =
-      `This HTS may require steel melt/pour information. The country where the steel was first melted and poured is not necessarily the same as the country of origin. Additional Section 232 duties may depend on the actual first melt/pour country.`;
+      'This HTS may require steel melt/pour information. The country where the steel was first melted and poured is not necessarily the same as the country of origin. Additional Section 232 duties may depend on the actual first melt/pour country.';
 
     $('meltPourRate').innerHTML =
       `If the steel was first melted and poured in <strong>${escapeHtml(countryName)}</strong>, the illustrative Section 232 rate shown by this calculator is <strong>${escapeHtml(rate)}</strong>. This rate is provided only on that assumption.`;
   }
 
-  // Other CBP / import requirements
-  $('cbpText').textContent =
-    checks?.otherCbp?.note ||
-    'Additional CBP requirements or other import requirements may apply based on the merchandise and shipment circumstances.';
+  // Other import/CBP card appears only when the HTS data contains a specific
+  // additional note/reference/requirement.
+  const otherCbp = checks?.otherCbp || {};
+  $('cbpCard').classList.toggle('hidden', !otherCbp.mayApply);
+  if (otherCbp.mayApply) {
+    $('cbpText').textContent =
+      otherCbp.note ||
+      'The returned HTS data contains an additional import requirement or reference that should be reviewed.';
+
+    const refs = Array.isArray(otherCbp.chapter99References)
+      ? otherCbp.chapter99References
+      : [];
+    const statements = Array.isArray(otherCbp.statements)
+      ? otherCbp.statements
+      : [];
+
+    const parts = [];
+    if (refs.length) parts.push(`Other Chapter 99 reference${refs.length > 1 ? 's' : ''}: ${refs.join(', ')}`);
+    if (statements.length) parts.push(`HTS note: ${statements.slice(0, 3).join(' • ')}`);
+
+    $('cbpDetail').textContent =
+      parts.join(' — ') ||
+      'Review the applicable HTS notes and shipment-specific CBP requirements.';
+  }
+
+  // User fees are read automatically from CBP. If the live CBP page cannot be
+  // parsed, the backend clearly identifies that it used the last verified
+  // official schedule instead.
+  const fees = data?.fees || {};
+  if (fees.sourceMode === 'live') {
+    $('feeSourceLine').textContent =
+      `User fees: CBP live schedule • FY${fees.fiscalYear} • MPF ${Number(fees.mpfRatePercent || 0).toFixed(4)}% (${money(fees.mpfMinimum)} min / ${money(fees.mpfMaximum)} max) • HMF ${Number(fees.hmfRatePercent || 0).toFixed(3)}%.`;
+  } else {
+    $('feeSourceLine').textContent =
+      `User fees: ${fees.sourceLabel || 'last verified CBP schedule'} • FY${fees.fiscalYear || '—'} • live CBP fee lookup was unavailable for this calculation.`;
+  }
 
   const unresolved = Array.isArray(data.review.unresolvedChapter99References)
     ? data.review.unresolvedChapter99References
