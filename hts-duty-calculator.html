@@ -21,7 +21,6 @@ body{font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;line-height:1.45;co
 h1{margin:0;color:var(--primary-color);font-size:2.35rem}.subtitle{font-size:1.05rem;color:#555;margin-top:6px}
 nav{margin-top:15px}nav a{margin-right:20px;text-decoration:none;color:var(--accent-color);font-weight:500}nav a:hover{text-decoration:underline}
 .time-ticker{margin-top:6px;background:#fff;color:#000;padding:8px 12px;font-size:.85rem;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;border-radius:4px;text-decoration:none;cursor:pointer}.time-ticker span{white-space:nowrap;font-weight:500}
-.back-link{margin:20px 0 0}.back-link a{color:var(--accent-color);text-decoration:none;font-weight:600}.back-link a:hover{text-decoration:underline}
 .tool-card,.result-card{background:var(--card-bg);border-radius:5px;box-shadow:0 2px 7px rgba(0,0,0,.08);padding:22px;margin-top:28px}.tool-card{border-top:5px solid var(--primary-color)}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.full{grid-column:1/-1}
 label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);margin-bottom:6px}input,select{width:100%;padding:12px;border:1px solid #c9d1d9;border-radius:4px;background:#fff;font:inherit}input:focus,select:focus{outline:2px solid rgba(44,123,229,.18);border-color:var(--accent-color)}
@@ -61,7 +60,7 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 @media(max-width:640px){.summary-grid.trade-summary{grid-template-columns:1fr}.summary-grid.trade-summary .metric.total{grid-column:auto}}
 
 @media(max-width:800px){.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.container{margin:24px auto;padding:0 14px}h1{font-size:1.8rem}.grid,.summary-grid{grid-template-columns:1fr}.full{grid-column:auto}.result-header{display:block}.hts-pill{display:inline-block;margin-top:10px}.rate-table th,.class-table th{width:37%}}
-@media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{background:#fff}.tool-card,.back-link,.actions{display:none!important}}
+@media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{background:#fff}.tool-card,.actions{display:none!important}}
 </style>
 </head>
 <body>
@@ -99,7 +98,6 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 
 <div id="fxTicker" class="fx-ticker" role="link" tabindex="0" onclick="location.href='currency.html'" onkeydown="if(event.key==='Enter') location.href='currency.html'">Loading FX…</div>
 <a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
-<p class="back-link"><a href="customs.html">← Back to Customs &amp; Trade Concepts</a></p>
 
 <section class="tool-card">
 <form id="calcForm">
