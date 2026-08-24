@@ -1,6 +1,6 @@
 const USITC_SEARCH = "https://hts.usitc.gov/reststop/search";
 const COLUMN_2 = new Set(["BY", "CU", "KP", "RU"]);
-const BUILD_VERSION = "2026-08-24-melt-pour-v9";
+const BUILD_VERSION = "2026-08-24-broad-hts-rates-v10";
 
 const FTA_PROGRAM: Record<string, { symbol: string; name: string }> = {
   AU: { symbol: "AU", name: "U.S.-Australia FTA" },
@@ -891,6 +891,182 @@ function section232Measures(
   }];
 }
 
+
+function pickBroadRow(rows: any[], target: string): any | null {
+  const baseRows = rows.filter((row) => !isChapter99(row));
+
+  const exact = baseRows
+    .filter(
+      (row) =>
+        rowCode(row) === target ||
+        fullCode(row) === target
+    )
+    .sort(
+      (a, b) =>
+        Number(a?.indent ?? 0) - Number(b?.indent ?? 0)
+    );
+
+  if (exact.length) return exact[0];
+
+  const descendants = baseRows
+    .filter((row) => {
+      const code = fullCode(row) || rowCode(row);
+      return code && code.startsWith(target);
+    })
+    .sort((a, b) => {
+      const aCode = fullCode(a) || rowCode(a);
+      const bCode = fullCode(b) || rowCode(b);
+      return (
+        aCode.length - bCode.length ||
+        Number(a?.indent ?? 0) - Number(b?.indent ?? 0)
+      );
+    });
+
+  return descendants[0] ?? null;
+}
+
+function applicableBaseRateForRow(
+  rows: any[],
+  row: any,
+  code: string,
+  country: string,
+  ftaQualified: boolean
+) {
+  const usesColumn2 = COLUMN_2.has(country);
+
+  const source = inheritedField(
+    rows,
+    code,
+    row,
+    usesColumn2 ? "other" : "general"
+  );
+
+  let rate = source.value;
+  let basis = usesColumn2 ? "Column 2" : "Column 1 General";
+  let sourceCode = source.code;
+
+  if (!usesColumn2 && ftaQualified) {
+    const specialSource = inheritedField(
+      rows,
+      code,
+      row,
+      "special"
+    );
+    const preference = preferentialRateForCountry(
+      specialSource.value,
+      country
+    );
+
+    if (preference.rate) {
+      rate = preference.rate;
+      basis = `${
+        preference.program?.name ?? "Special tariff program"
+      } (qualifying claim)`;
+      sourceCode = specialSource.code;
+    }
+  }
+
+  return {
+    rate: cleanText(rate),
+    basis,
+    sourceCode,
+  };
+}
+
+function summarizeBroadDutyRates(
+  rows: any[],
+  target: string,
+  country: string,
+  ftaQualified: boolean
+) {
+  if (![4, 6].includes(target.length)) return null;
+
+  const descendants = rows
+    .filter((row) => !isChapter99(row))
+    .map((row) => ({
+      row,
+      code: fullCode(row) || rowCode(row),
+      baseCode: rowCode(row),
+      description: cleanText(row?.description),
+    }))
+    .filter(
+      (item) =>
+        item.code &&
+        item.code.startsWith(target) &&
+        item.code.length > target.length
+    );
+
+  // Prefer complete 10-digit statistical reporting numbers. If the USITC
+  // result does not expose 10-digit rows for a branch, use the longest
+  // available descendant code instead.
+  const tenDigit = descendants.filter(
+    (item) => item.code.length === 10
+  );
+
+  let candidates = tenDigit;
+  if (!candidates.length && descendants.length) {
+    const maxLength = Math.max(
+      ...descendants.map((item) => item.code.length)
+    );
+    candidates = descendants.filter(
+      (item) => item.code.length === maxLength
+    );
+  }
+
+  const seenCodes = new Set<string>();
+  const entries = candidates
+    .map((item) => {
+      const resolved = applicableBaseRateForRow(
+        rows,
+        item.row,
+        item.code,
+        country,
+        ftaQualified
+      );
+
+      return {
+        hts: item.code,
+        displayHts: formatHts(item.code),
+        description: item.description,
+        rate: resolved.rate,
+        basis: resolved.basis,
+        rateSourceHts: formatHts(resolved.sourceCode),
+      };
+    })
+    .filter((item) => item.rate)
+    .sort((a, b) => a.hts.localeCompare(b.hts))
+    .filter((item) => {
+      if (seenCodes.has(item.hts)) return false;
+      seenCodes.add(item.hts);
+      return true;
+    });
+
+  const distinctRates = [
+    ...new Set(
+      entries
+        .map((entry) => cleanText(entry.rate))
+        .filter(Boolean)
+    ),
+  ] as string[];
+
+  const MAX_LISTED_CODES = 80;
+
+  return {
+    target,
+    displayTarget: formatHts(target),
+    level: target.length === 4 ? "heading" : "subheading",
+    totalMatchingCodes: entries.length,
+    listedCodes: entries.slice(0, MAX_LISTED_CODES),
+    truncated: entries.length > MAX_LISTED_CODES,
+    distinctRates,
+    rateCount: distinctRates.length,
+    singleRate:
+      distinctRates.length === 1 ? distinctRates[0] : null,
+    multipleRates: distinctRates.length > 1,
+  };
+}
+
+
 export default async (req: Request) => {
   if (req.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
@@ -971,7 +1147,10 @@ export default async (req: Request) => {
       fetchHierarchy(hts),
       fetchOfficialUserFees(),
     ]);
-    const selected = pickTargetRow(rows, hts);
+    const broadLookup = hts.length === 4 || hts.length === 6;
+    const selected =
+      pickTargetRow(rows, hts) ||
+      (broadLookup ? pickBroadRow(rows, hts) : null);
 
     if (!selected) {
       const suggestionRows = rows.length ? rows : await fetchSearchRows(hts);
@@ -1038,12 +1217,51 @@ export default async (req: Request) => {
       preferenceUsed = true;
     }
 
-    const baseCalculation = parseRate(
-      appliedRate,
-      customsValue,
-      quantity,
-      quantityUnit
-    );
+    const broadDutySummary = broadLookup
+      ? summarizeBroadDutyRates(
+          rows,
+          hts,
+          country,
+          ftaQualified
+        )
+      : null;
+
+    if (
+      broadDutySummary &&
+      broadDutySummary.rateCount === 1 &&
+      broadDutySummary.singleRate
+    ) {
+      appliedRate = broadDutySummary.singleRate;
+      appliedBasis =
+        `${broadDutySummary.level === "heading" ? "Heading" : "Subheading"} ` +
+        `${broadDutySummary.displayTarget} — common applicable rate across returned full HTS lines`;
+      appliedRateSource = hts;
+    } else if (
+      broadDutySummary &&
+      broadDutySummary.multipleRates
+    ) {
+      appliedRate =
+        `Multiple rates (${broadDutySummary.rateCount})`;
+      appliedBasis =
+        `Multiple duty rates under ${broadDutySummary.displayTarget}`;
+      appliedRateSource = hts;
+    }
+
+    const baseCalculation =
+      broadDutySummary?.multipleRates
+        ? {
+            supported: false,
+            duty: null,
+            components: [],
+            reason:
+              `Multiple duty rates exist under ${broadDutySummary.displayTarget}. Use the full HTS code for a shipment-specific duty calculation.`,
+          }
+        : parseRate(
+            appliedRate,
+            customsValue,
+            quantity,
+            quantityUnit
+          );
 
     const additionalCalculation = parseRate(
       additionalSource.value,
@@ -1052,7 +1270,9 @@ export default async (req: Request) => {
       quantityUnit
     );
     const additionalIncluded = Boolean(
-      additionalSource.value && additionalCalculation.supported
+      !broadDutySummary?.multipleRates &&
+      additionalSource.value &&
+      additionalCalculation.supported
     );
 
     let mpf = Math.min(
@@ -1351,8 +1571,8 @@ export default async (req: Request) => {
           ftaQualified,
         },
         classification: {
-          hts: selectedCode,
-          displayHts: formatHts(selectedCode),
+          hts: broadLookup ? hts : selectedCode,
+          displayHts: formatHts(broadLookup ? hts : selectedCode),
           description: cleanText(selected?.description),
           units: Array.isArray(selected?.units) ? selected.units : [],
           heading: hierarchy.heading,
@@ -1365,8 +1585,11 @@ export default async (req: Request) => {
           appliedBasis,
           appliedRateSourceHts: formatHts(appliedRateSource),
           rateInherited: Boolean(
-            appliedRateSource && appliedRateSource.length < selectedCode.length
+            !broadLookup &&
+            appliedRateSource &&
+            appliedRateSource.length < selectedCode.length
           ),
+          broadDutySummary,
           potentialPreference: preference.program
             ? {
                 ...preference.program,
@@ -1437,6 +1660,8 @@ export default async (req: Request) => {
           buildVersion: BUILD_VERSION,
           enteredHts: hts,
           selectedCode,
+          broadLookup,
+          broadRateCount: broadDutySummary?.rateCount ?? null,
           meltPourCountry,
           meltPourAssumed,
           section232Matched: isSection232Steel(hts),
