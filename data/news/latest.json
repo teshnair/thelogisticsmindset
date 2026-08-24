@@ -4,13 +4,18 @@
   "model": "editorial-seed",
   "editorial": {
     "date": "2026-08-24",
-    "title": "The Strait Isn’t Closed. So Why Does Global Logistics Still Feel Like It Is?",
-    "dek": "Hormuz shows why a trade lane does not need to be formally closed to reshape freight, fuel, insurance and routing decisions around the world.",
+    "title": "The Strait Isn't Closed. So Why Does It Still Feel Like It Is?",
+    "dek": "The Strait of Hormuz is a reminder that a trade lane does not need to close before the logistics network is disrupted.",
     "body": [
-      "The logistics world likes binary answers. Is the port open or closed? Is the canal operating or not? Is a border moving cargo or stopping it? The Strait of Hormuz is demonstrating why that way of thinking can be dangerously simple. The route is technically moving traffic, yet reported vessel activity remains dramatically below normal levels.",
-      "That matters because logistics capacity is shaped by confidence as much as physical access. Owners, charterers, insurers, banks and cargo interests all price uncertainty. A vessel that can technically transit a chokepoint may still be delayed, rerouted, insured at a higher cost or held back while operators reassess the risk. Those decisions ripple outward into tanker availability, bunker costs and equipment positioning.",
-      "The second-order effects are already broader than crude oil. Refined-fuel movements across Asia are constrained, while sanctions and payment restrictions are complicating trade between Iran and countries such as India and China. When banking, insurance and routing all become harder at the same time, the result is a logistics problem even for cargo that never physically passes through Hormuz.",
-      "The lesson is that geopolitical disruption should not be measured only by whether a route is officially shut. The better question is whether cargo can still move at a predictable cost, with acceptable risk and reliable access to finance, insurance and capacity. When those conditions deteriorate, the logistics network is already disrupted long before someone hangs a CLOSED sign on the map."
+      "The logistics industry often prefers binary answers. Is the port open or closed? Is the canal operating or not? Is the border moving cargo or stopping it?",
+      "The Strait of Hormuz is a reminder that reality is far more complex.",
+      "While vessels continue to transit the strait, reported traffic remains significantly below normal levels. The route is technically open, yet market behavior suggests something very different.",
+      "That distinction matters because logistics capacity is driven not only by physical access, but also by confidence. Shipowners, charterers, insurers, banks, and cargo interests all price risk. A vessel may be able to pass through a chokepoint, but operators may still delay sailings, reroute cargo, pay higher insurance premiums, or keep tonnage elsewhere while reassessing exposure.",
+      "The consequences extend far beyond the affected waterway. Reduced tanker availability impacts freight rates. Higher risk premiums influence bunker costs and financing decisions. Equipment positioning becomes less predictable. Capacity tightens even when no formal closure exists.",
+      "The effects are no longer limited to crude oil. Refined fuel movements across Asia face growing constraints, while sanctions and payment restrictions continue to complicate trade involving countries such as Iran, India, and China. When banking, insurance, and transportation challenges converge, cargo flows become more difficult even for shipments that never physically transit Hormuz.",
+      "The broader lesson is that geopolitical disruption should not be measured solely by whether a route is officially closed.",
+      "The more important question is whether cargo can still move at a predictable cost, with acceptable risk, and with reliable access to capacity, insurance, and finance.",
+      "Once those conditions begin to deteriorate, the logistics network is already disrupted long before anyone hangs a \"CLOSED\" sign on the map."
     ],
     "relatedItemIds": ["hormuz-20260824", "refined-fuels-20260824", "india-iran-20260824"]
   },
