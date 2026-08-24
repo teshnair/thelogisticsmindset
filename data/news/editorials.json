@@ -1,0 +1,17 @@
+{
+  "updatedAt": "2026-08-24T20:56:00Z",
+  "items": [
+    {
+      "date": "2026-08-24",
+      "title": "The Strait Isn’t Closed. So Why Does Global Logistics Still Feel Like It Is?",
+      "dek": "Hormuz shows why a trade lane does not need to be formally closed to reshape freight, fuel, insurance and routing decisions around the world.",
+      "body": [
+        "The logistics world likes binary answers. Is the port open or closed? Is the canal operating or not? Is a border moving cargo or stopping it? The Strait of Hormuz is demonstrating why that way of thinking can be dangerously simple. The route is technically moving traffic, yet reported vessel activity remains dramatically below normal levels.",
+        "That matters because logistics capacity is shaped by confidence as much as physical access. Owners, charterers, insurers, banks and cargo interests all price uncertainty. A vessel that can technically transit a chokepoint may still be delayed, rerouted, insured at a higher cost or held back while operators reassess the risk. Those decisions ripple outward into tanker availability, bunker costs and equipment positioning.",
+        "The second-order effects are already broader than crude oil. Refined-fuel movements across Asia are constrained, while sanctions and payment restrictions are complicating trade between Iran and countries such as India and China. When banking, insurance and routing all become harder at the same time, the result is a logistics problem even for cargo that never physically passes through Hormuz.",
+        "The lesson is that geopolitical disruption should not be measured only by whether a route is officially shut. The better question is whether cargo can still move at a predictable cost, with acceptable risk and reliable access to finance, insurance and capacity. When those conditions deteriorate, the logistics network is already disrupted long before someone hangs a CLOSED sign on the map."
+      ],
+      "relatedItemIds": ["hormuz-20260824", "refined-fuels-20260824", "india-iran-20260824"]
+    }
+  ]
+}
