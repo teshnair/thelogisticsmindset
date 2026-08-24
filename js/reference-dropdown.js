@@ -12,22 +12,54 @@
     ["ULDs (Unit Load Devices)", "uld.html"]
   ];
 
+  function isReferenceLink(link) {
+    if (!link || link.tagName !== "A") return false;
+    const href = (link.getAttribute("href") || "").toLowerCase().split("?")[0].split("#")[0];
+    return href === "reference.html" || href.endsWith("/reference.html");
+  }
+
+  function removeDuplicateReferenceItems(nav, keepWrapper = null, keepLink = null) {
+    Array.from(nav.children).forEach(child => {
+      if (child === keepWrapper || child === keepLink) return;
+
+      if (child.classList && child.classList.contains("reference-dropdown")) {
+        child.remove();
+        return;
+      }
+
+      if (isReferenceLink(child)) child.remove();
+    });
+  }
+
   function setupReferenceDropdown() {
     const nav = document.querySelector(".page-header nav");
-    if (!nav || nav.querySelector(".reference-dropdown")) return;
+    if (!nav) return;
 
-    let referenceLink = Array.from(nav.querySelectorAll("a")).find(link => {
-      const href = (link.getAttribute("href") || "").toLowerCase();
-      return href === "reference.html" || href.endsWith("/reference.html");
-    });
+    const existingWrapper = Array.from(nav.children).find(child =>
+      child.classList && child.classList.contains("reference-dropdown")
+    );
+
+    if (existingWrapper) {
+      const mainLink = Array.from(existingWrapper.children).find(isReferenceLink);
+      if (mainLink) {
+        mainLink.textContent = "References";
+        mainLink.classList.add("reference-main-link");
+      }
+      removeDuplicateReferenceItems(nav, existingWrapper, null);
+      return;
+    }
+
+    const directReferenceLinks = Array.from(nav.children).filter(isReferenceLink);
+    let referenceLink = directReferenceLinks.shift();
+
+    directReferenceLinks.forEach(link => link.remove());
 
     if (!referenceLink) {
       referenceLink = document.createElement("a");
       referenceLink.href = "reference.html";
-      referenceLink.textContent = "References";
 
-      const conversionsLink = Array.from(nav.querySelectorAll("a")).find(link =>
-        (link.getAttribute("href") || "").toLowerCase().endsWith("conversion.html")
+      const conversionsLink = Array.from(nav.children).find(link =>
+        link.tagName === "A" && (link.getAttribute("href") || "").toLowerCase().endsWith("conversion.html")
       );
 
       if (conversionsLink) {
@@ -36,6 +68,8 @@
         nav.appendChild(referenceLink);
       }
     }
+
+    referenceLink.textContent = "References";
 
     const wrapper = document.createElement("span");
     wrapper.className = "reference-dropdown";
@@ -86,6 +120,8 @@
     document.addEventListener("click", event => {
       if (!wrapper.contains(event.target)) setOpen(false);
     });
+
+    removeDuplicateReferenceItems(nav, wrapper, referenceLink);
   }
 
   if (document.readyState === "loading") {
