@@ -14,10 +14,10 @@ function escapeXml(value: string): string {
     .replaceAll("'", "&apos;");
 }
 
-async function loadGlossary(siteUrl: string): Promise<GlossaryItem[]> {
+async function loadGlossary(origin: string): Promise<GlossaryItem[]> {
   if (glossaryCache) return glossaryCache;
 
-  const response = await fetch(`${siteUrl.replace(/\/$/, "")}/data/glossary-data.json`, {
+  const response = await fetch(`${origin.replace(/\/$/, "")}/data/glossary-data.json`, {
     headers: { accept: "application/json" },
   });
   if (!response.ok) throw new Error(`Glossary data request failed with ${response.status}`);
@@ -30,13 +30,14 @@ async function loadGlossary(siteUrl: string): Promise<GlossaryItem[]> {
   return glossaryCache;
 }
 
-export default async function handler(req: Request, context: Context) {
+export default async function handler(req: Request, _context: Context) {
   if (req.method !== "GET" && req.method !== "HEAD") {
     return new Response("Method not allowed", { status: 405, headers: { allow: "GET, HEAD" } });
   }
 
   try {
-    const items = await loadGlossary(context.site.url);
+    const origin = new URL(req.url).origin;
+    const items = await loadGlossary(origin);
 
     const coreUrls = [
       "/",
@@ -70,7 +71,6 @@ export default async function handler(req: Request, context: Context) {
       headers: {
         "content-type": "application/xml; charset=utf-8",
         "cache-control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
-        "x-robots-tag": "noindex, follow",
       },
     });
   } catch (error) {
