@@ -24,8 +24,13 @@
         .page-title { margin-bottom: 30px; }
         .page-title h1 { font-size: 2rem; margin-bottom: 8px; }
         .page-title p { color: #4b5563; max-width: 760px; }
+        .blog-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 260px;
+            gap: 26px;
+            align-items: start;
+        }
         .blog-post {
-            max-width: 820px;
             background: #fff;
             border: 1px solid #e1e5ea;
             border-radius: 8px;
@@ -48,6 +53,45 @@
             font-size: 1rem;
         }
         .blog-post p:last-child { margin-bottom: 0; }
+        .blog-index {
+            background: #fff;
+            border: 1px solid #e1e5ea;
+            border-radius: 8px;
+            padding: 18px;
+        }
+        .blog-index h2 {
+            margin: 0 0 14px;
+            font-size: 1rem;
+            color: #1a2a3a;
+        }
+        .blog-index-item {
+            display: block;
+            padding: 12px 12px 12px 14px;
+            border-left: 3px solid transparent;
+            border-radius: 4px;
+            color: #1f2933;
+            text-decoration: none;
+        }
+        .blog-index-item:hover {
+            background: #f6f7f9;
+        }
+        .blog-index-item.active {
+            border-left-color: #1a2a3a;
+            background: #f6f7f9;
+        }
+        .blog-number,
+        .blog-index-meta {
+            display: block;
+            font-size: 0.78rem;
+            color: #6b7280;
+        }
+        .blog-index-item strong {
+            display: block;
+            margin: 3px 0 5px;
+            font-size: 0.92rem;
+            line-height: 1.35;
+            color: #1a2a3a;
+        }
         footer {
             margin-top: 60px;
             padding: 20px;
@@ -56,7 +100,16 @@
             color: #6b7280;
         }
         @media (max-width: 768px) {
-            .blog-post { padding: 22px 20px; }
+            .blog-layout {
+                grid-template-columns: 1fr;
+            }
+            .blog-index {
+                grid-row: 1;
+            }
+            .blog-post {
+                grid-row: 2;
+                padding: 22px 20px;
+            }
         }
     </style>
 </head>
@@ -106,42 +159,53 @@
             <p>Logistics observations, lessons from the field, practical logistics thinking, life beyond the cargo and occasional updates from the person behind The Logistics Mindset.</p>
         </div>
 
-        <article class="blog-post">
-            <h2>Why I Built The Logistics Mindset</h2>
-            <div class="post-meta">August 25, 2026</div>
+        <div class="blog-layout">
+            <article class="blog-post" id="blog-1">
+                <h2>Why I Built The Logistics Mindset</h2>
+                <div class="post-meta">Blog #1 · August 25, 2026 · 1–2 min read</div>
 
-            <p>I did not build it because the internet needed another logistics website. There are already plenty of those. I wanted something slightly different.</p>
+                <p>I did not build it because the internet needed another logistics website. There are already plenty of those. I wanted something slightly different.</p>
 
-            <p>For most of my working life, logistics has been about figuring out what needs to happen next.</p>
+                <p>For most of my working life, logistics has been about figuring out what needs to happen next.</p>
 
-            <p>Theory matters. Regulations matter. Definitions matter. But operations have an irritating habit of not behaving like the examples in the training manual.</p>
+                <p>Theory matters. Regulations matter. Definitions matter. But operations have an irritating habit of not behaving like the examples in the training manual.</p>
 
-            <p>Over the years, I have worked across freight forwarding, manufacturing, commodity trading, project logistics, customs, transportation and supply-chain operations. Different cities, different cargo, different situations, but one thing remained consistent: logistics knowledge is scattered.</p>
+                <p>Over the years, I have worked across freight forwarding, manufacturing, commodity trading, project logistics, customs, transportation and supply-chain operations. Different cities, different cargo, different situations, but one thing remained consistent: logistics knowledge is scattered.</p>
 
-            <p>The information is usually out there. The harder part is finding it, understanding it and applying it.</p>
+                <p>The information is usually out there. The harder part is finding it, understanding it and applying it.</p>
 
-            <p>A new person entering the industry may come across unfamiliar terms only to find explanations written for people who already understand half the subject. Even experienced professionals can spend far too much time searching for a simple answer.</p>
+                <p>A new person entering the industry may come across unfamiliar terms only to find explanations written for people who already understand half the subject. Even experienced professionals can spend far too much time searching for a simple answer.</p>
 
-            <p>That was one of the reasons I started The Logistics Mindset.</p>
+                <p>That was one of the reasons I started The Logistics Mindset.</p>
 
-            <p>I wanted a place where someone could look up a term and understand it without needing a degree. But the site is not only about definitions and calculators. Sometimes understanding why something works matters more than simply knowing what it is called.</p>
+                <p>I wanted a place where someone could look up a term and understand it without needing a degree. But the site is not only about definitions and calculators. Sometimes understanding why something works matters more than simply knowing what it is called.</p>
 
-            <p>The Logistics Mindset is not simply about knowing logistics terminology. It is about learning how to think through logistics situations.</p>
+                <p>The Logistics Mindset is not simply about knowing logistics terminology. It is about learning how to think through logistics situations.</p>
 
-            <p>The website is still a work in progress. There is no development team behind it. I research the material, build the tools, find mistakes, fix what does not work and occasionally discover that changing one innocent line of code has annoyed three completely unrelated parts of the website.</p>
+                <p>The website is still a work in progress. There is no development team behind it. I research the material, build the tools, find mistakes, fix what does not work and occasionally discover that changing one innocent line of code has annoyed three completely unrelated parts of the website.</p>
 
-            <p>Regulations change. Trade routes change. Technology changes. Political events can alter supply chains overnight. A useful logistics resource is never really finished.</p>
+                <p>Regulations change. Trade routes change. Technology changes. Political events can alter supply chains overnight. A useful logistics resource is never really finished.</p>
 
-            <p>And neither can the person using it.</p>
+                <p>And neither can the person using it.</p>
 
-            <p>The Blog will be a little different from the rest of the website. A little more personal.</p>
+                <p>The Blog will be a little different from the rest of the website. A little more personal.</p>
 
-            <p>Because logistics ultimately is not about containers, aircraft, vessels, documents or spreadsheets. It is about people trying to move something from one place to another while time, money, regulations and physics make the exercise more interesting.</p>
+                <p>Because logistics ultimately is not about containers, aircraft, vessels, documents or spreadsheets. It is about people trying to move something from one place to another while time, money, regulations and physics make the exercise more interesting.</p>
 
-            <p>That is the world The Logistics Mindset is intended to explore.</p>
+                <p>That is the world The Logistics Mindset is intended to explore.</p>
 
-            <p>And this is where I am starting.</p>
-        </article>
+                <p>And this is where I am starting.</p>
+            </article>
+
+            <aside class="blog-index" aria-label="Blog entries">
+                <h2>Blog Entries</h2>
+                <a class="blog-index-item active" href="#blog-1" aria-current="page">
+                    <span class="blog-number">Blog #1</span>
+                    <strong>Why I Built The Logistics Mindset</strong>
+                    <span class="blog-index-meta">August 25, 2026 · 1–2 min read</span>
+                </a>
+            </aside>
+        </div>
     </main>
 
     <footer>© 2026 The Logistics Mindset. All rights reserved.</footer>
