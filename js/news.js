@@ -77,6 +77,11 @@
         return state.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
     }
 
+    function isEditorialOnlySearch() {
+        const query = state.query.trim().toLowerCase();
+        return query === "editorial" || query === "editorials";
+    }
+
     function textMatches(text, terms) {
         const haystack = String(text || "").toLowerCase();
         return !terms.length || terms.every(term => haystack.includes(term));
@@ -91,20 +96,26 @@
 
     function editorialSearchText(editorial) {
         return [
-            "editorial", "the logistics mindset editorial", editorial.title, editorial.dek,
+            editorial.title, editorial.dek,
             ...(Array.isArray(editorial.body) ? editorial.body : [])
         ].join(" ");
     }
 
     function matchingEditorials() {
-        if (!state.query || state.category !== "All") return [];
+        if (!state.query) return [];
+        const allEditorials = state.editorials?.items || [];
+        if (isEditorialOnlySearch()) {
+            return [...allEditorials].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+        }
         const terms = searchTerms();
-        return (state.editorials?.items || [])
+        return allEditorials
             .filter(editorial => textMatches(editorialSearchText(editorial), terms))
             .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
     }
 
     function filteredItems(editorialMatches = []) {
+        if (isEditorialOnlySearch()) return [];
+
         const base = state.archiveMode && state.archive?.items ? state.archive.items : (state.latest?.items || []);
         const terms = searchTerms();
         const relatedIds = new Set(
@@ -125,6 +136,7 @@
 
     function highlight(text) {
         const raw = escapeHtml(text);
+        if (isEditorialOnlySearch()) return raw;
         const terms = state.query.trim().split(/\s+/).filter(Boolean)
             .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
         if (!terms.length) return raw;
@@ -211,6 +223,8 @@
 
         if (state.selectedDate) {
             els.resultsTitle.textContent = `Archive · ${formatDateOnly(state.selectedDate)}`;
+        } else if (isEditorialOnlySearch()) {
+            els.resultsTitle.textContent = "Editorials";
         } else if (state.query) {
             els.resultsTitle.textContent = `Search · ${state.query}`;
         } else if (state.category !== "All") {
@@ -342,6 +356,10 @@
         state.query = els.newsSearch.value.trim();
         state.selectedDate = null;
         if (state.query) {
+            state.category = "All";
+            els.categoryFilter.querySelectorAll("button[data-category]").forEach(button => {
+                button.classList.toggle("active", button.dataset.category === "All");
+            });
             try {
                 await loadArchive();
                 state.archiveMode = true;
