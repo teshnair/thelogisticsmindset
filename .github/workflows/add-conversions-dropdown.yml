@@ -1,0 +1,79 @@
+name: Add Conversions dropdown
+
+on:
+  push:
+    branches:
+      - feature/conversions-dropdown
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/conversions-dropdown
+
+      - name: Add Conversions dropdown to root pages
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          branch_files = sorted(Path('.').glob('*.html'))
+          changed = []
+
+          for path in branch_files:
+              data = path.read_bytes()
+              if b'conversion-dropdown' in data:
+                  continue
+
+              nl = b'\r\n' if b'\r\n' in data else b'\n'
+              block = nl.join([
+                  b'<span class="reference-dropdown conversion-dropdown">',
+                  b'    <a href="conversion.html" class="reference-main-link conversion-main-link">Conversions</a>',
+                  b'    <button type="button" class="reference-dropdown-toggle conversion-dropdown-toggle" aria-label="Show conversion tools" aria-expanded="false" onclick="event.stopPropagation(); const box=this.parentElement; const open=box.classList.toggle(\'open\'); this.setAttribute(\'aria-expanded\', String(open));">\xe2\x96\xbc</button>',
+                  b'    <div class="reference-dropdown-menu conversion-dropdown-menu" role="menu">',
+                  b'        <a href="conversion.html#dimensional-volume-weight-converter" role="menuitem">Dimensional / Volume Weight Converter</a>',
+                  b'    </div>',
+                  b'</span>'
+              ])
+
+              plain = b'<a href="conversion.html">Conversions</a>'
+              if plain in data:
+                  data = data.replace(plain, block, 1)
+              elif path.name == 'conversion.html':
+                  about = b'<a href="about.html">About</a>'
+                  if about not in data:
+                      raise SystemExit('Could not find About link in conversion.html')
+                  data = data.replace(about, about + nl + block, 1)
+              else:
+                  raise SystemExit(f'Could not find Conversions link in {path.name}')
+
+              if path.name == 'conversion.html':
+                  heading = b'<h3>Dimensional / Volume Weight Calculator</h3>'
+                  anchored = b'<h3 id="dimensional-volume-weight-converter">Dimensional / Volume Weight Calculator</h3>'
+                  if heading not in data:
+                      raise SystemExit('Could not find dimensional/volume weight heading')
+                  data = data.replace(heading, anchored, 1)
+
+              path.write_bytes(data)
+              changed.append(path.name)
+
+          print(f'Updated {len(changed)} root HTML files:')
+          for name in changed:
+              print(' -', name)
+
+          if not changed:
+              raise SystemExit('No HTML files were updated')
+          PY
+
+      - name: Commit navigation updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- '*.html'
+          git commit -m "Add Conversions dropdown across site"
+          git push origin HEAD:feature/conversions-dropdown
