@@ -7,12 +7,43 @@ document.addEventListener("DOMContentLoaded", async () => {
   // entire group scroll normally on mobile screens.
   const header = document.querySelector(".page-header");
   const timeTicker = document.getElementById("timeTicker");
+  let stack = header ? header.closest(".sticky-header-stack") : null;
 
-  if (header && timeTicker && !header.closest(".sticky-header-stack")) {
-    const stack = document.createElement("div");
+  if (header && timeTicker && !stack) {
+    stack = document.createElement("div");
     stack.className = "sticky-header-stack";
     header.parentNode.insertBefore(stack, header);
     stack.append(header, ticker, timeTicker);
+  }
+
+  // Keep fixed overlays below the sticky header/ticker stack on larger
+  // screens. The news editorial sheet uses these inline offsets; mobile
+  // stays full-screen because the sticky stack scrolls normally there.
+  function syncStickyOverlayOffset() {
+    const largeScreen = window.matchMedia("(min-width: 769px)").matches;
+    const offset = largeScreen && stack ? Math.ceil(stack.getBoundingClientRect().height) : 0;
+
+    document.documentElement.style.setProperty("--sticky-header-stack-height", `${offset}px`);
+
+    const editorialSheet = document.getElementById("editorialSheet");
+    const sheetBackdrop = document.getElementById("sheetBackdrop");
+
+    if (editorialSheet) {
+      editorialSheet.style.top = `${offset}px`;
+      editorialSheet.style.height = `calc(100% - ${offset}px)`;
+    }
+
+    if (sheetBackdrop) {
+      sheetBackdrop.style.top = `${offset}px`;
+    }
+  }
+
+  syncStickyOverlayOffset();
+  window.addEventListener("resize", syncStickyOverlayOffset, { passive: true });
+
+  if (stack && "ResizeObserver" in window) {
+    const stickyStackObserver = new ResizeObserver(syncStickyOverlayOffset);
+    stickyStackObserver.observe(stack);
   }
 
   const CACHE_KEY = "fxRatesCache";
