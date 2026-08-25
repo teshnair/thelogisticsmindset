@@ -3,24 +3,26 @@
   "scanWindowHours": 36,
   "model": "global-curator",
   "editorial": {
-    "date": "2026-08-24",
-    "title": "The Strait Isn't Closed. So Why Does It Still Feel Like It Is?",
-    "dek": "The Strait of Hormuz is a reminder that reality is far more complex and that a trade lane does not need to close before the logistics network is disrupted.",
+    "date": "2026-08-25",
+    "title": "Capacity Exists, But How Much Can I Use Now?",
+    "dek": "The global container fleet is bigger than ever. Yet effective capacity is shrinking.",
     "body": [
-      "The logistics industry often prefers binary answers. Is the port open or closed? Is the canal operating or not? Is the border letting cargo through?",
-      "The Strait of Hormuz is a reminder that reality is far more complex and that a trade lane does not need to close before the logistics network is disrupted.",
-      "The route is technically open, though vessel traffic remains significantly below normal levels, and yet market behavior suggests something very different.",
-      "That distinction matters because logistics capacity is driven not only by physical access, but also by confidence.",
-      "Shipowners, charterers, insurers, banks, and cargo interests all price risk. A vessel may be able to pass through a chokepoint, but operators may still delay sailings, reroute cargo, pay higher insurance premiums, or keep tonnage elsewhere while reassessing exposure.",
-      "The consequences extend far beyond the affected waterway. Reduced tanker availability impacts freight rates. Higher risk premiums influence bunker costs and financing decisions. Equipment positioning becomes less predictable. Capacity tightens even when no formal closure exists.",
-      "The effects are no longer limited to crude oil. Refined fuel movements across Asia face growing constraints, while sanctions and payment restrictions continue to complicate trade involving Iran and counterparties in major trading markets including India and China. 𝙒𝙝𝙚𝙣 𝙗𝙖𝙣𝙠𝙞𝙣𝙜, 𝙞𝙣𝙨𝙪𝙧𝙖𝙣𝙘𝙚, 𝙖𝙣𝙙 𝙩𝙧𝙖𝙣𝙨𝙥𝙤𝙧𝙩𝙖𝙩𝙞𝙤𝙣 𝙘𝙝𝙖𝙡𝙡𝙚𝙣𝙜𝙚𝙨 𝙘𝙤𝙣𝙫𝙚𝙧𝙜𝙚, 𝙘𝙖𝙧𝙜𝙤 𝙛𝙡𝙤𝙬𝙨 𝙗𝙚𝙘𝙤𝙢𝙚 𝙢𝙤𝙧𝙚 𝙙𝙞𝙛𝙛𝙞𝙘𝙪𝙡𝙩 𝙚𝙫𝙚𝙣 𝙛𝙤𝙧 𝙨𝙝𝙞𝙥𝙢𝙚𝙣𝙩𝙨 𝙩𝙝𝙖𝙩 𝙣𝙚𝙫𝙚𝙧 𝙥𝙝𝙮𝙨𝙞𝙘𝙖𝙡𝙡𝙮 𝙩𝙧𝙖𝙣𝙨𝙞𝙩 𝙃𝙤𝙧𝙢𝙪𝙯.",
-      "Geopolitical disruption should not be measured solely by whether a route is officially closed. The more important question is whether cargo can still move at a predictable cost, with acceptable risk, and with reliable access to capacity, insurance, and finance.",
-      "Once those conditions begin to deteriorate, the logistics network is already disrupted long before anyone hangs a \"𝗖𝗟𝗢𝗦𝗘𝗗\" sign on the map."
+      "The global container fleet is bigger than ever. There are ships in the water, containers in circulation and terminals operating. Yet effective capacity is shrinking.",
+      "Current port congestion is a useful example. More than 4.3 million TEU of container capacity is reportedly waiting to berth worldwide, exceeding the absolute congestion peak seen during the pandemic. East Asia is carrying much of that pressure, with large queues at Shanghai and Ningbo. Vessel delays are increasingly measured in days rather than hours.",
+      "A 15,000-TEU vessel sitting outside a port is still technically part of the global fleet. But while it waits, the ship falls behind schedule. Its next port call moves. Containers miss connections. Equipment stays in the wrong place. Another service begins operating with less usable capacity.",
+      "One delay becomes several.",
+      "A major carrier has omitted a Shanghai call on one service after adverse weather affected the schedule, rerouting cargo to protect the onward rotation. That makes operational sense for the vessel, but the affected containers now require another solution.",
+      "What actually matters is usable capacity at the time and place where the cargo needs it.",
+      "Congestion, weather, security, equipment imbalance, missed connections and specialized cargo requirements all consume usable capacity.",
+      "The transportation asset does not have to disappear. It only has to stop being available when you need it.",
+      "The question, then, is not simply:",
+      "“How much capacity exists?”",
+      "It is:",
+      "“How much capacity can I actually use, reliably, right now?”"
     ],
     "relatedItemIds": [
-      "hormuz-20260824",
-      "refined-fuels-20260824",
-      "india-iran-20260824"
+      "global-port-congestion-20260825",
+      "shanghai-omission-20260824"
     ]
   },
   "items": [
