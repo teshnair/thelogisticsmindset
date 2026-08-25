@@ -1,0 +1,47 @@
+name: Apply one-time Stripe support link
+
+on:
+  push:
+    branches:
+      - feature/stripe-one-time-support
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/stripe-one-time-support
+      - name: Update support link
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('js/support.js')
+          s = p.read_text()
+          old = '''            <div class="support-global-copy">
+              A secure hosted payment option will allow one-time support without sharing payment details with this website.
+            </div>
+            <button class="support-disabled-button" type="button" disabled>Support from anywhere →</button>
+            <span class="support-coming-soon">Secure card support is being connected.</span>'''
+          new = '''            <div class="support-global-copy">
+              A secure Stripe-hosted payment page allows one-time support without sharing payment details with this website.
+            </div>
+            <a class="support-action-button support-share-button"
+               href="https://buy.stripe.com/fZueVeflbavG7vo0xV1kA00" target="_blank" rel="noopener noreferrer">
+              Support from anywhere →
+            </a>'''
+          if old not in s:
+              raise SystemExit('Expected support placeholder not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+      - name: Commit update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add js/support.js
+          git commit -m "Connect one-time Stripe support link"
+          git push origin HEAD:feature/stripe-one-time-support
