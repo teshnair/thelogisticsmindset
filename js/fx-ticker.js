@@ -46,38 +46,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     stickyStackObserver.observe(stack);
   }
 
-  // Show the intended daily publication target without presenting it as a guarantee.
+  // Keep the News page source and publication notices together on one line.
   const newsUpdatedLine = document.getElementById("updatedLine");
   if (newsUpdatedLine) {
-    const sourceLineText = "Source links open the original publisher.";
-    const keepSourceLinkNoticeOnly = () => {
-      const currentText = newsUpdatedLine.textContent.trim();
-      if (
-        currentText.startsWith("Global scan last updated") ||
-        currentText === "The automated global scan is being initialized."
-      ) {
-        newsUpdatedLine.textContent = sourceLineText;
+    const noticeText = "Source links open the original publisher. I will attempt to publish this news section by 5:00AM Eastern every day.";
+    const keepNewsNotice = () => {
+      if (newsUpdatedLine.textContent.trim() !== noticeText) {
+        newsUpdatedLine.textContent = noticeText;
       }
     };
 
-    keepSourceLinkNoticeOnly();
+    keepNewsNotice();
+
+    const oldScheduleLine = document.getElementById("dailyNewsSchedule");
+    if (oldScheduleLine) oldScheduleLine.remove();
 
     if ("MutationObserver" in window) {
-      const newsUpdatedLineObserver = new MutationObserver(keepSourceLinkNoticeOnly);
+      const newsUpdatedLineObserver = new MutationObserver(keepNewsNotice);
       newsUpdatedLineObserver.observe(newsUpdatedLine, {
         childList: true,
         characterData: true,
         subtree: true
       });
     }
-  }
-
-  if (newsUpdatedLine && !document.getElementById("dailyNewsSchedule")) {
-    const scheduleLine = document.createElement("div");
-    scheduleLine.id = "dailyNewsSchedule";
-    scheduleLine.className = "updated-line";
-    scheduleLine.textContent = "I will attempt to publish this news section by 5:00AM Eastern every day.";
-    newsUpdatedLine.insertAdjacentElement("afterend", scheduleLine);
   }
 
   const CACHE_KEY = "fxRatesCache";
