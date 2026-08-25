@@ -2,6 +2,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ticker = document.getElementById("fxTicker");
   if (!ticker) return;
 
+  // On pages that also have the world-time ticker, group the header and
+  // both tickers into one sticky desktop/tablet block. CSS lets this
+  // entire group scroll normally on mobile screens.
+  const header = document.querySelector(".page-header");
+  const timeTicker = document.getElementById("timeTicker");
+
+  if (header && timeTicker && !header.closest(".sticky-header-stack")) {
+    const stack = document.createElement("div");
+    stack.className = "sticky-header-stack";
+    header.parentNode.insertBefore(stack, header);
+    stack.append(header, ticker, timeTicker);
+  }
+
   const CACHE_KEY = "fxRatesCache";
   const CACHE_TIME_KEY = "fxRatesTimestamp";
   const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
