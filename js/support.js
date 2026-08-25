@@ -3,6 +3,7 @@
   const ZELLE_URL = "https://enroll.zellepay.com/qr-codes?data=eyJ0b2tlbiI6InRlc2huYWlyQG1lLmNvbSIsIm5hbWUiOiJSaXRlc2gifQ==";
   const CASH_APP_URL = "https://cash.app/$teshnair";
   const VENMO_URL = "https://venmo.com/code?user_id=4671165251454051760&created=1787616068.4310908";
+  const STRIPE_ONE_TIME_URL = "https://buy.stripe.com/fZueVeflbavG7vo0xV1kA00";
 
   function addStylesheet() {
     if (document.querySelector('link[href="css/support.css"]')) return;
@@ -97,10 +98,12 @@
           <div class="support-global-card">
             <div class="support-global-title">Card · Apple Pay · Google Pay</div>
             <div class="support-global-copy">
-              A secure hosted payment option will allow one-time support without sharing payment details with this website.
+              A secure Stripe-hosted payment page allows one-time support without sharing payment details with this website.
             </div>
-            <button class="support-disabled-button" type="button" disabled>Support from anywhere →</button>
-            <span class="support-coming-soon">Secure card support is being connected.</span>
+            <a class="support-action-button support-share-button"
+               href="${STRIPE_ONE_TIME_URL}" target="_blank" rel="noopener noreferrer">
+              Support from anywhere →
+            </a>
           </div>
         </section>
 
