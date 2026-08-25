@@ -1,6 +1,26 @@
 {
-  "updatedAt": "2026-08-25T09:38:00Z",
+  "updatedAt": "2026-08-25T15:21:22Z",
   "items": [
+    {
+      "date": "2026-08-25",
+      "title": "Capacity Exists, But How Much Can I Use Now?",
+      "dek": "The global container fleet is bigger than ever. Yet effective capacity is shrinking.",
+      "body": [
+        "The global container fleet is bigger than ever. There are ships in the water, containers in circulation and terminals operating. Yet effective capacity is shrinking.",
+        "Current port congestion is a useful example. More than 4.3 million TEU of container capacity is reportedly waiting to berth worldwide, exceeding the absolute congestion peak seen during the pandemic. East Asia is carrying much of that pressure, with large queues at Shanghai and Ningbo. Vessel delays are increasingly measured in days rather than hours.",
+        "A 15,000-TEU vessel sitting outside a port is still technically part of the global fleet. But while it waits, the ship falls behind schedule. Its next port call moves. Containers miss connections. Equipment stays in the wrong place. Another service begins operating with less usable capacity.",
+        "One delay becomes several.",
+        "A major carrier has omitted a Shanghai call on one service after adverse weather affected the schedule, rerouting cargo to protect the onward rotation. That makes operational sense for the vessel, but the affected containers now require another solution.",
+        "What actually matters is usable capacity at the time and place where the cargo needs it.",
+        "Congestion, weather, security, equipment imbalance, missed connections and specialized cargo requirements all consume usable capacity.",
+        "The transportation asset does not have to disappear. It only has to stop being available when you need it.",
+        "The question, then, is not simply:",
+        "“How much capacity exists?”",
+        "It is:",
+        "“How much capacity can I actually use, reliably, right now?”"
+      ],
+      "relatedItemIds": ["global-port-congestion-20260825", "shanghai-omission-20260824"]
+    },
     {
       "date": "2026-08-24",
       "title": "The Strait Isn't Closed. So Why Does It Still Feel Like It Is?",
