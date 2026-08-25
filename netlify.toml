@@ -1,4 +1,4 @@
 [build]
-  # Production deploys are allowed only for explicit Monday/Thursday release commits.
+  # Production deploys are allowed only for explicit Sunday/Wednesday release commits.
   # Deploy Previews and branch deploys remain available on any day.
-  ignore = "if [ \"$CONTEXT\" != \"production\" ]; then exit 1; fi; day=$(date -u +%u); msg=$(git log -1 --pretty=%B \"$COMMIT_REF\"); if { [ \"$day\" = \"1\" ] || [ \"$day\" = \"4\" ]; } && printf '%s' \"$msg\" | grep -q '\\[deploy\\]'; then exit 1; else exit 0; fi"
+  ignore = "if [ \"$CONTEXT\" != \"production\" ]; then exit 1; fi; day=$(date -u +%u); msg=$(git log -1 --pretty=%B \"$COMMIT_REF\"); if { [ \"$day\" = \"7\" ] || [ \"$day\" = \"3\" ]; } && printf '%s' \"$msg\" | grep -q '\\[deploy\\]'; then exit 1; else exit 0; fi"
