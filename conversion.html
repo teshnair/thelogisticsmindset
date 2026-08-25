@@ -415,6 +415,13 @@ html, body {
         <nav>
             <a href="index.html">Home</a>
             <a href="about.html">About</a>
+<span class="reference-dropdown conversion-dropdown">
+    <a href="conversion.html" class="reference-main-link conversion-main-link">Conversions</a>
+    <button type="button" class="reference-dropdown-toggle conversion-dropdown-toggle" aria-label="Show conversion tools" aria-expanded="false" onclick="event.stopPropagation(); const box=this.parentElement; const open=box.classList.toggle('open'); this.setAttribute('aria-expanded', String(open));">▼</button>
+    <div class="reference-dropdown-menu conversion-dropdown-menu" role="menu">
+        <a href="conversion.html#dimensional-volume-weight-converter" role="menuitem">Dimensional / Volume Weight Converter</a>
+    </div>
+</span>
             <span class="reference-dropdown">
                 <a href="reference.html" class="reference-main-link">References</a>
                 <button type="button" class="reference-dropdown-toggle" aria-label="Show reference pages" aria-expanded="false" onclick="event.stopPropagation(); const box=this.parentElement; const open=box.classList.toggle('open'); this.setAttribute('aria-expanded', String(open));">▼</button>
@@ -592,7 +599,7 @@ html, body {
 </div>
 
 <div>
-<h3>Dimensional / Volume Weight Calculator</h3>
+<h3 id="dimensional-volume-weight-converter">Dimensional / Volume Weight Calculator</h3>
 <p class="justified">Any combination of measurements in cm/in and kg/lb may be entered. Useful when you have multiple packing list in different measurements. It recognizes comma "," as thousands separator and period "." as decimal separators.<br>Please note that the table might parse wrong numbers if entered in the incorrect format, so recheck that quantity, dimensions, weight and unit of dimensions/weight are correct before calculating. Ideal format is Qty, LxWxH in cm; Weight in kg. Acceptable formats are *.PDF, *.TXT, *.CSV, *.DOCX.</p>
 <div style="margin-bottom:12px;">
   <label style="font-weight:600;">Paste dimensions (one line per item)</label>

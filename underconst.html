@@ -216,7 +216,13 @@
 
         <nav>
             <a href="about.html">About</a>
-           <a href="conversion.html">Conversions</a>
+           <span class="reference-dropdown conversion-dropdown">
+    <a href="conversion.html" class="reference-main-link conversion-main-link">Conversions</a>
+    <button type="button" class="reference-dropdown-toggle conversion-dropdown-toggle" aria-label="Show conversion tools" aria-expanded="false" onclick="event.stopPropagation(); const box=this.parentElement; const open=box.classList.toggle('open'); this.setAttribute('aria-expanded', String(open));">▼</button>
+    <div class="reference-dropdown-menu conversion-dropdown-menu" role="menu">
+        <a href="conversion.html#dimensional-volume-weight-converter" role="menuitem">Dimensional / Volume Weight Converter</a>
+    </div>
+</span>
            <span class="reference-dropdown">
                <a href="reference.html" class="reference-main-link">References</a>
                <button type="button" class="reference-dropdown-toggle" aria-label="Show reference pages" aria-expanded="false" onclick="event.stopPropagation(); const box=this.parentElement; const open=box.classList.toggle('open'); this.setAttribute('aria-expanded', String(open));">▼</button>
