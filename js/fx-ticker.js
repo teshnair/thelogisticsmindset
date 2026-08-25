@@ -46,6 +46,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     stickyStackObserver.observe(stack);
   }
 
+  // News is researched before dawn so the verified daily update can be
+  // published by 5:00 AM Eastern. Editorials remain subject to review.
+  const newsUpdatedLine = document.getElementById("updatedLine");
+  if (newsUpdatedLine && !document.getElementById("dailyNewsSchedule")) {
+    const scheduleLine = document.createElement("div");
+    scheduleLine.id = "dailyNewsSchedule";
+    scheduleLine.className = "updated-line";
+    scheduleLine.textContent = "Daily news is published by 5:00 AM Eastern. Editorials are published after review.";
+    newsUpdatedLine.insertAdjacentElement("afterend", scheduleLine);
+  }
+
   const CACHE_KEY = "fxRatesCache";
   const CACHE_TIME_KEY = "fxRatesTimestamp";
   const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
