@@ -4,7 +4,8 @@
   const CASH_APP_URL = "https://cash.app/$teshnair";
   const VENMO_URL = "https://venmo.com/code?user_id=4671165251454051760&created=1787616068.4310908";
   const STRIPE_ONE_TIME_URL = "https://buy.stripe.com/fZueVeflbavG7vo0xV1kA00";
-  const STRIPE_MONTHLY_URL = "https://buy.stripe.com/14A9AU2yp1ZabLEcgD1kA01";
+  const STRIPE_MONTHLY_5_URL = "https://buy.stripe.com/14A9AU2yp1ZabLEcgD1kA01";
+  const STRIPE_MONTHLY_3_URL = "https://buy.stripe.com/bJe4gA7SJ9rCaHA5Sf1kA02";
 
   function addStylesheet() {
     if (document.querySelector('link[href="css/support.css"]')) return;
@@ -122,8 +123,8 @@
           <h3>Support Monthly</h3>
           <p class="support-section-note">Support the ongoing research, maintenance and updating of this independent educational resource.</p>
           <div class="support-monthly-row">
-            <a class="support-monthly-button" href="${STRIPE_MONTHLY_URL}" target="_blank" rel="noopener noreferrer">$3 / month</a>
-            <a class="support-monthly-button" href="${STRIPE_MONTHLY_URL}" target="_blank" rel="noopener noreferrer">$5 / month</a>
+            <a class="support-monthly-button" href="${STRIPE_MONTHLY_3_URL}" target="_blank" rel="noopener noreferrer">$3 / month</a>
+            <a class="support-monthly-button" href="${STRIPE_MONTHLY_5_URL}" target="_blank" rel="noopener noreferrer">$5 / month</a>
           </div>
         </section>
 
