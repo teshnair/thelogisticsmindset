@@ -41,10 +41,10 @@ function metaDescription(item: GlossaryItem): string {
   return source.length <= 158 ? source : `${source.slice(0, 155).trimEnd()}…`;
 }
 
-async function loadGlossary(siteUrl: string): Promise<GlossaryItem[]> {
+async function loadGlossary(origin: string): Promise<GlossaryItem[]> {
   if (glossaryCache) return glossaryCache;
 
-  const response = await fetch(`${siteUrl.replace(/\/$/, "")}/data/glossary-data.json`, {
+  const response = await fetch(`${origin.replace(/\/$/, "")}/data/glossary-data.json`, {
     headers: { accept: "application/json" },
   });
 
@@ -185,7 +185,8 @@ export default async function handler(req: Request, context: Context) {
   if (!slug || !/^[a-z0-9][a-z0-9-]*$/.test(slug)) return render404(slug);
 
   try {
-    const items = await loadGlossary(context.site.url);
+    const origin = new URL(req.url).origin;
+    const items = await loadGlossary(origin);
     const index = items.findIndex((item) => String(item.id).toLowerCase() === slug);
     if (index === -1) return render404(slug);
 
