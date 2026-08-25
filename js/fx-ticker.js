@@ -48,6 +48,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Show the intended daily publication target without presenting it as a guarantee.
   const newsUpdatedLine = document.getElementById("updatedLine");
+  if (newsUpdatedLine) {
+    const sourceLineText = "Source links open the original publisher.";
+    const keepSourceLinkNoticeOnly = () => {
+      const currentText = newsUpdatedLine.textContent.trim();
+      if (
+        currentText.startsWith("Global scan last updated") ||
+        currentText === "The automated global scan is being initialized."
+      ) {
+        newsUpdatedLine.textContent = sourceLineText;
+      }
+    };
+
+    keepSourceLinkNoticeOnly();
+
+    if ("MutationObserver" in window) {
+      const newsUpdatedLineObserver = new MutationObserver(keepSourceLinkNoticeOnly);
+      newsUpdatedLineObserver.observe(newsUpdatedLine, {
+        childList: true,
+        characterData: true,
+        subtree: true
+      });
+    }
+  }
+
   if (newsUpdatedLine && !document.getElementById("dailyNewsSchedule")) {
     const scheduleLine = document.createElement("div");
     scheduleLine.id = "dailyNewsSchedule";
