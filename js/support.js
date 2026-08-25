@@ -4,6 +4,7 @@
   const CASH_APP_URL = "https://cash.app/$teshnair";
   const VENMO_URL = "https://venmo.com/code?user_id=4671165251454051760&created=1787616068.4310908";
   const STRIPE_ONE_TIME_URL = "https://buy.stripe.com/fZueVeflbavG7vo0xV1kA00";
+  const STRIPE_MONTHLY_URL = "https://buy.stripe.com/14A9AU2yp1ZabLEcgD1kA01";
 
   function addStylesheet() {
     if (document.querySelector('link[href="css/support.css"]')) return;
@@ -121,10 +122,9 @@
           <h3>Support Monthly</h3>
           <p class="support-section-note">Support the ongoing research, maintenance and updating of this independent educational resource.</p>
           <div class="support-monthly-row">
-            <button class="support-monthly-button" type="button" disabled>$3 / month</button>
-            <button class="support-monthly-button" type="button" disabled>$5 / month</button>
+            <a class="support-monthly-button" href="${STRIPE_MONTHLY_URL}" target="_blank" rel="noopener noreferrer">$3 / month</a>
+            <a class="support-monthly-button" href="${STRIPE_MONTHLY_URL}" target="_blank" rel="noopener noreferrer">$5 / month</a>
           </div>
-          <span class="support-coming-soon">Secure recurring support is being connected.</span>
         </section>
 
         <section class="support-section">
