@@ -46,14 +46,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     stickyStackObserver.observe(stack);
   }
 
-  // News is researched before dawn so the verified daily update can be
-  // published by 5:00 AM Eastern. Editorials remain subject to review.
+  // Show the intended daily publication target without presenting it as a guarantee.
   const newsUpdatedLine = document.getElementById("updatedLine");
   if (newsUpdatedLine && !document.getElementById("dailyNewsSchedule")) {
     const scheduleLine = document.createElement("div");
     scheduleLine.id = "dailyNewsSchedule";
     scheduleLine.className = "updated-line";
-    scheduleLine.textContent = "Daily news is published by 5:00 AM Eastern. Editorials are published after review.";
+    scheduleLine.textContent = "I will attempt to publish this news section by 5:00AM Eastern every day.";
     newsUpdatedLine.insertAdjacentElement("afterend", scheduleLine);
   }
 
