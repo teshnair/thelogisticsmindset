@@ -73,20 +73,48 @@
         return response.json();
     }
 
+    function searchTerms() {
+        return state.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    }
+
+    function textMatches(text, terms) {
+        const haystack = String(text || "").toLowerCase();
+        return !terms.length || terms.every(term => haystack.includes(term));
+    }
+
     function itemSearchText(item) {
         return [
             item.title, item.summary, item.logisticsImpact, item.source, item.sourceDomain,
             item.sourceCountry, item.region, item.category, ...(Array.isArray(item.tags) ? item.tags : [])
-        ].join(" ").toLowerCase();
+        ].join(" ");
     }
 
-    function filteredItems() {
+    function editorialSearchText(editorial) {
+        return [
+            "editorial", "the logistics mindset editorial", editorial.title, editorial.dek,
+            ...(Array.isArray(editorial.body) ? editorial.body : [])
+        ].join(" ");
+    }
+
+    function matchingEditorials() {
+        if (!state.query || state.category !== "All") return [];
+        const terms = searchTerms();
+        return (state.editorials?.items || [])
+            .filter(editorial => textMatches(editorialSearchText(editorial), terms))
+            .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+    }
+
+    function filteredItems(editorialMatches = []) {
         const base = state.archiveMode && state.archive?.items ? state.archive.items : (state.latest?.items || []);
-        const terms = state.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+        const terms = searchTerms();
+        const relatedIds = new Set(
+            editorialMatches.flatMap(editorial => Array.isArray(editorial.relatedItemIds) ? editorial.relatedItemIds : [])
+        );
+
         return base.filter(item => {
             if (state.selectedDate && item.date !== state.selectedDate) return false;
             if (state.category !== "All" && item.category !== state.category) return false;
-            if (terms.length && !terms.every(term => itemSearchText(item).includes(term))) return false;
+            if (terms.length && !textMatches(itemSearchText(item), terms) && !relatedIds.has(item.id)) return false;
             return true;
         }).sort((a, b) => {
             const dateSort = String(b.publishedAt || "").localeCompare(String(a.publishedAt || ""));
@@ -132,6 +160,21 @@
             </article>`;
     }
 
+    function editorialCardHtml(editorial) {
+        return `
+            <article class="news-card normal">
+                <div class="card-meta">
+                    <span class="risk-badge normal">EDITORIAL</span>
+                    <span>The Logistics Mindset</span>
+                    <span>·</span>
+                    <span>${escapeHtml(formatDateOnly(editorial.date))}</span>
+                </div>
+                <h3>${highlight(editorial.title || "Editorial")}</h3>
+                <p class="summary">${highlight(editorial.dek || "")}</p>
+                <a class="source-link editorial-result-link" href="#" data-editorial-date="${escapeHtml(editorial.date || "")}">Read editorial →</a>
+            </article>`;
+    }
+
     function editorialForCurrentView() {
         if (state.selectedDate && state.editorials?.items) {
             return state.editorials.items.find(item => item.date === state.selectedDate) || null;
@@ -140,6 +183,11 @@
     }
 
     function renderEditorial() {
+        if (state.query) {
+            state.activeEditorial = null;
+            els.editorialTeaser.classList.add("hidden");
+            return;
+        }
         const editorial = editorialForCurrentView();
         state.activeEditorial = editorial;
         if (!editorial) {
@@ -152,11 +200,14 @@
     }
 
     function renderNews() {
-        const items = filteredItems();
+        const editorialMatches = matchingEditorials();
+        const items = filteredItems(editorialMatches);
+        const editorialHtml = state.query ? editorialMatches.map(editorialCardHtml).join("") : "";
         els.loadingState.classList.add("hidden");
-        els.newsGrid.innerHTML = items.map(cardHtml).join("");
-        els.emptyState.classList.toggle("hidden", items.length > 0);
-        els.resultMeta.textContent = `${items.length} ${items.length === 1 ? "entry" : "entries"}`;
+        els.newsGrid.innerHTML = editorialHtml + items.map(cardHtml).join("");
+        const total = editorialMatches.length + items.length;
+        els.emptyState.classList.toggle("hidden", total > 0);
+        els.resultMeta.textContent = `${total} ${total === 1 ? "entry" : "entries"}`;
 
         if (state.selectedDate) {
             els.resultsTitle.textContent = `Archive · ${formatDateOnly(state.selectedDate)}`;
@@ -252,8 +303,7 @@
         }
     }
 
-    function openEditorial() {
-        const editorial = state.activeEditorial;
+    function openEditorial(editorial = state.activeEditorial) {
         if (!editorial) return;
         state.lastFocused = document.activeElement;
         els.sheetTitle.textContent = editorial.title || "Editorial";
@@ -317,12 +367,19 @@
         setCategory("All");
     }
 
-    els.editorialTeaser.addEventListener("click", openEditorial);
+    els.editorialTeaser.addEventListener("click", () => openEditorial());
     els.editorialTeaser.addEventListener("keydown", event => {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             openEditorial();
         }
+    });
+    els.newsGrid.addEventListener("click", event => {
+        const link = event.target.closest(".editorial-result-link");
+        if (!link) return;
+        event.preventDefault();
+        const editorial = (state.editorials?.items || []).find(item => item.date === link.dataset.editorialDate);
+        if (editorial) openEditorial(editorial);
     });
     els.sheetClose.addEventListener("click", closeEditorial);
     els.sheetBackdrop.addEventListener("click", closeEditorial);
