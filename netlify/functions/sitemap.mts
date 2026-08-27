@@ -62,6 +62,7 @@ export default function handler(req: Request, _context: Context) {
       "/hts-duty-calculator.html",
       "/conversion.html",
       "/currency.html",
+      "/clock.html",
     ];
 
     const urls = [
