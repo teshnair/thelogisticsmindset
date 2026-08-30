@@ -1,1 +1,1 @@
-Production deploy trigger after restoring Netlify credits. Safe to delete in a future batched deployment.
+Production deploy trigger for the corrected weekly editorial on 2026-08-30.
