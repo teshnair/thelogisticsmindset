@@ -12,8 +12,94 @@ type GlossaryItem = {
   images?: Array<{ url?: string; alt?: string }>;
 };
 
+type SeoOverride = {
+  title: string;
+  description: string;
+  intro?: string;
+};
+
 const CANONICAL_ORIGIN = "https://riteshnair.com";
 let glossaryCache: GlossaryItem[] | null = null;
+
+const SEO_OVERRIDES: Record<string, SeoOverride> = {
+  "wibon-wccon-wifpon-wipon": {
+    title: "WWWW Meaning in Shipping | WIBON WCCON WIFPON WIPON",
+    description:
+      "WWWW meaning in shipping: a charter-party clause combining WIBON, WCCON, WIFPON and WIPON for berth, customs, free pratique and port readiness.",
+    intro:
+      "WWWW in shipping combines WIBON, WCCON, WIFPON and WIPON in one charter-party readiness clause.",
+  },
+  "bill-of-material": {
+    title: "Bill of Materials in Supply Chain Management | BOM Meaning",
+    description:
+      "Bill of Materials (BOM) meaning in supply chain management: a structured list of materials, parts, components and quantities required to make a product.",
+    intro:
+      "A Bill of Materials, or BOM, is a core supply-chain and manufacturing document listing what is needed to build a finished product.",
+  },
+  "country-of-departure": {
+    title: "Country of Departure Meaning in Shipping & Customs",
+    description:
+      "Country of departure meaning in shipping and customs: the country from which goods begin the relevant international movement or are dispatched for export.",
+    intro:
+      "Country of departure identifies the country from which goods begin the relevant international shipment or dispatch movement.",
+  },
+  "big-rig": {
+    title: "Big Rig Meaning in Trucking & Logistics",
+    description:
+      "Big rig meaning in trucking and logistics: an informal term for a large tractor-trailer combination used to move freight over the road.",
+    intro:
+      "Big rig is an informal trucking term for a large tractor-trailer used to transport freight by road.",
+  },
+  "free-despatch": {
+    title: "Free Despatch Meaning in Shipping & Chartering",
+    description:
+      "Free despatch meaning in shipping: a charter-party term indicating that no despatch money is payable when cargo operations finish before allowed laytime expires.",
+    intro:
+      "Free despatch is a chartering term dealing with whether despatch money is payable when loading or discharge finishes early.",
+  },
+  "country-of-provenance": {
+    title: "Country of Provenance Meaning in Shipping & Customs",
+    description:
+      "Country of provenance meaning in shipping and customs: the country from which goods are sent to the importing country, which may differ from country of origin.",
+    intro:
+      "Country of provenance generally identifies the country from which goods are sent, rather than where they were manufactured or produced.",
+  },
+  "zone-picking": {
+    title: "Zone Picking Meaning in Warehousing & Logistics",
+    description:
+      "Zone picking meaning in warehousing: an order-picking method where workers are assigned specific warehouse zones and pick items located within those zones.",
+    intro:
+      "Zone picking is a warehouse order-fulfillment method that assigns pickers to defined sections of the facility.",
+  },
+  "batch-production": {
+    title: "Batch Manufacturing Meaning | Batch Production in Supply Chain",
+    description:
+      "Batch manufacturing meaning in supply chain and production: goods are produced in defined groups or batches rather than continuously or one item at a time.",
+    intro:
+      "Batch manufacturing, also called batch production, makes a defined quantity of similar products together before moving to the next batch.",
+  },
+  "back-scheduling": {
+    title: "Back Scheduling Meaning in Supply Chain & Production Planning",
+    description:
+      "Back scheduling meaning: a planning method that starts with the required completion or delivery date and works backward to determine activity start dates.",
+    intro:
+      "Back scheduling works backward from a required delivery or completion date to determine when each preceding activity must start.",
+  },
+  "articles-dangereux-de-route": {
+    title: "ADR Shipping Meaning | Dangerous Goods by Road",
+    description:
+      "ADR shipping meaning: the European agreement governing classification, packaging, labeling, documentation and road transport of dangerous goods.",
+    intro:
+      "ADR is the European framework governing the transport of dangerous goods by road and the requirements applied to those shipments.",
+  },
+  "actual-gross-weight": {
+    title: "AGW Meaning in Shipping | Actual Gross Weight Explained",
+    description:
+      "AGW meaning in shipping: Actual Gross Weight is the measured shipment weight including the cargo, packaging and applicable securing materials.",
+    intro:
+      "AGW in shipping means Actual Gross Weight, the measured weight of the shipment as presented for transport, including relevant packaging and securing materials.",
+  },
+};
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
@@ -93,8 +179,11 @@ function renderPage(item: GlossaryItem, items: GlossaryItem[], index: number): s
   const term = String(item.term || "Shipping Term");
   const abbreviation = String(item.abbreviation || "").trim();
   const heading = abbreviation ? `${term} (${abbreviation})` : term;
-  const description = metaDescription(item);
-  const canonical = `${CANONICAL_ORIGIN}/shipping-terms/${encodeURIComponent(String(item.id))}`;
+  const itemId = String(item.id || "");
+  const seo = SEO_OVERRIDES[itemId];
+  const description = seo?.description || metaDescription(item);
+  const pageTitle = seo?.title || `${heading} Meaning | Shipping Terms | The Logistics Mindset`;
+  const canonical = `${CANONICAL_ORIGIN}/shipping-terms/${encodeURIComponent(itemId)}`;
   const aliases = Array.isArray(item.aliases) ? item.aliases.filter(Boolean) : [];
   const image = safeImageUrl(item.image_url) || safeImageUrl(item.images?.[0]?.url);
   const imageAlt = item.image_alt || item.images?.[0]?.alt || `${term} logistics illustration`;
@@ -134,17 +223,21 @@ function renderPage(item: GlossaryItem, items: GlossaryItem[], index: number): s
     ? `<p style="color:#555"><strong>Also known as:</strong> ${aliases.map(escapeHtml).join(", ")}</p>`
     : "";
 
+  const searchIntentMarkup = seo?.intro
+    ? `<p class="search-intent">${escapeHtml(seo.intro)}</p>`
+    : "";
+
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escapeHtml(heading)} Meaning | Shipping Terms | The Logistics Mindset</title>
+<title>${escapeHtml(pageTitle)}</title>
 <meta name="description" content="${escapeHtml(description)}">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="canonical" href="${escapeHtml(canonical)}">
 <meta property="og:type" content="article">
-<meta property="og:title" content="${escapeHtml(heading)} | The Logistics Mindset">
+<meta property="og:title" content="${escapeHtml(pageTitle)}">
 <meta property="og:description" content="${escapeHtml(description)}">
 <meta property="og:url" content="${escapeHtml(canonical)}">
 ${image ? `<meta property="og:image" content="${escapeHtml(image)}">` : ""}
@@ -152,7 +245,7 @@ ${image ? `<meta property="og:image" content="${escapeHtml(image)}">` : ""}
 <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>
 <style>
 :root{--primary:#1a2a3a;--accent:#2c6bed;--bg:#f4f4f4;--card:#fff;--text:#333}
-*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Tahoma,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}.wrap{max-width:920px;margin:0 auto;padding:28px 20px 50px}.top{display:flex;justify-content:space-between;gap:20px;align-items:center;border-bottom:4px solid var(--primary);padding-bottom:18px;margin-bottom:30px}.brand{font-size:.95rem;color:#555}.brand a{color:var(--accent);text-decoration:none}.logo{width:78px;height:auto}.crumbs{font-size:.9rem;color:#666;margin-bottom:18px}.crumbs a{color:var(--accent);text-decoration:none}article{background:var(--card);padding:28px;border-radius:7px;box-shadow:0 2px 8px rgba(0,0,0,.07)}h1{margin:0 0 8px;color:var(--primary);font-size:2rem;line-height:1.2}.definition{font-size:1.08rem;font-weight:600}.summary{margin-top:18px}.glossary-cta{display:inline-block;margin-top:24px;padding:10px 14px;background:var(--primary);color:#fff;text-decoration:none;border-radius:4px}@media(max-width:640px){article{padding:20px}.logo{width:60px}h1{font-size:1.65rem}}
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Tahoma,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}.wrap{max-width:920px;margin:0 auto;padding:28px 20px 50px}.top{display:flex;justify-content:space-between;gap:20px;align-items:center;border-bottom:4px solid var(--primary);padding-bottom:18px;margin-bottom:30px}.brand{font-size:.95rem;color:#555}.brand a{color:var(--accent);text-decoration:none}.logo{width:78px;height:auto}.crumbs{font-size:.9rem;color:#666;margin-bottom:18px}.crumbs a{color:var(--accent);text-decoration:none}article{background:var(--card);padding:28px;border-radius:7px;box-shadow:0 2px 8px rgba(0,0,0,.07)}h1{margin:0 0 8px;color:var(--primary);font-size:2rem;line-height:1.2}.search-intent{margin:10px 0 16px;color:#44515e;font-size:1.02rem}.definition{font-size:1.08rem;font-weight:600}.summary{margin-top:18px}.glossary-cta{display:inline-block;margin-top:24px;padding:10px 14px;background:var(--primary);color:#fff;text-decoration:none;border-radius:4px}@media(max-width:640px){article{padding:20px}.logo{width:60px}h1{font-size:1.65rem}}
 </style>
 </head>
 <body>
@@ -164,6 +257,7 @@ ${image ? `<meta property="og:image" content="${escapeHtml(image)}">` : ""}
   <div class="crumbs"><a href="/">Home</a> › <a href="/shipping-terms.html">Shipping Terms</a> › ${escapeHtml(term)}</div>
   <article>
     <h1>${escapeHtml(heading)}</h1>
+    ${searchIntentMarkup}
     ${aliasesMarkup}
     <p class="definition">${escapeHtml(item.definition || "")}</p>
     ${item.summary ? `<div class="summary">${escapeHtml(item.summary)}</div>` : ""}
