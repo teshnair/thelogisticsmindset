@@ -1,6 +1,33 @@
 {
-  "updatedAt": "2026-08-25T15:21:22Z",
+  "updatedAt": "2026-08-30T05:05:00Z",
   "items": [
+    {
+      "date": "2026-08-30",
+      "title": "The New Supply Chain Risk Is Dependency",
+      "dek": "The real resilience question is no longer how much capacity exists, but how many practical ways cargo can move when preferred routes stop behaving normally.",
+      "body": [
+        "The question, “How much capacity is available?” is becoming increasingly irrelevant.",
+        "This week alone, logistics networks were dealing with severe port congestion in East Asia, new operational pressure around the Strait of Hormuz, and further restrictions at the Panama Canal. None of these situations mean the world has suddenly run out of ships, terminals, trucks or infrastructure. The problem is that too much cargo still depends on a relatively small number of routes, gateways and operating assumptions.",
+        "At Shanghai and Ningbo, successive typhoons have created vessel queues stretching several days. Global containership capacity waiting to berth reached about 4.31 million TEU, with Shanghai waiting times reported as high as 12 days at some terminals. A leading carrier has already omitted Shanghai calls on certain voyages to protect onward schedules.",
+        "With this year’s lower-than-expected rainfall, the Panama Canal Authority announced reduced daily transit capacity beginning in September. It has also been adjusting draft restrictions and its booking system as water conditions change. Access to the Canal is becoming more conditional, particularly for vessels without secured reservations.",
+        "Then there is the Strait of Hormuz. This week, Iran threatened penalties, detention and possible cargo confiscation against dozens of tankers it says violated its transit requirements.",
+        "These events look unrelated.",
+        "One is weather. One is water availability. One is geopolitics.",
+        "Operationally, however, they expose the same weakness.",
+        "Supply chains that run efficiently through preferred routes are often much less efficient when those routes stop behaving normally.",
+        "That changes how resilience should be measured.",
+        "A company may have three carriers, but if all three depend on the same transshipment hub, the diversification is mostly cosmetic. A shipper may have several suppliers, but if all of them export through the same congested gateway, the risk remains concentrated. If alternatives only become visible after the primary routing fails, they are contingency plans rather than real options.",
+        "The better question is not:",
+        "How much capacity do you have?",
+        "It is:",
+        "How many practical ways do you have to move your cargo?",
+        "That means looking beyond freight rates and transit times when planning important shipments.",
+        "Efficiency matters. None of this means abandoning it.",
+        "But the cheapest or fastest routing on a normal day is not necessarily the lowest-cost routing across the life of a shipment.",
+        "A supply chain with one perfect route is efficient. A supply chain with three workable routes is resilient."
+      ],
+      "relatedItemIds": ["hormuz-traffic-20260828", "saudel-intra-asia-rates-20260828", "china-port-congestion-kuehne-20260828"]
+    },
     {
       "date": "2026-08-25",
       "title": "Capacity Exists, But How Much Can I Use Now?",
