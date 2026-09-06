@@ -1,0 +1,122 @@
+name: Weekly trade regulatory watch
+
+on:
+  schedule:
+    - cron: "30 6 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  trade-regulatory-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check trade and tariff regulatory sources
+        id: regulatory_check
+        continue-on-error: true
+        run: REGULATORY_WATCH_STRICT=1 node scripts/check-trade-regulations.mjs
+
+      - name: Upload regulatory watch report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trade-regulatory-watch-report
+          path: trade-regulatory-watch-report.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Create, update, or close regulatory review issue
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          CHECK_OUTCOME: ${{ steps.regulatory_check.outcome }}
+        with:
+          script: |
+            const fs = require("fs");
+            const issueTitle = "[Trade Regulatory Watch] Review required before weekly publish";
+            let report = null;
+            if (fs.existsSync("trade-regulatory-watch-report.json")) {
+              report = JSON.parse(fs.readFileSync("trade-regulatory-watch-report.json", "utf8"));
+            }
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100
+            });
+            const existing = issues.find(issue => issue.title === issueTitle && !issue.pull_request);
+
+            const requiresReview = !report ||
+              report.summary.sourceFailures > 0 ||
+              report.summary.searchFailures > 0 ||
+              report.summary.newFederalRegisterDocuments > 0;
+
+            if (!requiresReview) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  body: `Regulatory watch passed on ${report.generatedAt}. No new potentially relevant Federal Register notices were found after ${report.reviewedThrough}. Closing this alert.`
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  state: "closed"
+                });
+              }
+              return;
+            }
+
+            const docs = report?.findings?.filter(x => !x.error) || [];
+            const failures = report?.sourceHealth?.filter(x => !x.ok) || [];
+            const lines = docs.slice(0, 30).map(d =>
+              `- **${d.publicationDate || "unknown date"}** — ${d.title}\n  - ${d.htmlUrl || d.pdfUrl || "No URL returned"}\n  - Matched: ${(d.matchedTerms || []).join(", ")}`
+            );
+            const failureLines = failures.map(f => `- ${f.name}: ${f.status || f.error || "unavailable"}`);
+
+            const body = [
+              "The weekly U.S. tariff/import regulatory check requires review before the next production publish.",
+              "",
+              `Last reviewed-through date: **${report?.reviewedThrough || "unknown"}**`,
+              `Detected: ${report?.generatedAt || new Date().toISOString()}`,
+              "",
+              ...(lines.length ? ["## New potentially relevant Federal Register documents", ...lines] : []),
+              ...(failureLines.length ? ["", "## Official-source check failures", ...failureLines] : []),
+              "",
+              "Review the notices, update calculator rules if required, then advance `data/trade-regulatory-reviewed.json`. Production deployment is configured to fail until this review checkpoint is current."
+            ].join("\n");
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body
+              });
+            }
+
+      - name: Fail when regulatory review is required
+        if: steps.regulatory_check.outcome == 'failure'
+        run: exit 1
