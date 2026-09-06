@@ -1592,7 +1592,9 @@ export default async (req: Request) => {
           hts: broadLookup ? hts : selectedCode,
           displayHts: formatHts(broadLookup ? hts : selectedCode),
           description: cleanText(selected?.description),
-          units: Array.isArray(selected?.units) ? selected.units : [],
+          units: Array.isArray(selected?.units)
+            ? selected.units.map((unit: any) => cleanUnit(unit)).filter(Boolean)
+            : [],
           heading: hierarchy.heading,
           subheading: hierarchy.subheading,
           path: hierarchy.path,

@@ -156,7 +156,8 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
   </div>
   <div>
     <label for="qtyUnit">Quantity unit <span class="tiny">(optional)</span></label>
-    <input id="qtyUnit" placeholder="kg, No., L, m²...">
+    <select id="qtyUnit"><option value="">Select HTS reporting unit</option></select>
+    <div class="helper" id="qtyUnitHelp">The published HTS reporting unit will be offered here when identified.</div>
   </div>
   <div class="full checkbox">
     <input id="fta" type="checkbox">
@@ -389,10 +390,47 @@ function formatInput(value) {
   return d;
 }
 
+function normalizeHtsUnit(value) {
+  return String(value ?? '')
+    .replace(/<\s*sup[^>]*>\s*2\s*<\s*\/\s*sup\s*>/gi, '²')
+    .replace(/<\s*sup[^>]*>\s*3\s*<\s*\/\s*sup\s*>/gi, '³')
+    .replace(/&sup2;|&#178;/gi, '²')
+    .replace(/&sup3;|&#179;/gi, '³')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function suggestionUnits(item) {
   return Array.isArray(item?.units)
-    ? [...new Set(item.units.map(unit => String(unit || '').trim()).filter(Boolean))]
+    ? [...new Set(item.units.map(normalizeHtsUnit).filter(Boolean))]
     : [];
+}
+
+function setQuantityUnitOptions(units, message = '') {
+  const select = $('qtyUnit');
+  const help = $('qtyUnitHelp');
+  if (!select) return;
+  const normalized = [...new Set((Array.isArray(units) ? units : []).map(normalizeHtsUnit).filter(Boolean))];
+  const previous = normalizeHtsUnit(select.value);
+  select.innerHTML = '';
+  const first = document.createElement('option');
+  first.value = '';
+  first.textContent = normalized.length ? 'Select HTS reporting unit' : 'No reporting unit identified';
+  select.appendChild(first);
+  normalized.forEach(unit => {
+    const option = document.createElement('option');
+    option.value = unit;
+    option.textContent = unit;
+    select.appendChild(option);
+  });
+  if (normalized.length === 1) select.value = normalized[0];
+  else if (previous && normalized.includes(previous)) select.value = previous;
+  if (help) help.textContent = message || (normalized.length
+    ? `Published HTS unit${normalized.length > 1 ? 's' : ''}: ${normalized.join(', ')}.`
+    : 'The published HTS reporting unit will be offered here when identified.');
 }
 
 function updateHtsUnitHint(items, target) {
@@ -401,6 +439,7 @@ function updateHtsUnitHint(items, target) {
   const d = String(target || '').replace(/\D/g, '');
   if (d.length < 4) {
     hint.textContent = 'Start with at least 4 digits. Matching HTS lines will narrow automatically as you type. The HTS reporting unit will appear here when it can be identified.';
+    setQuantityUnitOptions([]);
     return;
   }
   const matches = (Array.isArray(items) ? items : []).filter(item => String(item?.code || '').startsWith(d));
@@ -416,20 +455,23 @@ function updateHtsUnitHint(items, target) {
         : matches;
   if (!pool.length) {
     hint.textContent = `HTS reporting unit: not identified yet for ${formatInput(d)}.`;
+    setQuantityUnitOptions([]);
     return;
   }
   const signatures = [...new Set(pool.map(item => suggestionUnits(item).join('|')))];
   if (signatures.length !== 1) {
     hint.innerHTML = `<strong>HTS reporting unit:</strong> varies within ${escapeHtml(formatInput(d))}. Select the full HTS line to see the required unit.`;
+    setQuantityUnitOptions([], 'Select the full HTS code first because the reporting unit varies within this classification.');
     return;
   }
   const units = suggestionUnits(pool[0]);
   if (!units.length) {
     hint.innerHTML = `<strong>HTS reporting unit:</strong> none listed for the selected HTS line.`;
+    setQuantityUnitOptions([]);
     return;
   }
   hint.innerHTML = `<strong>HTS reporting unit${units.length > 1 ? 's' : ''}:</strong> ${units.map(escapeHtml).join(', ')}. Use the published unit when entering quantity for a specific-duty formula.`;
-  if (units.length === 1 && $('qtyUnit')) $('qtyUnit').placeholder = `HTS unit: ${units[0]}`;
+  setQuantityUnitOptions(units);
 }
 
 async function readJsonResponse(response) {
@@ -634,7 +676,9 @@ function render(data) {
     multipleBody.innerHTML = '';
     $('multipleRatesFoot').textContent = '';
   }
-  $('units').textContent = Array.isArray(data.classification.units) && data.classification.units.length ? data.classification.units.join(', ') : '—';
+  const resultUnits = Array.isArray(data.classification.units) ? [...new Set(data.classification.units.map(normalizeHtsUnit).filter(Boolean))] : [];
+  $('units').textContent = resultUnits.length ? resultUnits.join(', ') : '—';
+  setQuantityUnitOptions(resultUnits);
 
   const inherited = data.rates.rateInherited;
   $('rateSourceRow').classList.toggle('hidden', !data.rates.appliedRateSourceHts);
@@ -882,7 +926,7 @@ function escapeHtml(value) {
 }
 
 $('resetBtn').addEventListener('click', () => {
-  $('calcForm').reset(); $('result').classList.add('hidden'); $('status').textContent=''; closeSuggestions(); updateHtsUnitHint([], '');
+  $('calcForm').reset(); $('result').classList.add('hidden'); $('status').textContent=''; closeSuggestions(); updateHtsUnitHint([], ''); setQuantityUnitOptions([]);
 });
 
 $('copyBtn').addEventListener('click', async () => {
