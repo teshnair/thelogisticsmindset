@@ -24,14 +24,11 @@ jobs:
         run: |
           curl -fL --retry 3 --max-time 120 'https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099' -o /tmp/ch99.pdf
           pdftotext -layout /tmp/ch99.pdf /tmp/layout.txt
-          pdftotext -raw /tmp/ch99.pdf /tmp/raw.txt
-          echo '=== LAYOUT 6809.11.00 ==='
-          grep -n -C 8 -E '6809[.]11[.]00' /tmp/layout.txt | head -160 || true
-          echo '=== RAW 6809.11.00 ==='
-          grep -n -C 8 -E '6809[.]11[.]00' /tmp/raw.txt | head -160 || true
-          echo '=== LAYOUT 9903.74.01 ==='
-          grep -n -C 12 -E '9903[.]74[.]01' /tmp/layout.txt | head -220 || true
-          echo '=== LAYOUT 9903.76.01 ==='
-          grep -n -C 12 -E '9903[.]76[.]01' /tmp/layout.txt | head -220 || true
-          echo '=== NOTE 37/38 MARKERS ==='
-          grep -n -E '^ *3[78][.]|U[.]S[.] Notes' /tmp/layout.txt | tail -80 || true
+          echo '=== FIRST 6809 OCCURRENCE CONTEXT ==='
+          sed -n '19190,19285p' /tmp/layout.txt
+          echo '=== SECOND 6809 OCCURRENCE CONTEXT ==='
+          sed -n '37340,37430p' /tmp/layout.txt
+          echo '=== NOTE 37 PRODUCT LIST ==='
+          sed -n '35950,36020p' /tmp/layout.txt
+          echo '=== NOTE 38 PRODUCT LIST ==='
+          sed -n '36009,36075p' /tmp/layout.txt
