@@ -20,15 +20,15 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq poppler-utils
-      - name: Inspect Chapter 99 text
+      - name: Inspect Chapter 99 subchapters
         run: |
           curl -fL --retry 3 --max-time 120 'https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099' -o /tmp/ch99.pdf
           pdftotext -layout /tmp/ch99.pdf /tmp/layout.txt
-          echo '=== FIRST 6809 OCCURRENCE CONTEXT ==='
-          sed -n '19190,19285p' /tmp/layout.txt
-          echo '=== SECOND 6809 OCCURRENCE CONTEXT ==='
-          sed -n '37340,37430p' /tmp/layout.txt
-          echo '=== NOTE 37 PRODUCT LIST ==='
-          sed -n '35950,36020p' /tmp/layout.txt
-          echo '=== NOTE 38 PRODUCT LIST ==='
-          sed -n '36009,36075p' /tmp/layout.txt
+          echo '=== SUBCHAPTER MARKERS ==='
+          grep -n -E 'SUBCHAPTER|Subchapter' /tmp/layout.txt | head -160 || true
+          echo '=== PAGE HEADER MARKERS AROUND 6809 OCCURRENCES ==='
+          sed -n '19170,19215p' /tmp/layout.txt
+          echo '---'
+          sed -n '37320,37370p' /tmp/layout.txt
+          echo '=== NOTE 37/38 AREA ==='
+          sed -n '35920,36035p' /tmp/layout.txt
