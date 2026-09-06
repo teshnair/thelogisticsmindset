@@ -1,0 +1,60 @@
+name: Build current Chapter 99 legal index
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - scripts/build-chapter99-index.py
+      - .github/workflows/build-chapter99-index.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install PDF text utility
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+
+      - name: Download current official Chapter 99
+        run: |
+          curl -fL --retry 3 --max-time 120 \
+            'https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099' \
+            -o /tmp/chapter99.pdf
+          pdftotext -layout /tmp/chapter99.pdf /tmp/chapter99.txt
+
+      - name: Build legal applicability candidate index
+        run: |
+          mkdir -p data
+          python scripts/build-chapter99-index.py /tmp/chapter99.txt data/chapter99-index.json
+          python - <<'PY'
+          import json
+          p=json.load(open('data/chapter99-index.json'))
+          assert p.get('htsRevision') == 18, p.get('htsRevision')
+          assert '9903.88.01' in p.get('codes',{}).get('87032301',[]), p.get('codes',{}).get('87032301')
+          assert '9903.82.16' in p.get('codes',{}).get('73211110',[]) or '9903.82.09' in p.get('codes',{}).get('73211110',[]), p.get('codes',{}).get('73211110')
+          print(json.dumps(p['stats'],indent=2))
+          print('87032301:',p['codes'].get('87032301'))
+          print('73211110:',p['codes'].get('73211110'))
+          PY
+
+      - name: Commit generated index
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/chapter99-index.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh current Chapter 99 legal index'
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
