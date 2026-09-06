@@ -120,12 +120,15 @@ jobs:
           assert not measure(old_china_auto, '9903.94.01'), old_china_auto
           assert measure(old_china_auto, '9903.88.01'), old_china_auto
 
-          # Russia derivative steel: missing U.S.-content facts must keep review status but return the higher-duty quick estimate.
+          # Russia derivative steel with melt/pour omitted: assume origin = melt/pour and return the higher-duty path.
           ru_unknown = lookup('7321111000','RU')
           assert_current(ru_unknown)
-          assert 'usMetalContentQualification' in ru_unknown.get('requiredFacts',[]), ru_unknown
           ru_unknown_25 = measure(ru_unknown, '9903.82.16')
-          assert ru_unknown_25 and quick_amount(ru_unknown_25) == 2500, ru_unknown
+          assert ru_unknown_25 and ru_unknown_25.get('applicability') == 'applicable', ru_unknown
+          assert ru_unknown_25.get('ratePercent') == 25, ru_unknown_25
+          assert quick_amount(ru_unknown_25) == 2500, ru_unknown_25
+          assert not ru_unknown.get('requiredFacts'), ru_unknown
+          assert any('melt/pour' in str(a).lower() and 'origin' in str(a).lower() for a in ru_unknown.get('assumptions',[])), ru_unknown
 
           # Russia default derivative-steel treatment when U.S.-content reduction is not met.
           ru_default = lookup('7321111000','RU', usMetalContentQualification='false')
@@ -136,7 +139,7 @@ jobs:
           assert quick_amount(ru25) == 2500, ru25
           assert not measure(ru_default, '9903.82.15'), ru_default
 
-          # Russia reduced treatment when the U.S.-metal-content test is met.
+          # Russia reduced treatment when the U.S.-metal-content test is explicitly met.
           ru_reduced = lookup('7321111000','RU', usMetalContentQualification='true')
           assert_current(ru_reduced)
           ru10 = measure(ru_reduced, '9903.82.15')
