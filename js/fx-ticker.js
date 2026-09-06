@@ -129,3 +129,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     items.join(" · ") +
     ` <span style="opacity:.6">| updated ${new Date(cachedTime).toLocaleTimeString()}</span>`;
 });
+
+// Preview-only additive import/PGA screening layer for the HTS calculator.
+// The original calculator remains unchanged so its broad-HTS multiple-rate
+// and Chapter 99 result rendering continues to work.
+if (/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
+  const screeningScript = document.createElement("script");
+  screeningScript.src = "js/hts-import-screening.js?v=20260906-2";
+  screeningScript.async = false;
+  document.head.appendChild(screeningScript);
+}
