@@ -1,4 +1,4 @@
-name: Verify India Section 232 preview
+name: Capture India Section 232 debug response
 
 on:
   push:
@@ -8,50 +8,53 @@ on:
       - .github/workflows/fix-ch99-value-basis.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  verify:
+  capture:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Wait for Netlify preview and verify India calculation
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+          fetch-depth: 0
+
+      - name: Capture deployed API response
         run: |
           python - <<'PY'
           import json, time, urllib.parse, urllib.request
-
           base = 'https://deploy-preview-43--thelogisticsmindset.netlify.app'
-          expected = None
+          data = None
           last = None
-          for attempt in range(18):
+          for attempt in range(12):
               try:
                   params = urllib.parse.urlencode({
                       'hts':'7321113050',
                       'country':'IN',
                       'customsValue':'100000',
-                      '_verify':time.time_ns(),
+                      '_debug':time.time_ns(),
                   })
-                  req = urllib.request.Request(base + '/api/trade-rules?' + params, headers={'Cache-Control':'no-cache','User-Agent':'TLM-Preview-Verify/1.0'})
+                  req = urllib.request.Request(base + '/api/trade-rules?' + params, headers={'Cache-Control':'no-cache','User-Agent':'TLM-Debug/1.0'})
                   with urllib.request.urlopen(req, timeout=35) as res:
-                      data = json.loads(res.read().decode('utf-8'))
-                  print(json.dumps(data, indent=2)[:20000])
-                  measures = data.get('measures', [])
-                  residual = next((m for m in measures if m.get('hts') == '9903.82.09'), None)
-                  reduced = next((m for m in measures if m.get('hts') == '9903.82.06'), None)
-                  if (data.get('revisionVerified') is True and residual and
-                      residual.get('applicability') == 'applicable' and
-                      residual.get('ratePercent') == 25 and
-                      residual.get('estimatedDuty') == 25000 and
-                      reduced is None and
-                      'metalContentValue' not in data.get('requiredFacts', [])):
-                      expected = data
+                      candidate = json.loads(res.read().decode('utf-8'))
+                  if candidate.get('revisionVerified') is True:
+                      data = candidate
                       break
-                  last = data
+                  last = candidate
               except Exception as exc:
-                  last = repr(exc)
-              time.sleep(10)
-
-          if expected is None:
-              raise SystemExit('Preview did not return the corrected India Section 232 result: ' + str(last)[:3000])
-          print('INDIA_232_PREVIEW_OK')
+                  last = {'error': repr(exc)}
+              time.sleep(8)
+          if data is None:
+              data = last or {'error':'no response'}
+          with open('tmp-india-232-debug.json','w') as f:
+              json.dump(data,f,indent=2)
           PY
+
+      - name: Commit debug response
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tmp-india-232-debug.json
+          git commit -m 'Capture India Section 232 debug response'
+          git push origin HEAD:preview-import-calculator
