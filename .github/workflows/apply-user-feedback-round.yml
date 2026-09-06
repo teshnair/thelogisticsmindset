@@ -27,6 +27,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add hts-duty-calculator.html js/hts-import-screening-v2.js netlify/functions/hts-duty.mts netlify/functions/trade-rules.mts .github/workflows/hts-calculator-smoke.yml
+          git add hts-duty-calculator.html js/hts-import-screening-v2.js netlify/functions/hts-duty.mts netlify/functions/trade-rules.mts
           git commit -m 'Fix HTS units, import purpose and metal tariff exclusivity'
           git push origin HEAD:preview-import-calculator
