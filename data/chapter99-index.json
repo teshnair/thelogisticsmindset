@@ -84098,7 +84098,7 @@
       "9903.96.02"
     ]
   },
-  "generatedAt": "2026-09-06T20:22:21.948693+00:00",
+  "generatedAt": "2026-09-06T23:05:45.433464+00:00",
   "headings": {
     "9901.00.50": {
       "legalContext": {
@@ -89770,6 +89770,7 @@
     "codesWithCandidates": 9944,
     "noteMembershipCodes": 12323,
     "noteSubdivisions": 673,
-    "operativeHeadings": 467
+    "operativeHeadings": 467,
+    "validatedCandidateLinks": 64209
   }
 }
