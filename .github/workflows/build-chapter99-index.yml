@@ -34,7 +34,7 @@ jobs:
             -o /tmp/chapter99.pdf
           pdftotext -layout /tmp/chapter99.pdf /tmp/chapter99.txt
 
-      - name: Build legal applicability candidate index
+      - name: Build and validate complete legal applicability index
         run: |
           mkdir -p data
           python scripts/build-chapter99-index.py /tmp/chapter99.txt data/chapter99-index.json
@@ -42,24 +42,30 @@ jobs:
           import json
           p=json.load(open('data/chapter99-index.json'))
           assert p.get('htsRevision') == 18, p.get('htsRevision')
+
+          # Universal integrity check: the builder validates every candidate link
+          # before it writes the index. The published count must match the actual
+          # number of HTS-to-Chapter-99 links in the generated JSON.
+          actual_links=sum(len(v) for v in p.get('codes',{}).values())
+          validated=p.get('stats',{}).get('validatedCandidateLinks')
+          assert validated == actual_links and actual_links > 0, {
+              'validatedCandidateLinks':validated,
+              'actualCandidateLinks':actual_links,
+          }
+
+          # Representative regression tripwires remain in addition to the
+          # universal validation; they are not the matching algorithm.
           assert '9903.88.01' in p.get('codes',{}).get('87032301',[]), p.get('codes',{}).get('87032301')
           targets=set((p.get('headings',{}).get('9903.82.09') or {}).get('noteTargets',[]))
           required={'16:c:vi','16:c:vii','16:c:viii','16:c:xi'}
           assert required.issubset(targets), {'targets':sorted(targets),'missing':sorted(required-targets)}
           assert '9903.82.09' in p.get('codes',{}).get('73211110',[]), p.get('codes',{}).get('73211110')
-          # Gypsum must never inherit Subchapter III vehicle/lumber provisions.
-          # Check every prefix that the runtime resolver may use.
           for code in ('680911','68091100','6809110010'):
               bad=set(p.get('codes',{}).get(code,[])) & {'9903.74.01','9903.76.01'}
               assert not bad, {'code':code,'falseChapter99':sorted(bad),'allCandidates':p.get('codes',{}).get(code,[])}
+
           print(json.dumps(p['stats'],indent=2))
-          print('87032301:',p['codes'].get('87032301'))
-          print('73211110:',p['codes'].get('73211110'))
-          print('680911:',p['codes'].get('680911'))
-          print('68091100:',p['codes'].get('68091100'))
-          for h in ['9903.88.01','9903.90.08','9903.94.01','9903.94.02','9903.94.03','9903.94.04','9903.82.05','9903.82.06','9903.82.09','9903.82.15','9903.82.16','9903.88.03']:
-              print('\nHEADING',h)
-              print(json.dumps(p.get('headings',{}).get(h),indent=2)[:9000])
+          print('Validated candidate links:', actual_links)
           PY
 
       - name: Commit generated index
