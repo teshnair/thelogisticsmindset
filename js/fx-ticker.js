@@ -130,17 +130,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     ` <span style="opacity:.6">| updated ${new Date(cachedTime).toLocaleTimeString()}</span>`;
 });
 
-// Preview-only additive import/PGA screening layer for the HTS calculator.
-// The original calculator remains unchanged so its broad-HTS multiple-rate
-// and Chapter 99 result rendering continues to work.
+// Preview-only live import / Chapter 99 screening layer.
+// The original duty calculator remains intact for base rates and fees.
 if (/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
   const screeningScript = document.createElement("script");
-  screeningScript.src = "js/hts-import-screening.js?v=20260906-5";
+  screeningScript.src = "js/hts-import-screening-v2.js?v=20260906-1";
   screeningScript.async = false;
   document.head.appendChild(screeningScript);
-
-  const sec2327321Script = document.createElement("script");
-  sec2327321Script.src = "js/hts-section232-7321.js?v=20260906-1";
-  sec2327321Script.async = false;
-  document.head.appendChild(sec2327321Script);
 }
