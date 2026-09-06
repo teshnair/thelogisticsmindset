@@ -3,7 +3,7 @@
   # Deploy Previews and branch deploys remain available on any day.
   ignore = "if [ \"$CONTEXT\" != \"production\" ]; then exit 1; fi; day=$(date -u +%u); msg=$(git log -1 --pretty=%B \"$COMMIT_REF\"); if [ \"$day\" = \"7\" ] && printf '%s' \"$msg\" | grep -q '\\[deploy\\]'; then exit 1; else exit 0; fi"
 
-  # Every production release checks official tariff/regulatory sources first.
-  # If a new potentially relevant notice has appeared since the last reviewed
-  # checkpoint, the live deploy fails instead of publishing stale guidance.
-  command = "if [ \"$CONTEXT\" = \"production\" ]; then REGULATORY_WATCH_STRICT=1 node scripts/check-trade-regulations.mjs; else node scripts/check-trade-regulations.mjs || true; fi"
+  # The regulatory watch runs Saturday, roughly 24 hours before release.
+  # Sunday production deploys rely on that reviewed checkpoint rather than
+  # re-querying official sites at publish time.
+  command = "if [ \"$CONTEXT\" = \"production\" ]; then node scripts/verify-regulatory-release-gate.mjs; else true; fi"
