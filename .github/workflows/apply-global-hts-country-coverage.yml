@@ -1,0 +1,30 @@
+name: Apply global HTS and country coverage
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/apply-global-hts-country-coverage.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+          fetch-depth: 0
+      - name: Apply universal Chapter 99 and country coverage changes
+        run: python scripts/patch-global-hts-country-coverage.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/build-chapter99-index.py netlify/functions/trade-rules.mts
+          git commit -m 'Apply Chapter 99 rules across all HTS codes and countries'
+          git push origin HEAD:preview-import-calculator
