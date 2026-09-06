@@ -22,6 +22,7 @@ subdivision_text = defaultdict(list)
 current_note = None
 current_letter = None
 current_roman = None
+current_subchapter = None
 in_notes = False
 
 code_re = re.compile(r'\b(\d{4}(?:\.\d{2}){1,3})\b')
@@ -29,6 +30,30 @@ heading_re = re.compile(r'^\s*(99\d{2}\.\d{2}\.\d{2})\b')
 note_start_re = re.compile(r'^\s*(\d{1,3})\.\s*(?:\(([a-z])\))?(?:\s+|$)')
 sub_re = re.compile(r'^\s*\(([a-z]|[ivxlcdm]+)\)\s+')
 roman_tokens = {"i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv","xvi","xvii","xviii","xix","xx"}
+subchapter_page_re = re.compile(r'\b99\s*-\s*([IVXLCDM]+)\s*-\s*\d+\b', re.I)
+subchapter_title_re = re.compile(r'\bSUBCHAPTER\s+([IVXLCDM]+)\b', re.I)
+
+def roman_scope_to_int(value):
+    vals={'i':1,'v':5,'x':10,'l':50,'c':100,'d':500,'m':1000}
+    total=prev=0
+    for ch in reversed(str(value).lower()):
+        v=vals.get(ch,0)
+        if v<prev: total-=v
+        else: total+=v; prev=v
+    return total or None
+
+def heading_subchapter(heading):
+    m = re.match(r'^99(\d{2})\.', str(heading or ''))
+    return str(int(m.group(1))) if m else None
+
+def scope_key(base):
+    return f"{current_subchapter}|{base}" if current_subchapter else None
+
+def unscoped_key(key):
+    return str(key).split('|', 1)[1] if '|' in str(key) else str(key)
+
+def key_scope(key):
+    return str(key).split('|', 1)[0] if '|' in str(key) else None
 
 def add_codes(line, keys):
     for code in code_re.findall(line):
@@ -42,19 +67,24 @@ def add_codes(line, keys):
                     note_membership[d[:8]].add(key)
 
 def keys_for_state():
-    if current_note is None:
+    if current_note is None or not current_subchapter:
         return []
     keys = []
     if current_letter:
-        keys.append(f"{current_note}:{current_letter}")
+        keys.append(scope_key(f"{current_note}:{current_letter}"))
         if current_roman:
-            keys.append(f"{current_note}:{current_letter}:{current_roman}")
+            keys.append(scope_key(f"{current_note}:{current_letter}:{current_roman}"))
     else:
-        keys.append(str(current_note))
-    return keys
+        keys.append(scope_key(str(current_note)))
+    return [key for key in keys if key]
 
 for raw in lines:
     line = raw.rstrip()
+    sub_match = subchapter_page_re.search(line) or subchapter_title_re.search(line)
+    if sub_match:
+        sub_num = roman_scope_to_int(sub_match.group(1))
+        if sub_num:
+            current_subchapter = str(sub_num)
     if 'U.S. Notes' in line:
         in_notes = True
         continue
@@ -131,11 +161,15 @@ relations = defaultdict(set)
 relation_context = defaultdict(list)
 
 def add_relation(heading, key, context):
-    if heading in heading_blocks and key:
-        relations[heading].add(key)
-        normalized = re.sub(r'\s+', ' ', context).strip()
-        if normalized and normalized not in relation_context[heading] and len(relation_context[heading]) < 8:
-            relation_context[heading].append(normalized[:3000])
+    if heading not in heading_blocks or not key:
+        return
+    hscope = heading_subchapter(heading)
+    if not hscope or key_scope(key) != hscope:
+        return
+    relations[heading].add(key)
+    normalized = re.sub(r'\s+', ' ', context).strip()
+    if normalized and normalized not in relation_context[heading] and len(relation_context[heading]) < 8:
+        relation_context[heading].append(normalized[:3000])
 
 # Legal-note statements can directly declare that a heading applies to a
 # subdivision. These are stronger than adjacency or chapter-level inference.
@@ -164,7 +198,7 @@ def int_to_roman(n):
         if n==v:return r
     return None
 
-def subdivision_keys(fragment, note):
+def subdivision_keys(fragment, note, scope):
     fragment = fragment.replace('–','-').replace('—','-')
     parent_match = re.search(r'\(([a-z])\)', fragment, re.I)
     base = parent_match.group(1).lower() if parent_match else None
@@ -182,26 +216,29 @@ def subdivision_keys(fragment, note):
         if r not in expanded: expanded.append(r)
     keys=[]
     if base and expanded:
-        keys.extend(f"{note}:{base}:{r}" for r in expanded)
+        keys.extend(f"{scope}|{note}:{base}:{r}" for r in expanded)
     elif base:
-        keys.append(f"{note}:{base}")
+        keys.append(f"{scope}|{note}:{base}")
     for letter in re.findall(r'\(([a-z])\)', remainder, re.I):
         letter = letter.lower()
         if letter not in roman_tokens:
-            key = f"{note}:{letter}"
+            key = f"{scope}|{note}:{letter}"
             if key not in keys:
                 keys.append(key)
     return keys
 
 def parse_heading_relations(heading, block):
     normalized = re.sub(r'\s+', ' ', block)
+    scope = heading_subchapter(heading)
+    if not scope:
+        return
     for rm in re.finditer(r'subdivisions?\s+(.{1,700}?)\s+of\s+(?:U\.\s*S\.\s*)?note\s+(\d+)', normalized, re.I):
-        for key in subdivision_keys(rm.group(1), int(rm.group(2))):
+        for key in subdivision_keys(rm.group(1), int(rm.group(2)), scope):
             add_relation(heading, key, normalized)
     for rm in re.finditer(r'(?:U\.\s*S\.\s*)?note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', normalized, re.I):
         note, letter, roman = int(rm.group(1)), rm.group(2).lower(), rm.group(3)
-        key = f"{note}:{letter}" + (f":{roman.lower()}" if roman else '')
-        add_relation(heading, key, normalized)
+        base = f"{note}:{letter}" + (f":{roman.lower()}" if roman else '')
+        add_relation(heading, f"{scope}|{base}", normalized)
 
 # Parse note/subdivision references from EVERY occurrence of a heading, not
 # only the selected display block.
@@ -235,7 +272,7 @@ for code, keys in note_membership.items():
 # in the official Chapter 99 PDF. If a note boundary is missed, an unrelated
 # HTS list can be assigned to the prior note and create catastrophic false
 # positives. Fail the build instead of publishing such an index.
-note38b_codes = sorted(code for code, keys in note_membership.items() if '38:b' in keys)
+note38b_codes = sorted(code for code, keys in note_membership.items() if '3|38:b' in keys)
 invalid_note38b = [code for code in note38b_codes if not code.startswith('87')]
 if invalid_note38b:
     raise RuntimeError(
@@ -253,13 +290,14 @@ headings_out = {}
 for h, block in heading_blocks.items():
     if h not in relations:
         continue
-    targets = sorted(relations[h])
+    scoped_targets = sorted(relations[h])
+    targets = sorted(set(unscoped_key(key) for key in scoped_targets))
     legal_context = {}
-    for key in targets:
+    for key in scoped_targets:
         if key in subdivision_text:
             legal = ' '.join(p for p in subdivision_text[key] if p).strip()
             if legal:
-                legal_context[key] = re.sub(r'\s+', ' ', legal).strip()[:5000]
+                legal_context[unscoped_key(key)] = re.sub(r'\s+', ' ', legal).strip()[:5000]
     headings_out[h] = {
         "noteTargets": targets,
         "text": re.sub(r'\s+', ' ', block).strip()[:5000],
@@ -296,7 +334,7 @@ print(json.dumps(payload["stats"], indent=2))
 print(f"HTS revision: {rev}")
 for test in ("87032301","73211110"):
     print(test, payload["codes"].get(test, []), "membership", sorted(note_membership.get(test, [])))
-print("9903.88.01 targets", sorted(relations.get("9903.88.01", [])))
-print("9903.82.09 targets", sorted(relations.get("9903.82.09", [])))
-print("9903.82.15 targets", sorted(relations.get("9903.82.15", [])))
-print("9903.82.16 targets", sorted(relations.get("9903.82.16", [])))
+print("9903.88.01 targets", sorted(unscoped_key(k) for k in relations.get("9903.88.01", [])))
+print("9903.82.09 targets", sorted(unscoped_key(k) for k in relations.get("9903.82.09", [])))
+print("9903.82.15 targets", sorted(unscoped_key(k) for k in relations.get("9903.82.15", [])))
+print("9903.82.16 targets", sorted(unscoped_key(k) for k in relations.get("9903.82.16", [])))
