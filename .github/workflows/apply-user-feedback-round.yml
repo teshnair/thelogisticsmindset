@@ -6,6 +6,7 @@ on:
       - preview-import-calculator
     paths:
       - scripts/patch-user-feedback-round.py
+      - .github/workflows/apply-user-feedback-round.yml
   workflow_dispatch:
 
 permissions:
