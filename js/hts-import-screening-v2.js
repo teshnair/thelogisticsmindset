@@ -209,6 +209,15 @@
     });
   }
 
+  function removeLegacyTradeMeasureNotice() {
+    const review = document.getElementById("additionalReview");
+    if (!review) return;
+    review.querySelectorAll(".notice").forEach(el => {
+      const text = (el.textContent || "").toLowerCase();
+      if (text.includes("no additional trade-measure rate could be resolved automatically") || text.includes("no additional chapter 99 trade measure was identified by the current rule set")) el.remove();
+    });
+  }
+
   function addMeasureCard(measure) {
     const review = document.getElementById("additionalReview");
     if (!review) return;
@@ -276,6 +285,7 @@
       if (!res.ok) throw new Error(ruleData.error || "Trade-rule lookup failed");
       lastRulePreview = ruleData;
       renderQuestions(ruleData);
+      if (ruleData?.revisionVerified === true && !["source-unavailable", "source-stale"].includes(ruleData?.status)) removeLegacyTradeMeasureNotice();
 
       removeLegacyProgramCards("Section 232");
       removeLegacyProgramCards("Section 301");
