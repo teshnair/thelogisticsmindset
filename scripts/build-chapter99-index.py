@@ -17,8 +17,6 @@ rev_match = re.search(r'Harmonized Tariff Schedule of the United States Revision
 if rev_match:
     rev = int(rev_match.group(1))
 
-# Capture current U.S.-note subdivision membership. An HTS code is indexed
-# only where it actually appears in the current Chapter 99 legal-note text.
 note_membership = defaultdict(set)
 subdivision_text = defaultdict(list)
 current_note = None
@@ -60,10 +58,6 @@ for raw in lines:
     if 'U.S. Notes' in line:
         in_notes = True
         continue
-    # A printed tariff-table header is the reliable boundary between legal
-    # notes and the tariff heading table. Do NOT reset merely because a legal
-    # note line starts with 9903.xx.xx; legal notes themselves contain such
-    # references and doing so caused false gaps in Note 20.
     if re.search(r'Heading/\s*Stat\.', line):
         in_notes = False
         current_note = current_letter = current_roman = None
@@ -88,29 +82,42 @@ for raw in lines:
             subdivision_text[key].append(line.strip())
         add_codes(line, keys)
 
-# Tariff heading blocks give operative descriptions/rates. Preserve their text;
-# runtime origin/condition validation decides applicability.
+# Keep the richest occurrence of every printed Chapter 99 heading. The same
+# heading can also appear later as a short cross-reference; using the last
+# occurrence silently destroyed the operative text for provisions such as
+# 9903.82.09.
 heading_blocks = {}
 current_heading = None
 buffer = []
+
+def store_heading(heading, parts):
+    if not heading:
+        return
+    block = ' '.join(parts).strip()
+    if not block:
+        return
+    old = heading_blocks.get(heading, '')
+    score = len(block) + (500 if re.search(r'\b(?:duty|rate|additional|provided for)\b', block, re.I) else 0)
+    old_score = len(old) + (500 if re.search(r'\b(?:duty|rate|additional|provided for)\b', old, re.I) else 0)
+    if score > old_score:
+        heading_blocks[heading] = block
+
 for raw in lines:
     m = heading_re.match(raw)
     if m:
-        if current_heading:
-            heading_blocks[current_heading] = ' '.join(buffer).strip()
+        store_heading(current_heading, buffer)
         current_heading = m.group(1)
         buffer = [raw.strip()]
     elif current_heading:
         if re.search(r'Harmonized Tariff Schedule|Heading/ Stat\.|Subheading Suf-|Article Description', raw):
             continue
-        if len(buffer) < 18:
+        if len(buffer) < 26:
             buffer.append(raw.strip())
         elif raw.strip() == '':
-            heading_blocks[current_heading] = ' '.join(buffer).strip()
+            store_heading(current_heading, buffer)
             current_heading = None
             buffer = []
-if current_heading:
-    heading_blocks[current_heading] = ' '.join(buffer).strip()
+store_heading(current_heading, buffer)
 
 relations = defaultdict(set)
 relation_context = defaultdict(list)
@@ -119,7 +126,7 @@ def add_relation(heading, key, context):
     if heading in heading_blocks and key:
         relations[heading].add(key)
         if len(relation_context[heading]) < 8:
-            relation_context[heading].append(context[:2000])
+            relation_context[heading].append(context[:2500])
 
 for key, parts in subdivision_text.items():
     block = ' '.join(p for p in parts if p).strip()
@@ -127,7 +134,7 @@ for key, parts in subdivision_text.items():
         continue
     for hm in re.finditer(r'\bHeading\s+(9903\.\d{2}\.\d{2})\s+applies\s+to\b', block, re.I):
         add_relation(hm.group(1), key, block)
-    for pm in re.finditer(r'(?:rates? of duty|rates?)\s+set\s+forth\s+in\s+headings?\s+(.{0,320}?)\s+apply\s+to\b', block, re.I):
+    for pm in re.finditer(r'(?:rates? of duty|rates?)\s+set\s+forth\s+in\s+headings?\s+(.{0,420}?)\s+apply\s+to\b', block, re.I):
         for h in re.findall(r'9903\.\d{2}\.\d{2}', pm.group(1)):
             add_relation(h, key, block)
 
@@ -147,18 +154,10 @@ def int_to_roman(n):
     return None
 
 def subdivision_keys(fragment, note):
-    """Parse references such as (c)(vi)-(viii), (xi) and (e).
-
-    The first single-letter token is the parent subdivision. Roman numerals
-    after it are children. A later non-Roman single-letter token is a separate
-    top-level condition and is retained as its own target. This is important
-    for provisions such as note 16(c)(vii) *and* note 16(e).
-    """
     fragment = fragment.replace('–','-').replace('—','-')
     parent_match = re.search(r'\(([a-z])\)', fragment, re.I)
     base = parent_match.group(1).lower() if parent_match else None
     remainder = fragment[parent_match.end():] if parent_match else fragment
-
     romans = re.findall(r'\(([ivxlcdm]+)\)', remainder, re.I)
     expanded=[]
     for a,b in re.findall(r'\(([ivxlcdm]+)\)\s*-\s*\(([ivxlcdm]+)\)', remainder, re.I):
@@ -170,15 +169,11 @@ def subdivision_keys(fragment, note):
     for r in romans:
         r=r.lower()
         if r not in expanded: expanded.append(r)
-
     keys=[]
     if base and expanded:
         keys.extend(f"{note}:{base}:{r}" for r in expanded)
     elif base:
         keys.append(f"{note}:{base}")
-
-    # Capture additional top-level letters such as the (e) in
-    # "subdivisions (c)(iv), (vii) ... and (e) of U.S. note 16".
     for letter in re.findall(r'\(([a-z])\)', remainder, re.I):
         letter = letter.lower()
         if letter not in roman_tokens:
@@ -188,13 +183,14 @@ def subdivision_keys(fragment, note):
     return keys
 
 for heading, block in heading_blocks.items():
-    for rm in re.finditer(r'subdivisions?\s+(.{1,240}?)\s+of\s+U\.S\.\s+note\s+(\d+)', block, re.I):
+    normalized = re.sub(r'\s+', ' ', block)
+    for rm in re.finditer(r'subdivisions?\s+(.{1,520}?)\s+of\s+(?:U\.\s*S\.\s*)?note\s+(\d+)', normalized, re.I):
         for key in subdivision_keys(rm.group(1), int(rm.group(2))):
-            add_relation(heading, key, block)
-    for rm in re.finditer(r'U\.S\.\s+note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', block, re.I):
+            add_relation(heading, key, normalized)
+    for rm in re.finditer(r'(?:U\.\s*S\.\s*)?note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', normalized, re.I):
         note, letter, roman = int(rm.group(1)), rm.group(2).lower(), rm.group(3)
         key = f"{note}:{letter}" + (f":{roman.lower()}" if roman else '')
-        add_relation(heading, key, block)
+        add_relation(heading, key, normalized)
 
 code_candidates = defaultdict(set)
 for code, keys in note_membership.items():
@@ -215,7 +211,7 @@ for h, block in heading_blocks.items():
                 legal_context[key] = re.sub(r'\s+', ' ', legal).strip()[:5000]
     headings_out[h] = {
         "noteTargets": targets,
-        "text": re.sub(r'\s+', ' ', block).strip()[:3000],
+        "text": re.sub(r'\s+', ' ', block).strip()[:5000],
         "relationContext": [re.sub(r'\s+',' ',x).strip() for x in relation_context[h][:3]],
         "legalContext": legal_context
     }
@@ -250,5 +246,6 @@ print(f"HTS revision: {rev}")
 for test in ("87032301","73211110"):
     print(test, payload["codes"].get(test, []), "membership", sorted(note_membership.get(test, [])))
 print("9903.88.01 targets", sorted(relations.get("9903.88.01", [])))
+print("9903.82.09 targets", sorted(relations.get("9903.82.09", [])))
 print("9903.82.15 targets", sorted(relations.get("9903.82.15", [])))
 print("9903.82.16 targets", sorted(relations.get("9903.82.16", [])))
