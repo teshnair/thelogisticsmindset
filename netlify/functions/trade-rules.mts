@@ -1,317 +1,120 @@
 const USITC_SEARCH = "https://hts.usitc.gov/reststop/search";
-const CH99_PAGE = "https://hts.usitc.gov/search?query=9903.01.11";
 const USITC_ARCHIVE = "https://www.usitc.gov/harmonized_tariff_information/hts/archive/list";
+const INDEX_PATH = "/data/chapter99-index.json";
+const CACHE_MS = 30 * 60 * 1000;
+const HEADING_CACHE_MS = 6 * 60 * 60 * 1000;
 
-let chapter99Cache: { text: string; fetchedAt: number } | null = null;
-let revisionCache: { label: string | null; date: string | null; fetchedAt: number } | null = null;
-const CACHE_MS = 6 * 60 * 60 * 1000;
+type IndexHeading = {
+  noteTargets?: string[];
+  text?: string;
+  relationContext?: string[];
+  legalContext?: Record<string, string>;
+};
 
-function digits(value: unknown) {
-  return String(value ?? "").replace(/\D/g, "");
-}
+type Chapter99Index = {
+  schemaVersion?: number;
+  htsRevision?: number;
+  generatedAt?: string;
+  sourceUrl?: string;
+  codes?: Record<string, string[]>;
+  headings?: Record<string, IndexHeading>;
+};
 
-function clean(value: unknown) {
-  return String(value ?? "").replace(/<\/?il>/gi, "").replace(/\s+/g, " ").trim();
-}
+type Applicability = "applicable" | "not-applicable" | "needs-facts" | "review-required";
 
-function format8(code: string) {
-  const d = digits(code).slice(0, 8);
-  if (d.length < 8) return d;
-  return `${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6,8)}`;
-}
+type EvaluatedMeasure = {
+  program: string;
+  hts: string;
+  description: string;
+  rateText: string;
+  ratePercent: number | null;
+  rateMode: "additional" | "replacement" | "no-change" | "unknown";
+  estimatedDuty: number | null;
+  replacementDutyEstimate: number | null;
+  applicability: Applicability;
+  reason: string;
+  requiredFacts: string[];
+  noteTargets: string[];
+  exceptionRefs: string[];
+  source: string;
+  sourceContext: string;
+  liveHeadingVerified: boolean;
+};
 
-function stripHtml(html: string) {
-  return html
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>|<\/li>|<\/div>|<\/tr>|<\/h\d>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;|&#160;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/\r/g, "")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
+let indexCache: { data: Chapter99Index; fetchedAt: number; url: string } | null = null;
+let revisionCache: { label: string | null; revision: number | null; date: string | null; fetchedAt: number } | null = null;
+const headingCache = new Map<string, { data: any; fetchedAt: number }>();
 
-async function fetchWithTimeout(url: string, timeout = 12000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
-  try {
-    return await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "TheLogisticsMindset-TradeRules/2.0 (+https://riteshnair.com)",
-        Accept: "text/html,application/json;q=0.9,*/*;q=0.8"
-      }
-    });
-  } finally {
-    clearTimeout(timer);
-  }
+function digits(value: unknown) { return String(value ?? "").replace(/\D/g, ""); }
+function clean(value: unknown) { return String(value ?? "").replace(/<\/?il>/gi, "").replace(/\s+/g, " ").trim(); }
+function format8(code: string) { const d = digits(code).slice(0, 8); return d.length < 8 ? d : `${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6,8)}`; }
+function stripHtml(html: string) { return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi," ").replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi," ").replace(/<br\s*\/?>/gi,"\n").replace(/<\/p>|<\/li>|<\/div>|<\/tr>|<\/h\d>/gi,"\n").replace(/<[^>]+>/g," ").replace(/&nbsp;|&#160;/gi," ").replace(/&amp;/gi,"&").replace(/&quot;/gi,'"').replace(/&#39;|&apos;/gi,"'").replace(/\r/g,"").replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n").trim(); }
+
+async function fetchWithTimeout(url: string, timeout = 15000) {
+  const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeout);
+  try { return await fetch(url, { signal: controller.signal, headers: { "User-Agent": "TheLogisticsMindset-TradeRules/3.0 (+https://riteshnair.com)", Accept: "text/html,application/json;q=0.9,*/*;q=0.8" } }); }
+  finally { clearTimeout(timer); }
 }
 
 async function fetchRows(keyword: string) {
-  const url = new URL(USITC_SEARCH);
-  url.searchParams.set("keyword", keyword);
-  const res = await fetchWithTimeout(url.toString(), 15000);
-  if (!res.ok) throw new Error(`USITC search returned ${res.status}`);
-  const raw = await res.text();
-  const json = JSON.parse(raw);
-  if (Array.isArray(json)) return json;
-  if (Array.isArray(json?.results)) return json.results;
-  if (Array.isArray(json?.data)) return json.data;
-  return [];
+  const url = new URL(USITC_SEARCH); url.searchParams.set("keyword", keyword);
+  const res = await fetchWithTimeout(url.toString(), 18000); if (!res.ok) throw new Error(`USITC search returned ${res.status}`);
+  const json = JSON.parse(await res.text()); if (Array.isArray(json)) return json; if (Array.isArray(json?.results)) return json.results; if (Array.isArray(json?.data)) return json.data; return [];
 }
 
 async function getCurrentRevision() {
   if (revisionCache && Date.now() - revisionCache.fetchedAt < CACHE_MS) return revisionCache;
-  let label: string | null = null;
-  let date: string | null = null;
-  try {
-    const res = await fetchWithTimeout(USITC_ARCHIVE, 12000);
-    if (res.ok) {
-      const text = stripHtml(await res.text());
-      const m = text.match(/(2026 HTS Revision\s+\d+)\s*\(([^)]+)\)/i);
-      if (m) { label = m[1]; date = m[2]; }
-    }
-  } catch {}
-  revisionCache = { label, date, fetchedAt: Date.now() };
-  return revisionCache;
+  let label: string | null = null, revision: number | null = null, date: string | null = null;
+  try { const res = await fetchWithTimeout(USITC_ARCHIVE,12000); if (res.ok) { const text=stripHtml(await res.text()); const m=text.match(/(2026 HTS Revision\s+(\d+))\s*\(([^)]+)\)/i); if(m){label=m[1];revision=Number(m[2]);date=m[3];} } } catch {}
+  revisionCache={label,revision,date,fetchedAt:Date.now()}; return revisionCache;
 }
 
-async function getChapter99Text() {
-  if (chapter99Cache && Date.now() - chapter99Cache.fetchedAt < CACHE_MS) return chapter99Cache.text;
-  const res = await fetchWithTimeout(CH99_PAGE, 15000);
-  if (!res.ok) throw new Error(`Chapter 99 source returned ${res.status}`);
-  const text = stripHtml(await res.text());
-  chapter99Cache = { text, fetchedAt: Date.now() };
-  return text;
+async function getIndex(reqUrl: string) {
+  const indexUrl = new URL(INDEX_PATH, reqUrl).toString();
+  if (indexCache && indexCache.url===indexUrl && Date.now()-indexCache.fetchedAt<CACHE_MS) return indexCache.data;
+  const res=await fetchWithTimeout(indexUrl,20000); if(!res.ok) throw new Error(`Chapter 99 index returned ${res.status}`);
+  const data=await res.json() as Chapter99Index;
+  if((data?.schemaVersion||0)<2 || !data?.codes || !data?.headings || !data?.htsRevision) throw new Error("Chapter 99 index is missing required legal metadata");
+  indexCache={data,fetchedAt:Date.now(),url:indexUrl}; return data;
 }
 
-function flatten(value: any): string[] {
-  if (!value) return [];
-  if (typeof value === "string") return [value];
-  if (Array.isArray(value)) return value.flatMap(flatten);
-  if (typeof value === "object") return Object.values(value).flatMap(flatten);
-  return [];
-}
+function candidateKeys(hts:string){const d=digits(hts),keys:string[]=[];if(d.length>=10)keys.push(d.slice(0,10));if(d.length>=8)keys.push(d.slice(0,8));if(d.length>=6)keys.push(d.slice(0,6));return [...new Set(keys)];}
+function candidateRefs(index:Chapter99Index,hts:string){const refs=new Set<string>();for(const key of candidateKeys(hts))for(const ref of index.codes?.[key]||[])refs.add(ref);return [...refs].sort();}
+function headingContext(meta?:IndexHeading,live?:any){return [live?.description,live?.general,live?.additionalDuties,meta?.text,...(meta?.relationContext||[]),...Object.values(meta?.legalContext||{})].map(clean).filter(Boolean).join(" ");}
 
-function ch99Refs(texts: string[]) {
-  const out = new Set<string>();
-  for (const t of texts) {
-    for (const m of String(t).matchAll(/\b99\d{2}\.\d{2}\.\d{2}\b/g)) out.add(m[0]);
-  }
-  return [...out];
-}
+function programFor(ref:string,meta?:IndexHeading){const targets=meta?.noteTargets||[],context=headingContext(meta);if(targets.some(t=>/^20(?::|$)/.test(t))||/section\s*301/i.test(context))return"Section 301";if(targets.some(t=>/^(16|33)(?::|$)/.test(t))||/section\s*232/i.test(context))return"Section 232";if(/section\s*201|safeguard/i.test(context))return"Section 201 / safeguard";if(/section\s*122/i.test(context))return"Section 122";if(targets.some(t=>/^30(?::|$)/.test(t))&&/russian federation/i.test(context))return"Russia Chapter 99 duty";return"Chapter 99";}
+function boolValue(v:unknown):boolean|null{if(typeof v==="boolean")return v;const s=String(v??"").trim().toLowerCase();if(["true","yes","y","1","qualified","applies"].includes(s))return true;if(["false","no","n","0","not-qualified","does-not-apply"].includes(s))return false;return null;}
+function numberValue(v:unknown):number|null{if(v===null||v===undefined||String(v).trim()==="")return null;const n=Number(v);return Number.isFinite(n)?n:null;}
+function fact(input:any,name:string){if(input?.[name]!==undefined)return input[name];if(input?.facts?.[name]!==undefined)return input.facts[name];return undefined;}
 
-function programFor(ref: string, context = "") {
-  if (/^9903\.(88|90|91)\./.test(ref) || /section\s*301/i.test(context)) return "Section 301";
-  if (/^9903\.(82|85|86|94)\./.test(ref) || /section\s*232/i.test(context)) return "Section 232";
-  if (/safeguard|section\s*201/i.test(context)) return "Section 201 / safeguard";
-  if (/section\s*122/i.test(context)) return "Section 122";
-  return "Chapter 99";
-}
+const COUNTRY_ALIASES:Record<string,string[]>={CN:["china","people's republic of china","peoples republic of china","prc"],RU:["russia","russian federation"],GB:["united kingdom","great britain","uk"],US:["united states","united states of america","usa","u.s."],CA:["canada"],MX:["mexico"],BR:["brazil"],IN:["india"],JP:["japan"],KR:["south korea","republic of korea","korea"],TW:["taiwan"],VN:["vietnam","viet nam"],AR:["argentina"],AU:["australia"],TR:["turkey","türkiye","turkiye"],NL:["netherlands","the netherlands"]};
+const EU_COUNTRIES=new Set(["AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE"]);
+function aliasesForCountry(country:string){const a=new Set<string>((COUNTRY_ALIASES[country]||[]).map(s=>s.toLowerCase()));try{const dn=new Intl.DisplayNames(["en"],{type:"region"});const n=dn.of(country);if(n)a.add(n.toLowerCase());}catch{}return[...a];}
+function normalizeName(v:string){return v.toLowerCase().replace(/\bthe\b/g," ").replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();}
+function explicitOriginPhrases(context:string){const out=new Set<string>();const patterns=[/(?:articles|goods|products?)\s+(?:that are\s+)?(?:the\s+)?products?\s+of\s+(?:the\s+)?([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]{1,70}?)(?=,|;|\.|\s+as\s+provided|\s+that\s+are|\s+classified|\s+in\s+which|\s+under\s+)/gi,/(?:articles|goods|products?)\s+(?:the\s+)?product\s+of\s+(?:the\s+)?([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]{1,70}?)(?=,|;|\.|\s+as\s+provided|\s+that\s+are|\s+classified|\s+in\s+which|\s+under\s+)/gi];for(const re of patterns)for(const m of context.matchAll(re))out.add(normalizeName(m[1]));return[...out].filter(Boolean);}
 
-function collectCodeContexts(ch99Text: string, code8: string) {
-  const needle = format8(code8);
-  const compactNeedle = digits(code8);
-  const candidates: { context: string; refs: string[]; programHints: string[] }[] = [];
-  const normalized = ch99Text;
-  const positions = new Set<number>();
-  let i = 0;
-  while ((i = normalized.indexOf(needle, i)) >= 0) { positions.add(i); i += needle.length; }
-  if (!positions.size) {
-    i = 0;
-    while ((i = normalized.indexOf(compactNeedle, i)) >= 0) { positions.add(i); i += compactNeedle.length; }
-  }
-  for (const pos of positions) {
-    const before = normalized.slice(Math.max(0, pos - 9000), pos);
-    const after = normalized.slice(pos, Math.min(normalized.length, pos + 1200));
-    const context = `${before}\n${after}`;
-    const refs = ch99Refs([context]).slice(-12);
-    const programHints: string[] = [];
-    if (/section\s*301|products? of China|U\.S\. note 20|U\.S\. note 31/i.test(context)) programHints.push("Section 301");
-    if (/section\s*232|U\.S\. note 16|U\.S\. note 33|steel|aluminum|copper|passenger vehicles/i.test(context)) programHints.push("Section 232");
-    candidates.push({ context, refs, programHints: [...new Set(programHints)] });
-  }
-  return candidates;
-}
+function originDecision(country:string,ref:string,meta?:IndexHeading){const targets=meta?.noteTargets||[],context=headingContext(meta),low=context.toLowerCase();if(targets.some(t=>/^20(?::|$)/.test(t)))return country==="CN"?{state:"match" as const,reason:"U.S. note 20 applies to products of China."}:{state:"no-match" as const,reason:"U.S. note 20 is a China measure."};if(targets.some(t=>/^30(?::|$)/.test(t))&&/russian federation/i.test(context))return country==="RU"?{state:"match" as const,reason:"This U.S. note 30 provision applies to products of the Russian Federation."}:{state:"no-match" as const,reason:"This U.S. note 30 provision is Russia-specific."};if(/from all countries|all countries|regardless of country/i.test(context))return{state:"match" as const,reason:"The provision applies to all countries."};if(/product of any country identified in general note 3\(b\)/i.test(context))return{state:"conditional" as const,reason:"Applicability depends on whether the origin is a general note 3(b) country.",fact:"column2CountryStatus"};if(/member countr(?:y|ies) of the european union|products? of the european union/i.test(low))return EU_COUNTRIES.has(country)?{state:"match" as const,reason:"The origin is an EU member state."}:{state:"no-match" as const,reason:"The provision is limited to EU member-state origin."};const phrases=explicitOriginPhrases(context.slice(0,9000));if(phrases.length){const aliases=aliasesForCountry(country).map(normalizeName);const matches=phrases.some(p=>aliases.some(a=>p===a||p.includes(a)||a.includes(p)));return matches?{state:"match" as const,reason:"The entered origin matches the origin stated in the Chapter 99 provision."}:{state:"no-match" as const,reason:`The Chapter 99 provision is origin-specific (${phrases.slice(0,3).join(", ")}).`};}if(targets.some(t=>/^(16|33)(?::|$)/.test(t)))return{state:"match" as const,reason:"No narrower origin condition is stated for this Section 232 candidate."};return{state:"unknown" as const,reason:"The origin condition could not be resolved automatically."};}
 
-function countryCompatibility(context: string, country: string) {
-  const dn = new Intl.DisplayNames(["en"], { type: "region" });
-  const countryName = dn.of(country) || country;
-  const low = context.toLowerCase();
-  const own = countryName.toLowerCase();
-  if (low.includes("products of china") || low.includes("product of china")) return country === "CN" ? "match" : "no-match";
-  if (low.includes("products of brazil") || low.includes("product of brazil")) return country === "BR" ? "match" : "no-match";
-  if (low.includes("products of russia") || low.includes("product of russia") || low.includes("russian federation")) return country === "RU" ? "match" : "no-match";
-  if (low.includes("products of canada") || low.includes("product of canada")) return country === "CA" ? "match" : "no-match";
-  if (low.includes("products of mexico") || low.includes("product of mexico")) return country === "MX" ? "match" : "no-match";
-  if (low.includes(`products of ${own}`) || low.includes(`product of ${own}`) || low.includes(own)) return "match";
-  if (/all countries|regardless of country|any country|articles provided for in/i.test(low)) return "possible";
-  return "unknown";
-}
+function parseDate(text:string){const d=new Date(text);return Number.isNaN(d.getTime())?null:d;}
+function effectiveDecision(context:string,liveDescription:string){const text=`${liveDescription} ${context}`;if(/\b(?:heading|provision|exclusion)\b[^.]{0,100}\bexpired\b|\[\s*expired\s*\]/i.test(liveDescription))return{state:"not-applicable" as const,reason:"The current HTS text marks this provision as expired."};const now=new Date();const before=text.match(/(?:on or )?before\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/i);if(before){const d=parseDate(before[1]);if(d&&now>new Date(d.getTime()+86400000))return{state:"not-applicable" as const,reason:`The stated effective period ended ${before[1]}.`};}const after=text.match(/(?:on or )?after\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/i);if(after){const d=parseDate(after[1]);if(d&&now<d)return{state:"not-applicable" as const,reason:`The provision is not effective until ${after[1]}.`};}return{state:"possible" as const,reason:"The provision is within its stated effective period."};}
 
-function parsePercent(rateText: string) {
-  const m = clean(rateText).match(/(?:plus|additional(?: duty of)?|rate of)\s*(\d+(?:\.\d+)?)\s*%/i)
-    || clean(rateText).match(/^(\d+(?:\.\d+)?)\s*%$/);
-  return m ? Number(m[1]) : null;
-}
+function parsePercent(text:string):number|null{const c=clean(text),patterns=[/additional(?:\s+ad\s+valorem)?(?:\s+rate\s+of\s+duty)?[^%]{0,100}?(\d+(?:\.\d+)?)\s*%/i,/additional\s+(\d+(?:\.\d+)?)\s*percent/i,/\+\s*(?:a\s+)?(?:duty\s+of\s+)?(\d+(?:\.\d+)?)\s*%/i,/subject\s+to\s+(?:an?\s+)?(?:additional\s+)?(\d+(?:\.\d+)?)\s*percent/i,/\b(\d+(?:\.\d+)?)\s*%\s+additional/i];for(const re of patterns){const m=c.match(re);if(m)return Number(m[1]);}return null;}
+function rateDecision(meta:IndexHeading|undefined,live:any){const d=clean(live?.description),a=clean(live?.additionalDuties),g=clean(live?.general),context=headingContext(meta,live),combined=`${a} ${g} ${d} ${context}`;if(/in lieu of the rates? of duty|in lieu of.*column\s*2/i.test(combined)){const pct=parsePercent(combined)??(()=>{const m=combined.match(/\b(\d+(?:\.\d+)?)\s*(?:percent|%)\s+ad\s+valorem/i);return m?Number(m[1]):null;})();return{rateMode:"replacement" as const,ratePercent:pct,rateText:a||g||d||clean(meta?.text)};}const pct=parsePercent(a)??parsePercent(g)??parsePercent(d)??parsePercent(context);if(pct!==null)return{rateMode:"additional" as const,ratePercent:pct,rateText:a||g||d||clean(meta?.text)};if(/\b0\s*%\s+additional|no\s+additional\s+duty|no change|the duty provided in (?:the )?applicable subheading/i.test(combined))return{rateMode:"no-change" as const,ratePercent:0,rateText:a||g||d||clean(meta?.text)};return{rateMode:"unknown" as const,ratePercent:null,rateText:a||g||d||clean(meta?.text)};}
 
-async function resolveChapter99(ref: string) {
-  try {
-    const rows = await fetchRows(ref.replace(/\./g, ""));
-    const row = rows.find((r: any) => clean(r?.htsno) === ref) || rows.find((r: any) => digits(r?.htsno) === digits(ref));
-    if (!row) return { hts: ref, found: false };
-    const general = clean(row?.general);
-    const additional = clean(row?.additionalDuties);
-    const description = clean(row?.description);
-    const rateText = additional || general;
-    return {
-      hts: ref,
-      found: true,
-      description,
-      general,
-      additionalDuties: additional,
-      rateText,
-      ratePercent: parsePercent(rateText)
-    };
-  } catch (error: any) {
-    return { hts: ref, found: false, error: error?.message || String(error) };
-  }
-}
+async function resolveLiveHeading(ref:string){const cached=headingCache.get(ref);if(cached&&Date.now()-cached.fetchedAt<HEADING_CACHE_MS)return cached.data;try{const rows=await fetchRows(digits(ref));const row=rows.find((r:any)=>clean(r?.htsno)===ref)||rows.find((r:any)=>digits(r?.htsno)===digits(ref));const data=row?{found:true,description:clean(row?.description),general:clean(row?.general),special:clean(row?.special),other:clean(row?.other),additionalDuties:clean(row?.additionalDuties)}:{found:false};headingCache.set(ref,{data,fetchedAt:Date.now()});return data;}catch(error:any){return{found:false,error:error?.message||String(error)};}}
+function exceptionRefs(text:string){const refs=new Set<string>();const n=clean(text);for(const m of n.matchAll(/except(?:\s+as\s+provided(?:\s+for)?|\s+for\s+products\s+described)?(?:\s+in)?\s+headings?\s+(.{1,500}?)(?=\.|;|\bapplies\b|\barticles\b|$)/gi))for(const ref of m[1].match(/9903\.\d{2}\.\d{2}/g)||[])refs.add(ref);return[...refs];}
+function noteTarget(meta:IndexHeading|undefined,target:string){return(meta?.noteTargets||[]).includes(target);}
 
-function directRowSignals(rows: any[]) {
-  const texts = rows.flatMap((r: any) => [
-    clean(r?.description), clean(r?.general), clean(r?.special), clean(r?.other), clean(r?.additionalDuties), ...flatten(r?.footnotes).map(clean)
-  ]).filter(Boolean);
-  return { texts, refs: ch99Refs(texts) };
-}
+function conditionDecision(ref:string,meta:IndexHeading|undefined,input:any,hts:string,country:string){const required=new Set<string>(),context=headingContext(meta),targets=meta?.noteTargets||[],chapter=Number(hts.slice(0,2));if(ref==="9903.82.01"){if([72,73,74,76].includes(chapter))return{state:"not-applicable" as const,reason:"The entered HTS is itself in a metal chapter, so the no-metal provision does not apply.",requiredFacts:[]};const hasMetal=boolValue(fact(input,"containsAluminumSteelCopper"));if(hasMetal===null)return{state:"needs-facts" as const,reason:"This 0% provision depends on whether the article contains aluminum, steel, or copper.",requiredFacts:["containsAluminumSteelCopper"]};return hasMetal?{state:"not-applicable" as const,reason:"The article contains subject metal.",requiredFacts:[]}:{state:"applicable" as const,reason:"The article is reported as containing no aluminum, steel, or copper.",requiredFacts:[]};}if(ref==="9903.82.03"){if([72,73,74,76].includes(chapter))return{state:"not-applicable" as const,reason:"The low-metal-weight exception excludes chapters 72, 73, 74, and 76.",requiredFacts:[]};const pct=numberValue(fact(input,"subjectMetalWeightPercent"));if(pct===null)return{state:"needs-facts" as const,reason:"This 0% provision depends on whether the applicable-metal weight is below 15%.",requiredFacts:["subjectMetalWeightPercent"]};return pct<15?{state:"applicable" as const,reason:"Reported applicable-metal weight is below 15%.",requiredFacts:[]}:{state:"not-applicable" as const,reason:"Reported applicable-metal weight is 15% or more.",requiredFacts:[]};}if(noteTarget(meta,"16:e")){const q=boolValue(fact(input,"usMetalContentQualification"));if(q===null)required.add("usMetalContentQualification");else if(!q)return{state:"not-applicable" as const,reason:"The article does not meet U.S. note 16(e).",requiredFacts:[]};}if(noteTarget(meta,"16:d")){if(country!=="GB")return{state:"not-applicable" as const,reason:"This reduced treatment is limited to qualifying U.K.-origin articles.",requiredFacts:[]};const q=boolValue(fact(input,"ukMetalContentQualification"));if(q===null)required.add("ukMetalContentQualification");else if(!q)return{state:"not-applicable" as const,reason:"The article does not meet U.S. note 16(d).",requiredFacts:[]};}if(noteTarget(meta,"33:e")){const year=numberValue(fact(input,"vehicleManufactureYear"));if(year===null)required.add("vehicleManufactureYear");else{const ey=new Date().getUTCFullYear();if(year>ey||year<1880)return{state:"review-required" as const,reason:"The vehicle manufacture year is not plausible.",requiredFacts:[]};if(ey-year<25)return{state:"not-applicable" as const,reason:"The vehicle is less than 25 years old.",requiredFacts:[]};}}if(noteTarget(meta,"33:d")){if(!["CA","MX"].includes(country))return{state:"not-applicable" as const,reason:"This U.S.-content vehicle treatment depends on USMCA eligibility.",requiredFacts:[]};const fta=boolValue(fact(input,"ftaQualification")),approval=boolValue(fact(input,"commerceApproval")),v=numberValue(fact(input,"nonUsVehicleContentValue"));if(fta===false||approval===false)return{state:"not-applicable" as const,reason:"The special U.S.-content vehicle treatment was not established.",requiredFacts:[]};if(fta===null)required.add("ftaQualification");if(approval===null)required.add("commerceApproval");if(v===null)required.add("nonUsVehicleContentValue");}if(noteTarget(meta,"33:c")){if(hts.startsWith("8703"))return{state:"not-applicable" as const,reason:"HTS 8703 is the passenger-vehicle family; this is not its normal duty path.",requiredFacts:[]};if(!clean(fact(input,"vehicleType")))required.add("vehicleType");}if(/general note 3\(b\)/i.test(context)){const c=boolValue(fact(input,"column2CountryStatus"));if(c===null)required.add("column2CountryStatus");else if(!c&&/product of any country identified in general note 3\(b\)/i.test(context))return{state:"not-applicable" as const,reason:"The origin does not meet the general note 3(b) condition.",requiredFacts:[]};}if(/aggregate annual import volume|tariff-rate quota|quota quantity|within-quota/i.test(context)){const q=boolValue(fact(input,"quotaEligibility"));if(q===null)required.add("quotaEligibility");}if(/upon approval from|upon approval by|subject to approval/i.test(context)&&!noteTarget(meta,"33:d")){const a=boolValue(fact(input,"approvalStatus"));if(a===null)required.add("approvalStatus");else if(!a)return{state:"not-applicable" as const,reason:"The required approval has not been established.",requiredFacts:[]};}const note20Targets=targets.filter(t=>/^20:/.test(t)),base301=new Set(["20:b","20:d","20:f","20:g"]),productSpecific=/particular products|product exclusion|described in statistical reporting number|the following particular products/i.test(context);if(note20Targets.some(t=>!base301.has(t))||(productSpecific&&!note20Targets.some(t=>base301.has(t)))){const matches=boolValue(fact(input,`productCondition:${ref}`))??boolValue(fact(input,"productSpecificCondition"));if(matches===null)required.add(`productCondition:${ref}`);else if(!matches)return{state:"not-applicable" as const,reason:"The product does not match the product-specific condition.",requiredFacts:[]};}if(/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(context)&&numberValue(fact(input,"metalContentValue"))===null)required.add("metalContentValue");if(required.size)return{state:"needs-facts" as const,reason:"Additional shipment facts are required to determine this Chapter 99 treatment.",requiredFacts:[...required]};return{state:"applicable" as const,reason:"The HTS, origin, and entered facts satisfy the indexed conditions.",requiredFacts:[]};}
 
-function requiredFactsFor(program: string, context: string) {
-  const facts: string[] = [];
-  const low = context.toLowerCase();
-  if (program === "Section 232" && /melt|pour/i.test(context)) facts.push("meltPourCountry");
-  if (program === "Section 232" && /content|declared value of the (?:steel|aluminum|copper) content/i.test(context)) facts.push("metalContentValue");
-  if (/vehicle|automobile|passenger vehicle|light truck/i.test(context)) facts.push("vehicleManufactureYear");
-  if (/usmca|eligible for special tariff treatment/i.test(low)) facts.push("ftaQualification");
-  return [...new Set(facts)];
-}
+function structuralTargets(m:EvaluatedMeasure){return m.noteTargets.filter(t=>/^(16:c:|33:b|20:)/.test(t)&&t!=="16:e"&&t!=="16:d");}
+function overlapTarget(a:EvaluatedMeasure,b:EvaluatedMeasure){const s=new Set(structuralTargets(a));return structuralTargets(b).some(t=>s.has(t));}
+function applyCompetingConditionPrecedence(measures:EvaluatedMeasure[],input:any){const us=boolValue(fact(input,"usMetalContentQualification"));for(const p of measures.filter(m=>m.noteTargets.includes("16:e")&&m.applicability!=="not-applicable")){for(const o of measures){if(o===p||o.program!=="Section 232"||o.noteTargets.includes("16:e")||!overlapTarget(p,o))continue;const sameRU=/russian federation/i.test(p.sourceContext)===/russian federation/i.test(o.sourceContext);if(!sameRU)continue;if(us===true&&p.applicability==="applicable"){o.applicability="not-applicable";o.reason=`Superseded by ${p.hts}.`;o.estimatedDuty=null;}else if(us===null&&o.applicability==="applicable"){o.applicability="needs-facts";o.requiredFacts=[...new Set([...o.requiredFacts,"usMetalContentQualification"])];o.reason=`Whether ${o.hts} applies depends on ${p.hts}.`;o.estimatedDuty=null;}}}const uk=boolValue(fact(input,"ukMetalContentQualification"));for(const p of measures.filter(m=>m.noteTargets.includes("16:d")&&m.applicability!=="not-applicable")){for(const o of measures){if(o===p||o.program!=="Section 232"||o.noteTargets.includes("16:d")||!overlapTarget(p,o))continue;if(uk===true&&p.applicability==="applicable"){o.applicability="not-applicable";o.reason=`Superseded by ${p.hts}.`;o.estimatedDuty=null;}else if(uk===null&&o.applicability==="applicable"){o.applicability="needs-facts";o.requiredFacts=[...new Set([...o.requiredFacts,"ukMetalContentQualification"])];o.reason=`Whether ${o.hts} applies depends on ${p.hts}.`;o.estimatedDuty=null;}}}}
+function applyExplicitExceptions(measures:EvaluatedMeasure[]){const by=new Map(measures.map(m=>[m.hts,m]));for(const m of measures){if(m.applicability==="not-applicable")continue;const rel=m.exceptionRefs.map(r=>by.get(r)).filter(Boolean) as EvaluatedMeasure[];const applied=rel.find(x=>x.applicability==="applicable");if(applied){m.applicability="not-applicable";m.reason=`Superseded by ${applied.hts}.`;m.estimatedDuty=null;continue;}const unresolved=rel.filter(x=>x.applicability==="needs-facts"||x.applicability==="review-required");if(unresolved.length&&m.applicability==="applicable"){m.applicability="needs-facts";m.requiredFacts=[...new Set([...m.requiredFacts,...unresolved.flatMap(x=>x.requiredFacts)])];m.reason=`An enumerated exception (${unresolved.map(x=>x.hts).join(", ")}) must be resolved first.`;m.estimatedDuty=null;}}}
+function calculationBase(input:any,context:string,customsValue:number){if(/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(context))return numberValue(fact(input,"metalContentValue"));return customsValue>0?customsValue:null;}
 
-async function handler(req: Request) {
-  try {
-    let input: any = {};
-    if (req.method === "GET") {
-      const url = new URL(req.url);
-      input = Object.fromEntries(url.searchParams.entries());
-    } else if (req.method === "POST") {
-      input = await req.json();
-    } else {
-      return Response.json({ error: "Method not allowed" }, { status: 405 });
-    }
+async function evaluateCandidate(ref:string,index:Chapter99Index,input:any,hts:string,country:string,customsValue:number):Promise<EvaluatedMeasure|null>{const meta=index.headings?.[ref];if(!meta)return null;const live=await resolveLiveHeading(ref),context=headingContext(meta,live),sourceContext=clean(`${meta?.text||""} ${(meta?.relationContext||[]).join(" ")} ${Object.values(meta?.legalContext||{}).join(" ")}`).slice(0,7000),program=programFor(ref,meta),origin=originDecision(country,ref,meta),empty=(applicability:Applicability,reason:string):EvaluatedMeasure=>({program,hts:ref,description:clean(live?.description)||clean(meta?.text),rateText:"",ratePercent:null,rateMode:"unknown",estimatedDuty:null,replacementDutyEstimate:null,applicability,reason,requiredFacts:[],noteTargets:meta?.noteTargets||[],exceptionRefs:[],source:"Current USITC Chapter 99 index",sourceContext,liveHeadingVerified:!!live?.found});if(origin.state==="no-match")return empty("not-applicable",origin.reason);const effective=effectiveDecision(context,clean(live?.description));if(effective.state==="not-applicable")return empty("not-applicable",effective.reason);let condition=conditionDecision(ref,meta,input,hts,country);if(origin.state==="unknown"&&condition.state==="applicable")condition={state:"review-required",reason:origin.reason,requiredFacts:[]};else if(origin.state==="conditional"){const f=(origin as any).fact,v=boolValue(fact(input,f));if(v===false)condition={state:"not-applicable",reason:"The origin does not meet the stated country-group condition.",requiredFacts:[]};else if(v===null&&condition.state!=="not-applicable")condition={state:"needs-facts",reason:origin.reason,requiredFacts:[...new Set([...(condition.requiredFacts||[]),f])]};}const rate=rateDecision(meta,live),exceptions=exceptionRefs(`${clean(live?.description)} ${clean(meta?.text)} ${(meta?.relationContext||[]).join(" ")}`),base=calculationBase(input,context,customsValue);let applicability=condition.state as Applicability,reason=condition.reason,estimatedDuty:number|null=null,replacementDutyEstimate:number|null=null;const requiredFacts=[...new Set(condition.requiredFacts||[])];if(applicability==="applicable"){if(rate.rateMode==="unknown"){applicability="review-required";reason="The provision matched, but its current rate treatment could not be resolved safely.";}else if(rate.rateMode==="replacement"){if(rate.ratePercent!==null&&customsValue>0)replacementDutyEstimate=customsValue*rate.ratePercent/100;}else if(rate.ratePercent!==null&&base!==null)estimatedDuty=base*rate.ratePercent/100;else if(rate.ratePercent!==null&&base===null&&rate.ratePercent!==0){if(!requiredFacts.includes("metalContentValue")&&customsValue<=0)requiredFacts.push("customsValue");applicability="needs-facts";reason="A value needed to calculate this duty is missing.";}}return{program,hts:ref,description:clean(live?.description)||clean(meta?.text),rateText:rate.rateText,ratePercent:rate.ratePercent,rateMode:rate.rateMode,estimatedDuty:applicability==="applicable"?estimatedDuty:null,replacementDutyEstimate:applicability==="applicable"?replacementDutyEstimate:null,applicability,reason,requiredFacts,noteTargets:meta?.noteTargets||[],exceptionRefs:exceptions,source:"Current USITC HTS / generated Chapter 99 legal index",sourceContext,liveHeadingVerified:!!live?.found};}
 
-    const hts = digits(input?.hts);
-    const country = String(input?.country || "").toUpperCase().trim();
-    const customsValue = Number(input?.customsValue || 0);
-    if (hts.length < 4 || hts.length > 10) return Response.json({ error: "Enter a 4- to 10-digit HTS number." }, { status: 400 });
-    if (!/^[A-Z]{2}$/.test(country)) return Response.json({ error: "Enter a 2-letter country code." }, { status: 400 });
-
-    const revision = await getCurrentRevision();
-    if (hts.length < 8) {
-      return Response.json({
-        query: { hts, country },
-        currentHts: revision,
-        status: "needs-full-hts",
-        needsFullHts: true,
-        message: "Chapter 99 and trade-remedy rules are generally written at the 8- or 10-digit HTS level. Enter the full HTS before the calculator gives a definitive additional-duty result.",
-        measures: [], requiredFacts: []
-      });
-    }
-
-    const code8 = hts.slice(0,8);
-    const rows = await fetchRows(code8);
-    const rowSignals = directRowSignals(rows);
-    let ch99Text = "";
-    let chapter99SourceAvailable = false;
-    try {
-      ch99Text = await getChapter99Text();
-      chapter99SourceAvailable = /U\.S\. note|subchapter III|9903\./i.test(ch99Text);
-    } catch {}
-
-    const contexts = chapter99SourceAvailable ? collectCodeContexts(ch99Text, code8) : [];
-    const candidateRefs = new Set<string>(rowSignals.refs);
-    const contextByRef = new Map<string,string>();
-
-    for (const c of contexts) {
-      const compat = countryCompatibility(c.context, country);
-      if (compat === "no-match") continue;
-      for (const ref of c.refs) {
-        candidateRefs.add(ref);
-        if (!contextByRef.has(ref)) contextByRef.set(ref, c.context);
-      }
-    }
-
-    const resolved = await Promise.all([...candidateRefs].slice(0, 40).map(resolveChapter99));
-    const measures = resolved
-      .filter((r: any) => r.found)
-      .map((r: any) => {
-        const context = contextByRef.get(r.hts) || rowSignals.texts.join(" ");
-        const program = programFor(r.hts, context);
-        const compat = countryCompatibility(context, country);
-        const ratePercent = r.ratePercent;
-        return {
-          program,
-          hts: r.hts,
-          description: r.description,
-          rateText: r.rateText,
-          ratePercent,
-          estimatedDuty: ratePercent != null && customsValue > 0 ? customsValue * ratePercent / 100 : null,
-          countryCompatibility: compat,
-          requiredFacts: requiredFactsFor(program, context),
-          source: "Current USITC HTS / Chapter 99",
-          sourceContext: clean(context).slice(-1200)
-        };
-      })
-      .filter((m: any) => m.countryCompatibility !== "no-match");
-
-    const requiredFacts = [...new Set(measures.flatMap((m: any) => m.requiredFacts))];
-    const unresolvedContexts = contexts.filter(c => c.refs.length === 0 && countryCompatibility(c.context, country) !== "no-match");
-
-    return Response.json({
-      query: { hts, code8: format8(code8), country, customsValue: customsValue || null },
-      currentHts: revision,
-      chapter99SourceAvailable,
-      directChapter99References: rowSignals.refs,
-      currentChapter99CodeOccurrences: contexts.length,
-      status: chapter99SourceAvailable ? (unresolvedContexts.length ? "review-required" : "resolved") : "source-unavailable",
-      measures,
-      requiredFacts,
-      unresolvedMatches: unresolvedContexts.slice(0, 8).map(c => clean(c.context).slice(-900)),
-      safety: {
-        falseNegativePolicy: "No current Chapter 99 match is treated as definitive unless the current Chapter 99 source was successfully checked.",
-        unresolvedRulePolicy: "If current legal text references the HTS but the rule cannot be resolved automatically, the result is marked review-required rather than not-applicable."
-      },
-      sources: {
-        htsSearch: "https://hts.usitc.gov/",
-        chapter99: "https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099",
-        archive: USITC_ARCHIVE
-      }
-    }, { headers: { "Cache-Control": "public, max-age=0, s-maxage=1800" } });
-  } catch (error: any) {
-    console.error("trade-rules lookup failed", error);
-    return Response.json({
-      error: "The current Chapter 99 regulatory lookup could not be completed.",
-      status: "source-unavailable",
-      detail: error?.message || null
-    }, { status: 502 });
-  }
-}
+async function handler(req:Request){try{let input:any={};if(req.method==="GET")input=Object.fromEntries(new URL(req.url).searchParams.entries());else if(req.method==="POST")input=await req.json();else return Response.json({error:"Method not allowed"},{status:405});const hts=digits(input?.hts),country=String(input?.country||"").toUpperCase().trim(),customsValue=numberValue(input?.customsValue)||0;if(hts.length<4||hts.length>10)return Response.json({error:"Enter a 4- to 10-digit HTS number."},{status:400});if(!/^[A-Z]{2}$/.test(country))return Response.json({error:"Enter a 2-letter country code."},{status:400});const revision=await getCurrentRevision();if(hts.length<8)return Response.json({query:{hts,country},currentHts:revision,status:"needs-full-hts",needsFullHts:true,message:"Chapter 99 provisions are commonly written at the 8- or 10-digit level. Enter the full HTS before a definitive additional-duty result.",measures:[],requiredFacts:[]});let index:Chapter99Index;try{index=await getIndex(req.url);}catch(error:any){return Response.json({query:{hts,country},currentHts:revision,status:"source-unavailable",measures:[],requiredFacts:[],message:"The current Chapter 99 legal index could not be loaded, so no definitive no-additional-duty result will be returned.",error:error?.message||String(error)},{headers:{"Cache-Control":"no-store"}});}const revisionVerified=revision.revision!==null&&index.htsRevision===revision.revision;if(!revisionVerified)return Response.json({query:{hts,country},currentHts:revision,indexHts:{revision:index.htsRevision,generatedAt:index.generatedAt},status:"source-stale",measures:[],requiredFacts:[],message:"The live USITC HTS revision and the Chapter 99 index do not match. Regulatory results are blocked until refresh."},{headers:{"Cache-Control":"no-store"}});const refs=candidateRefs(index,hts),evaluated=(await Promise.all(refs.map(ref=>evaluateCandidate(ref,index,input,hts,country,customsValue)))).filter(Boolean) as EvaluatedMeasure[];applyCompetingConditionPrecedence(evaluated,input);applyExplicitExceptions(evaluated);const visible=evaluated.filter(m=>m.applicability!=="not-applicable"),applicable=visible.filter(m=>m.applicability==="applicable"),needs=visible.filter(m=>m.applicability==="needs-facts"),review=visible.filter(m=>m.applicability==="review-required"),requiredFacts=[...new Set(visible.flatMap(m=>m.requiredFacts))];let status="resolved";if(review.length)status="review-required";else if(needs.length)status="needs-facts";return Response.json({query:{hts,code8:format8(hts),country,customsValue:customsValue||null},currentHts:revision,indexHts:{revision:index.htsRevision,generatedAt:index.generatedAt,schemaVersion:index.schemaVersion},status,revisionVerified,candidateCount:refs.length,applicableCount:applicable.length,measures:visible,requiredFacts,screenedOut:evaluated.filter(m=>m.applicability==="not-applicable").map(m=>({hts:m.hts,program:m.program,reason:m.reason})),message:refs.length===0?"No Chapter 99 candidate was found for this HTS in the current legal index.":status==="resolved"?"Current Chapter 99 candidates were resolved against the entered origin and shipment facts.":"One or more current Chapter 99 candidates require additional facts or review before a definitive duty result can be stated.",safety:{candidateIsNotApplicability:true,falseNegativePolicy:"A missing hardcoded list entry is never treated as proof that a trade measure does not apply.",unresolvedRulePolicy:"Unresolved origin, condition, exception, or rate logic is returned as needs-facts or review-required and is not added to the duty total.",replacementRatePolicy:"In-lieu/replacement Chapter 99 rates are returned separately and are not added on top of ordinary duty."},sources:{htsSearch:"https://hts.usitc.gov/",chapter99:index.sourceUrl||"https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099",archive:USITC_ARCHIVE}},{headers:{"Cache-Control":"public, max-age=0, s-maxage=1800"}});}catch(error:any){console.error("trade-rules lookup failed",error);return Response.json({error:"Unable to complete the current Chapter 99 screening.",detail:error?.message||String(error)},{status:500});}}
 
 export default handler;
-
-export const config = {
-  path: "/api/trade-rules"
-};
