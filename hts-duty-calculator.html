@@ -3,105 +3,853 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>U.S. Import Requirements & Duty Calculator | The Logistics Mindset</title>
-<meta name="description" content="Screen U.S. import requirements by HTS code and estimate customs duty, MPF, HMF and additional tariff treatment using live USITC data.">
+<title>U.S. HTS Duty Calculator | The Logistics Mindset</title>
+<meta name="description" content="Look up a U.S. HTS code and estimate applicable customs duty, MPF and HMF using live USITC data.">
 <link rel="stylesheet" href="css/header.css">
 <style>
-:root{--primary:#1a2a3a;--accent:#2c7be5;--text:#333;--bg:#f4f4f4;--card:#fff;--muted:#667085;--warn:#8a5a00;--ok:#24633e}
-*{box-sizing:border-box}body{font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;line-height:1.45;color:var(--text);background:var(--bg);margin:0}.container{max-width:1050px;margin:40px auto;padding:20px}h1{margin:0;color:var(--primary);font-size:2.25rem}.subtitle{font-size:1.03rem;color:#555;margin-top:6px}nav{margin-top:15px}nav a{margin-right:20px;text-decoration:none;color:var(--accent);font-weight:500}nav a:hover{text-decoration:underline}.time-ticker{margin-top:6px;background:#fff;color:#000;padding:8px 12px;font-size:.85rem;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;border-radius:4px;text-decoration:none}.card{background:var(--card);border-radius:5px;box-shadow:0 2px 7px rgba(0,0,0,.08);padding:22px;margin-top:28px}.tool-card{border-top:5px solid var(--primary)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.full{grid-column:1/-1}label{display:block;font-size:.9rem;font-weight:700;color:var(--primary);margin-bottom:6px}input,select{width:100%;padding:12px;border:1px solid #c9d1d9;border-radius:4px;background:#fff;font:inherit}input:focus,select:focus{outline:2px solid rgba(44,123,229,.18);border-color:var(--accent)}.helper{font-size:.82rem;color:var(--muted);margin-top:5px}.actions{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}button{border:0;border-radius:4px;padding:12px 18px;font:inherit;font-weight:700;cursor:pointer}.primary{background:var(--primary);color:#fff}.secondary{background:#e9eef3;color:var(--primary)}button:disabled{opacity:.55;cursor:not-allowed}.status{font-size:.88rem;color:var(--muted)}.section-title{color:var(--primary);border-left:5px solid var(--primary);padding-left:12px;margin:26px 0 12px;text-transform:uppercase;font-size:.93rem;letter-spacing:.7px}.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:15px}.metric{background:#f8fafc;border:1px solid #e4e9ee;border-radius:4px;padding:13px}.metric span{display:block;color:var(--muted);font-size:.76rem;text-transform:uppercase;letter-spacing:.45px}.metric strong{display:block;color:var(--primary);font-size:1.1rem;margin-top:4px}.metric.total{background:var(--primary)}.metric.total span,.metric.total strong{color:#fff}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:10px 8px;border-bottom:1px solid #e7ebef;text-align:left;vertical-align:top}.table th{width:27%;color:var(--primary);font-size:.87rem}.notice{padding:12px 14px;border-radius:4px;margin-top:12px;font-size:.9rem}.info{background:#eef5ff;border-left:4px solid var(--accent);color:#264d75}.warn{background:#fff7e6;border-left:4px solid #d99a20;color:#6b4b00}.ok{background:#eef9f3;border-left:4px solid #3a9d65;color:#245c3d}.danger{background:#fff1f1;border-left:4px solid #c84848;color:#7d2525}.hidden{display:none!important}.requirements-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.req{border:1px solid #dde3e8;border-radius:5px;padding:14px;background:#fff}.req h4{margin:0 0 6px;color:var(--primary)}.req p{margin:6px 0;font-size:.88rem}.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}.badge.likely{background:#e8f6ee;color:#22633e}.badge.conditional{background:#fff3d6;color:#765000}.badge.review{background:#e9f2ff;color:#285b91}.badge.special{background:#f1e9ff;color:#614295}.refine{background:#f8fafc;border:1px solid #e4e9ee;border-radius:5px;padding:14px;margin-top:16px}.refine summary{cursor:pointer;font-weight:700;color:var(--primary)}.checkgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.checkline{display:flex;gap:9px;align-items:flex-start;background:#fff;border:1px solid #e5e9ee;padding:10px;border-radius:4px}.checkline input{width:auto;margin-top:3px}.checkline label{margin:0;font-weight:600;color:#333}.small{font-size:.8rem;color:var(--muted)}.disclaimer{margin-top:18px;padding:14px;border:1px solid #d7dde3;border-radius:5px;background:#f7f8fa;font-size:.86rem;color:#4d5660}.source-note{font-size:.82rem;color:var(--muted);margin-top:12px}.source-note a{color:var(--accent)}footer{text-align:center;color:#666;font-size:.9rem;margin:50px 0 25px}.hts-wrap{position:relative}.suggestions{position:absolute;z-index:30;left:0;right:0;top:100%;background:#fff;border:1px solid #c9d1d9;box-shadow:0 6px 16px rgba(0,0,0,.12);max-height:300px;overflow:auto}.suggestion{padding:10px 12px;border-bottom:1px solid #edf0f3;cursor:pointer}.suggestion:hover{background:#eef5ff}.suggestion strong,.suggestion span{display:block}.suggestion span{font-size:.8rem;color:#555;margin-top:2px}.ch99{margin:8px 0;padding:10px;background:#fafafa;border:1px solid #e6e6e6;border-radius:4px}.tiny{font-size:.78rem;color:var(--muted)}@media(max-width:800px){.requirements-grid,.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.container{margin:24px auto;padding:0 14px}h1{font-size:1.75rem}.grid,.summary-grid,.requirements-grid,.checkgrid{grid-template-columns:1fr}.full{grid-column:auto}.table th{width:38%}}@media print{.tool-card,.actions,.refine{display:none!important}body{background:#fff}}
+:root {
+  --primary-color:#1a2a3a;
+  --accent-color:#2c7be5;
+  --text-color:#333;
+  --bg-color:#f4f4f4;
+  --card-bg:#fff;
+  --muted:#667085;
+}
+*{box-sizing:border-box}
+body{font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;line-height:1.45;color:var(--text-color);background:var(--bg-color);margin:0}
+.container{max-width:1050px;margin:40px auto;padding:20px}
+h1{margin:0;color:var(--primary-color);font-size:2.35rem}.subtitle{font-size:1.05rem;color:#555;margin-top:6px}
+nav{margin-top:15px}nav a{margin-right:20px;text-decoration:none;color:var(--accent-color);font-weight:500}nav a:hover{text-decoration:underline}
+.time-ticker{margin-top:6px;background:#fff;color:#000;padding:8px 12px;font-size:.85rem;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;border-radius:4px;text-decoration:none;cursor:pointer}.time-ticker span{white-space:nowrap;font-weight:500}
+.tool-card,.result-card{background:var(--card-bg);border-radius:5px;box-shadow:0 2px 7px rgba(0,0,0,.08);padding:22px;margin-top:28px}.tool-card{border-top:5px solid var(--primary-color)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.full{grid-column:1/-1}
+label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);margin-bottom:6px}input,select{width:100%;padding:12px;border:1px solid #c9d1d9;border-radius:4px;background:#fff;font:inherit}input:focus,select:focus{outline:2px solid rgba(44,123,229,.18);border-color:var(--accent-color)}
+.helper{color:var(--muted);font-size:.82rem;margin-top:5px}.checkbox{display:flex;gap:10px;align-items:flex-start;background:#f8fafc;border:1px solid #e3e8ef;padding:12px;border-radius:4px}.checkbox input{width:auto;margin-top:3px}.checkbox label{margin:0;color:#333;font-weight:600}.checkbox small{display:block;color:var(--muted);font-weight:400;margin-top:2px}
+.actions{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}button{border:0;border-radius:4px;padding:12px 18px;font:inherit;font-weight:700;cursor:pointer}.primary{background:var(--primary-color);color:#fff}.secondary{background:#e9eef3;color:var(--primary-color)}button:disabled{opacity:.55;cursor:not-allowed}.status{font-size:.9rem;color:var(--muted)}
+.hts-wrap{position:relative}.suggestions{position:absolute;z-index:20;left:0;right:0;top:100%;background:#fff;border:1px solid #c9d1d9;border-top:0;box-shadow:0 6px 16px rgba(0,0,0,.12);max-height:320px;overflow:auto}.suggestion{padding:10px 12px;border-bottom:1px solid #edf0f3;cursor:pointer}.suggestion:last-child{border-bottom:0}.suggestion:hover,.suggestion.active{background:#eef5ff}.suggestion strong{display:block;color:var(--primary-color);font-size:.9rem}.suggestion span{display:block;color:#555;font-size:.82rem;margin-top:2px}.no-match{padding:10px 12px;color:#7d2525;font-size:.84rem}
+.result-header{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;border-bottom:1px solid #e7ebef;padding-bottom:15px}.result-header h2{margin:0;color:var(--primary-color);font-size:1.35rem}.hts-pill{white-space:nowrap;background:#e9eef3;color:var(--primary-color);font-weight:800;padding:7px 10px;border-radius:4px}
+.summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:18px}.metric{background:#f8fafc;border:1px solid #e5e9ee;border-radius:4px;padding:14px}.metric span{display:block;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px}.metric strong{display:block;color:var(--primary-color);font-size:1.15rem;margin-top:4px}.metric.total{background:var(--primary-color)}.metric.total span,.metric.total strong{color:#fff}
+.section-title{color:var(--primary-color);border-left:5px solid var(--primary-color);padding-left:12px;margin:26px 0 12px;text-transform:uppercase;font-size:.93rem;letter-spacing:.8px}.rate-table,.class-table{width:100%;border-collapse:collapse}.rate-table th,.rate-table td,.class-table th,.class-table td{text-align:left;border-bottom:1px solid #e7ebef;padding:10px 8px;vertical-align:top}.rate-table th,.class-table th{width:28%;color:var(--primary-color);font-size:.87rem}.rate-table td,.class-table td{overflow-wrap:anywhere}
+.notice{padding:12px 14px;border-radius:4px;margin-top:12px;font-size:.9rem}.notice.warn{background:#fff7e6;border-left:4px solid #d99a20;color:#6b4b00}.notice.ok{background:#eef9f3;border-left:4px solid #3a9d65;color:#245c3d}.notice.info{background:#eef5ff;border-left:4px solid var(--accent-color);color:#264d75}.notice.danger{background:#fff1f1;border-left:4px solid #c84848;color:#7d2525}
+.hidden{display:none!important}.ch99{margin:8px 0;padding:10px;background:#fafafa;border:1px solid #e6e6e6;border-radius:4px}.ch99 strong{color:var(--primary-color)}.tiny{font-size:.8rem;color:var(--muted)}.source-note{margin-top:18px;font-size:.86rem;color:var(--muted)}.source-note a{color:var(--accent-color)}footer{text-align:center;color:#666;font-size:.9rem;margin:50px 0 25px}
+
+.review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.review-card{border:1px solid #e1e6eb;border-radius:5px;padding:14px;background:#fff}
+.review-card h4{margin:0 0 8px;color:var(--primary-color);font-size:.96rem}
+.review-card p{margin:6px 0;font-size:.88rem;color:#444}
+.review-card .review-detail{font-size:.82rem;color:var(--muted);margin-top:8px}
+.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:.72rem;font-weight:800;letter-spacing:.45px;text-transform:uppercase;margin-bottom:8px}
+.badge.identified{background:#e8f6ee;color:#22633e}
+.badge.review{background:#fff3d6;color:#765000}
+.badge.info{background:#e9f2ff;color:#285b91}
+.badge.none{background:#f0f2f4;color:#59636e}
+.summary-grid.trade-summary{grid-template-columns:repeat(4,minmax(0,1fr))}
+.summary-grid.trade-summary .metric.total{grid-column:span 2}
+.multi-rate-panel{margin-top:14px;border:1px solid #d8dee6;border-radius:5px;overflow:hidden}
+.multi-rate-head{padding:12px 14px;background:#f6f8fa;border-bottom:1px solid #d8dee6}
+.multi-rate-head strong{color:var(--primary-color)}
+.multi-rate-table{width:100%;border-collapse:collapse;font-size:.84rem}
+.multi-rate-table th,.multi-rate-table td{padding:9px 10px;border-bottom:1px solid #edf0f2;text-align:left;vertical-align:top}
+.multi-rate-table th{background:#fafbfc;color:#3f4954}
+.multi-rate-table td:first-child{white-space:nowrap;font-weight:700}
+.multi-rate-table td:last-child{white-space:nowrap;font-weight:700}
+.disclaimer-box{margin-top:18px;padding:14px;border:1px solid #d7dde3;border-radius:5px;background:#f7f8fa;font-size:.86rem;color:#4d5660}
+.disclaimer-box strong{color:var(--primary-color)}
+.assumption-note{margin-top:7px;font-size:.8rem;color:#7a5a00}
+@media(max-width:800px){.review-grid{grid-template-columns:1fr}.summary-grid.trade-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-grid.trade-summary .metric.total{grid-column:span 2}}
+@media(max-width:640px){.summary-grid.trade-summary{grid-template-columns:1fr}.summary-grid.trade-summary .metric.total{grid-column:auto}}
+
+@media(max-width:800px){.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.container{margin:24px auto;padding:0 14px}h1{font-size:1.8rem}.grid,.summary-grid{grid-template-columns:1fr}.full{grid-column:auto}.result-header{display:block}.hts-pill{display:inline-block;margin-top:10px}.rate-table th,.class-table th{width:37%}}
+@media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{background:#fff}.tool-card,.actions{display:none!important}}
 </style>
 </head>
 <body>
 <div class="container">
 <header class="page-header">
-<img src="img/logo.png" alt="Logo" class="page-logo">
-<div class="header-text">
-<h1>U.S. Import Requirements & Duty Calculator</h1>
-<p class="subtitle">HTS-based import screening plus live tariff and estimated import charges</p>
-<nav>
-<a href="index.html">Home</a><a href="about.html">About</a>
-<span class="reference-dropdown conversion-dropdown"><a href="conversion.html" class="reference-main-link conversion-main-link">Conversions</a><button type="button" class="reference-dropdown-toggle conversion-dropdown-toggle" aria-label="Show conversion tools" aria-expanded="false" onclick="event.stopPropagation();const box=this.parentElement;const open=box.classList.toggle('open');this.setAttribute('aria-expanded',String(open));">▼</button><div class="reference-dropdown-menu conversion-dropdown-menu" role="menu"><a href="conversion.html#dimensional-volume-weight-converter" role="menuitem">Dimensional / Volume Weight Converter</a></div></span>
-<span class="reference-dropdown"><a href="reference.html" class="reference-main-link">References</a><button type="button" class="reference-dropdown-toggle" aria-label="Show reference pages" aria-expanded="false" onclick="event.stopPropagation();const box=this.parentElement;const open=box.classList.toggle('open');this.setAttribute('aria-expanded',String(open));">▼</button><div class="reference-dropdown-menu" role="menu"><a href="hts-duty-calculator.html" role="menuitem">U.S. Import Requirements & Duty Calculator</a><a href="shipping-terms.html" role="menuitem">Shipping Terms Glossary</a><a href="tracking.html" role="menuitem">Shipment Tracking</a><a href="incoterms.html" role="menuitem">Incoterms</a><a href="hazmat.html" role="menuitem">Hazardous Materials Basics</a><a href="Customs.html" role="menuitem">Customs & Trade Concepts</a><a href="containers.html" role="menuitem">Containers</a><a href="uld.html" role="menuitem">ULDs (Unit Load Devices)</a></div></span>
-<a href="currency.html">Currencies</a><a href="clock.html">World Time</a><a href="news.html">News</a><a href="blog.html">Blog</a>
-</nav>
-</div></header>
-<div id="fxTicker" class="fx-ticker" role="link" tabindex="0" onclick="location.href='currency.html'">Loading FX…</div>
+  <img src="img/logo.png" alt="Logo" class="page-logo">
+  <div class="header-text">
+    <h1>U.S. HTS Duty Calculator</h1>
+    <p class="subtitle">Live HTS lookup with applicable tariff treatment and estimated import charges</p>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <span class="reference-dropdown conversion-dropdown">
+    <a href="conversion.html" class="reference-main-link conversion-main-link">Conversions</a>
+    <button type="button" class="reference-dropdown-toggle conversion-dropdown-toggle" aria-label="Show conversion tools" aria-expanded="false" onclick="event.stopPropagation(); const box=this.parentElement; const open=box.classList.toggle('open'); this.setAttribute('aria-expanded', String(open));">▼</button>
+    <div class="reference-dropdown-menu conversion-dropdown-menu" role="menu">
+        <a href="conversion.html#dimensional-volume-weight-converter" role="menuitem">Dimensional / Volume Weight Converter</a>
+    </div>
+</span>
+      <span class="reference-dropdown">
+          <a href="reference.html" class="reference-main-link">References</a>
+          <button type="button" class="reference-dropdown-toggle" aria-label="Show reference pages" aria-expanded="false" onclick="event.stopPropagation(); const box=this.parentElement; const open=box.classList.toggle('open'); this.setAttribute('aria-expanded', String(open));">▼</button>
+          <div class="reference-dropdown-menu" role="menu">
+                              <a href="hts-duty-calculator.html" role="menuitem">U.S. HTS Duty Calculator</a>
+                              <a href="shipping-terms.html" role="menuitem">Shipping Terms Glossary</a>
+                              <a href="tracking.html" role="menuitem">Shipment Tracking</a>
+                              <a href="incoterms.html" role="menuitem">Incoterms</a>
+                              <a href="hazmat.html" role="menuitem">Hazardous Materials Basics</a>
+                              <a href="Customs.html" role="menuitem">Customs & Trade Concepts</a>
+                              <a href="containers.html" role="menuitem">Containers</a>
+                              <a href="uld.html" role="menuitem">ULDs (Unit Load Devices)</a>
+          </div>
+      </span>
+<a href="currency.html">Currencies</a>
+      <a href="clock.html">World Time</a>
+      <a href="news.html">News</a>
+      <a href="blog.html">Blog</a>
+    </nav>
+  </div>
+</header>
+
+<div id="fxTicker" class="fx-ticker" role="link" tabindex="0" onclick="location.href='currency.html'" onkeydown="if(event.key==='Enter') location.href='currency.html'">Loading FX…</div>
 <a href="/world-clock.html" id="timeTicker" class="time-ticker"></a>
 
-<section class="card tool-card">
+<section class="tool-card">
 <form id="calcForm">
 <div class="grid">
-<div><label for="hts">HTS code</label><div class="hts-wrap"><input id="hts" inputmode="numeric" autocomplete="off" placeholder="e.g. 8703.23.0190" required><div id="suggestions" class="suggestions hidden"></div></div><div class="helper">Enter at least 4 digits. You can screen likely import requirements before entering value or country.</div></div>
-<div><label for="country">Country of origin <span class="tiny">(optional for requirements screening)</span></label><select id="country"><option value="">Select country</option></select><div class="helper">Required for duty calculation and country-specific measures.</div></div>
-<div><label for="value">Customs value (USD) <span class="tiny">(optional for requirements screening)</span></label><input id="value" type="number" min="0.01" step="0.01" placeholder="10000.00"></div>
-<div><label for="mode">Mode of import</label><select id="mode"><option value="ocean">Ocean</option><option value="air">Air</option><option value="land">Land / rail</option></select></div>
-<div><label for="meltPourCountry">Steel first melt / pour country <span class="tiny">(optional)</span></label><select id="meltPourCountry"><option value="">Assume same as country of origin</option></select></div>
-<div><label for="qty">Quantity <span class="tiny">(optional)</span></label><input id="qty" type="number" min="0" step="any" placeholder="For $/kg, ¢/unit, etc."></div>
-<div><label for="qtyUnit">Quantity unit <span class="tiny">(optional)</span></label><input id="qtyUnit" placeholder="kg, No., L, m²..."></div>
-<div><label for="purpose">Purpose / use <span class="tiny">(optional)</span></label><select id="purpose"><option value="commercial">Commercial / normal import</option><option value="personal">Personal use</option><option value="temporary">Temporary import</option><option value="prototype">Prototype</option><option value="research">Research / testing</option><option value="display">Show / display</option><option value="racing">Racing / competition</option><option value="repair">Repair / alteration</option></select></div>
-<div id="vehicleYearWrap" class="hidden"><label for="vehicleYear">Vehicle manufacture year <span class="tiny">(optional)</span></label><input id="vehicleYear" type="number" min="1900" max="2100" placeholder="e.g. 1999"><div class="helper">Used only for potential EPA / NHTSA age-based exemptions.</div></div>
-<div id="engineWrap" class="hidden"><label for="engineStatus">Vehicle engine / emissions configuration</label><select id="engineStatus"><option value="unknown">Unknown</option><option value="original">Original / unmodified</option><option value="equivalent">Replacement engine equivalent or newer EPA-certified</option><option value="modified">Modified / other replacement engine</option></select></div>
+  <div>
+    <label for="hts">HTS code</label>
+    <div class="hts-wrap">
+      <input id="hts" inputmode="numeric" autocomplete="off" placeholder="e.g. 7309.00.0030" required aria-autocomplete="list" aria-expanded="false">
+      <div id="suggestions" class="suggestions hidden" role="listbox"></div>
+    </div>
+    <div class="helper">Start with at least 4 digits. Matching HTS lines will narrow automatically as you type.</div>
+  </div>
+  <div>
+    <label for="country">Country of origin</label>
+    <select id="country" required><option value="">Select country</option></select>
+    <div class="helper">Use the legal country of origin, not merely the country of shipment.</div>
+  </div>
+  <div>
+    <label for="meltPourCountry">Steel first melt / pour country <span class="tiny">(optional)</span></label>
+    <select id="meltPourCountry">
+      <option value="">Assume same as country of origin</option>
+    </select>
+    <div class="helper">Used only when Section 232 steel treatment applies. Leave blank to assume the same country as the country of origin.</div>
+  </div>
+  <div>
+    <label for="value">Customs value (USD)</label>
+    <input id="value" type="number" min="0.01" step="0.01" placeholder="10000.00" required>
+  </div>
+  <div>
+    <label for="mode">Mode of import</label>
+    <select id="mode"><option value="ocean">Ocean</option><option value="air">Air</option><option value="land">Land / rail</option></select>
+  </div>
+  <div>
+    <label for="qty">Quantity <span class="tiny">(optional)</span></label>
+    <input id="qty" type="number" min="0" step="any" placeholder="Needed for $/kg, ¢/unit, etc.">
+  </div>
+  <div>
+    <label for="qtyUnit">Quantity unit <span class="tiny">(optional)</span></label>
+    <input id="qtyUnit" placeholder="kg, No., L, m²...">
+  </div>
+  <div class="full checkbox">
+    <input id="fta" type="checkbox">
+    <label for="fta">Merchandise qualifies for the applicable U.S. FTA / special tariff program
+      <small>Select only when the merchandise satisfies the program's origin and claim requirements.</small>
+    </label>
+  </div>
 </div>
-<details class="refine"><summary>Refine import-requirement screening</summary><div class="checkgrid">
-<div class="checkline"><input type="checkbox" id="wireless"><label for="wireless">Contains radio / wireless transmitter<div class="small">Can trigger FCC equipment authorization/import requirements.</div></label></div>
-<div class="checkline"><input type="checkbox" id="chemical"><label for="chemical">Chemical substance or mixture<div class="small">Can trigger EPA TSCA or FIFRA review.</div></label></div>
-<div class="checkline"><input type="checkbox" id="plant"><label for="plant">Plant, seed, wood, fruit or vegetable<div class="small">Can trigger USDA APHIS and possibly Lacey Act review.</div></label></div>
-<div class="checkline"><input type="checkbox" id="animal"><label for="animal">Animal, animal product or animal-derived material<div class="small">Can trigger APHIS / FSIS / FDA review.</div></label></div>
-<div class="checkline"><input type="checkbox" id="food"><label for="food">Human or animal food<div class="small">Can trigger FDA Prior Notice, facility registration and FSVP-related review.</div></label></div>
-<div class="checkline"><input type="checkbox" id="medical"><label for="medical">Drug, medical device, cosmetic or biologic<div class="small">Can trigger FDA admissibility and product-specific requirements.</div></label></div>
-</div></details>
-<div class="actions"><button class="primary" type="button" id="screenBtn">Screen import requirements</button><button class="secondary" type="submit" id="dutyBtn">Estimate duties + requirements</button><button class="secondary" type="button" id="resetBtn">Clear</button><span class="status" id="status"></span></div>
+<div class="actions">
+  <button class="primary" id="submitBtn" type="submit">Estimate duties</button>
+  <button class="secondary" type="button" id="resetBtn">Clear</button>
+  <span class="status" id="status"></span>
+</div>
 </form>
 </section>
 
-<section id="requirements" class="card hidden">
-<div class="result-header"><h2 id="reqHeading">Import requirements screening</h2></div>
-<div id="reqIntro" class="notice info"></div>
-<h3 class="section-title">Likely agencies and requirements</h3><div id="reqGrid" class="requirements-grid"></div>
-<div id="specialCases"></div>
-<div class="disclaimer"><strong>Screening only:</strong> HTS classification is one input to PGA admissibility, but actual requirements can depend on product composition, use, condition, manufacturer, country, age, intended disposition and agency-specific data. A result shown as “likely,” “conditional,” or “potential exemption identified” is not a regulatory determination or filing instruction. Verify current ACE/PGA, agency and CBP requirements before entry.</div>
-<p class="source-note">Key official references used for this screening model include NHTSA vehicle import guidance, EPA vehicle/engine and TSCA import guidance, FDA food import guidance, and USDA APHIS commodity guidance.</p>
+<section id="result" class="result-card hidden" aria-live="polite">
+<div class="result-header">
+  <div><h2 id="desc"></h2><div class="tiny" id="sourceLine"></div></div>
+  <div class="hts-pill" id="resultHts"></div>
+</div>
+
+<h3 class="section-title">Classification</h3>
+<table class="class-table"><tbody>
+<tr id="headingRow"><th>Heading</th><td><strong id="headingCode"></strong><br><span id="headingDesc"></span></td></tr>
+<tr id="subheadingRow"><th>Subheading</th><td><strong id="subheadingCode"></strong><br><span id="subheadingDesc"></span></td></tr>
+<tr><th>Full HTS code</th><td><strong id="fullCode"></strong><br><span id="fullDesc"></span></td></tr>
+<tr><th>Country of origin</th><td id="countryDisplay"></td></tr>
+<tr id="meltPourDisplayRow" class="hidden"><th>Steel first melt / pour</th><td id="meltPourDisplay"></td></tr>
+</tbody></table>
+
+<h3 class="section-title">Applicable duty</h3>
+<table class="rate-table"><tbody>
+<tr><th>Tariff treatment</th><td id="appliedBasis"></td></tr>
+<tr><th>Applicable rate</th><td><strong id="appliedRate"></strong></td></tr>
+<tr id="rateSourceRow"><th>Rate source</th><td id="rateSource"></td></tr>
+<tr><th>Units</th><td id="units"></td></tr>
+</tbody></table>
+
+<div id="multipleRatesPanel" class="multi-rate-panel hidden">
+  <div class="multi-rate-head">
+    <strong id="multipleRatesTitle"></strong>
+    <div class="tiny" id="multipleRatesMessage"></div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="multi-rate-table">
+      <thead><tr><th>Full HTS code</th><th>Description</th><th>Applicable rate</th></tr></thead>
+      <tbody id="multipleRatesBody"></tbody>
+    </table>
+  </div>
+  <div class="helper" id="multipleRatesFoot"></div>
+</div>
+
+<div class="summary-grid trade-summary">
+  <div class="metric"><span>Base duty</span><strong id="baseDuty"></strong></div>
+  <div class="metric"><span>Section 232*</span><strong id="section232Duty"></strong></div>
+  <div class="metric"><span>Section 301</span><strong id="section301Duty"></strong></div>
+  <div class="metric"><span>Other additional tariffs</span><strong id="otherAdditionalDuty"></strong></div>
+  <div class="metric"><span>MPF</span><strong id="mpf"></strong></div>
+  <div class="metric"><span>HMF</span><strong id="hmf"></strong></div>
+  <div class="metric total"><span>Estimated identified charges</span><strong id="total"></strong></div>
+</div>
+<div class="helper">* Section 232 amount is illustrative when melt/pour information is relevant. See the review section below.</div>
+<div id="calcNotice" class="notice info"></div>
+<div id="preferenceNotice" class="notice ok hidden"></div>
+
+<h3 class="section-title" id="additionalTitle">Identified additional duties</h3>
+<div id="additionalReview"></div>
+
+<h3 class="section-title">Additional requirements to review</h3>
+<div class="review-grid">
+  <div class="review-card hidden" id="adCvdCard">
+    <span class="badge review">May apply</span>
+    <h4>Antidumping / Countervailing Duties</h4>
+    <p id="adCvdText"></p>
+    <div class="review-detail" id="adCvdDetail"></div>
+  </div>
+
+  <div class="review-card hidden" id="quotaCard">
+    <span class="badge review" id="quotaBadge">May apply</span>
+    <h4>Quota / TRQ</h4>
+    <p id="quotaText"></p>
+    <div class="review-detail" id="quotaDetail"></div>
+  </div>
+
+  <div class="review-card hidden" id="meltPourCard">
+    <span class="badge info">Information required</span>
+    <h4>Steel Melt &amp; Pour</h4>
+    <p id="meltPourText"></p>
+    <div class="review-detail" id="meltPourRate"></div>
+  </div>
+
+  <div class="review-card hidden" id="cbpCard">
+    <span class="badge review">Review</span>
+    <h4>Other CBP / Import Requirements</h4>
+    <p id="cbpText"></p>
+    <div class="review-detail" id="cbpDetail"></div>
+  </div>
+</div>
+
+<div class="disclaimer-box">
+  <strong>Important:</strong> This calculator provides general informational and screening guidance only. It is intended to help identify potential duty rates and additional areas that may require review. Actual classification, duties, additional tariffs, AD/CVD, quotas, Section 232 treatment, Section 301 treatment, reporting requirements and other import requirements depend on shipment-specific facts and current regulations. Consult your customs broker for shipment-specific guidance before entry.
+</div>
+
+<div class="actions">
+  <button class="secondary" type="button" id="copyBtn">Copy results</button>
+  <button class="secondary" type="button" onclick="window.print()">Print</button>
+</div>
+<p class="source-note">Tariff data source: <a href="https://hts.usitc.gov/" target="_blank" rel="noopener noreferrer">U.S. International Trade Commission Harmonized Tariff Schedule</a>.</p>
+<p class="source-note" id="feeSourceLine"></p>
 </section>
 
-<section id="dutyResult" class="card hidden">
-<div><h2 id="desc"></h2><div class="tiny" id="sourceLine"></div></div>
-<h3 class="section-title">Classification & applicable duty</h3>
-<table class="table"><tbody><tr><th>HTS</th><td id="fullCode"></td></tr><tr><th>Description</th><td id="fullDesc"></td></tr><tr><th>Country of origin</th><td id="countryDisplay"></td></tr><tr><th>Tariff treatment</th><td id="appliedBasis"></td></tr><tr><th>Applicable rate</th><td id="appliedRate"></td></tr><tr><th>Units</th><td id="units"></td></tr></tbody></table>
-<div class="summary-grid"><div class="metric"><span>Base duty</span><strong id="baseDuty"></strong></div><div class="metric"><span>MPF</span><strong id="mpf"></strong></div><div class="metric"><span>HMF</span><strong id="hmf"></strong></div><div class="metric total"><span>Estimated identified charges</span><strong id="total"></strong></div></div>
-<h3 class="section-title">Additional trade measures</h3><div id="additionalReview"></div>
-<div id="dutyNotice" class="notice info"></div>
-<div class="disclaimer"><strong>Important:</strong> Duty estimates are for general screening. Classification, Chapter 99, Section 301/232, exclusions, quotas, AD/CVD, excise taxes, fees and PGA requirements can change based on shipment-specific facts and current rules. Verify before entry.</div>
-<div class="actions"><button class="secondary" type="button" onclick="window.print()">Print</button></div>
-</section>
 <footer>© The Logistics Mindset — Personal educational project</footer>
 </div>
+
 <script>
-const $=id=>document.getElementById(id);const ISO_CODES=`AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BV BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF TF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HM VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB UM US UY UZ VU VE VN VG VI WF EH YE ZM ZW`.split(' ');const dn=new Intl.DisplayNames(['en'],{type:'region'});ISO_CODES.map(c=>[c,dn.of(c)||c]).sort((a,b)=>a[1].localeCompare(b[1])).forEach(([c,n])=>{for(const id of ['country','meltPourCountry']){const o=document.createElement('option');o.value=c;o.textContent=n;$(id).appendChild(o)}});const money=v=>v==null?'Not calculated':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(v);const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function digits(){return $('hts').value.replace(/\D/g,'').slice(0,10)}function fmt(v){const d=String(v||'').replace(/\D/g,'').slice(0,10);if(d.length>6)return`${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6)}`;if(d.length>4)return`${d.slice(0,4)}.${d.slice(4)}`;return d}$('hts').addEventListener('input',e=>{e.target.value=fmt(e.target.value);const d=digits();const vehicle=d.startsWith('87');$('vehicleYearWrap').classList.toggle('hidden',!vehicle);$('engineWrap').classList.toggle('hidden',!vehicle);if(d.length>=4)lookup(d);else $('suggestions').classList.add('hidden')});let timer;async function lookup(d){clearTimeout(timer);timer=setTimeout(async()=>{try{const r=await fetch('/api/hts-duty',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'search',hts:d})});const data=await r.json();const box=$('suggestions');box.innerHTML='';(data.suggestions||[]).slice(0,12).forEach(i=>{const el=document.createElement('div');el.className='suggestion';el.innerHTML=`<strong>${esc(i.hts||i.code)}</strong><span>${esc(i.description||'')}</span>`;el.onclick=()=>{$('hts').value=i.hts||fmt(i.code);box.classList.add('hidden');const vehicle=digits().startsWith('87');$('vehicleYearWrap').classList.toggle('hidden',!vehicle);$('engineWrap').classList.toggle('hidden',!vehicle)};box.appendChild(el)});box.classList.toggle('hidden',!box.children.length)}catch{}},250)}document.addEventListener('click',e=>{if(!e.target.closest('.hts-wrap'))$('suggestions').classList.add('hidden')});
-function addReq(list,title,status,body,detail=''){if(!list.some(x=>x.title===title))list.push({title,status,body,detail})}function screening(){const d=digits();if(d.length<4)throw new Error('Enter at least 4 HTS digits.');const ch=Number(d.slice(0,2));const heading=d.slice(0,4);const list=[];const purpose=$('purpose').value;const country=$('country').value;
-addReq(list,'U.S. Customs and Border Protection','review','CBP entry, classification, value, origin, admissibility and any Chapter 99 treatment must be reviewed.','This screening does not replace entry-specific CBP review.');
-if(ch===87){addReq(list,'DOT / NHTSA','likely','Motor vehicles and certain vehicle equipment are subject to Federal motor vehicle safety import requirements.','HS-7 declaration and conformity/eligibility or an applicable exemption may be required.');addReq(list,'EPA','likely','Vehicles and engines are subject to EPA emissions import requirements unless an exclusion or exemption applies.','EPA Form 3520-1 or current electronic equivalent requirements should be reviewed.');}
-if(ch>=1&&ch<=24){addReq(list,'FDA','likely','Food, beverages, food-contact or other FDA-regulated products may be subject to FDA admissibility requirements.','Food imports can involve Prior Notice, facility registration and FSVP-related requirements.');}
-if((ch>=1&&ch<=14)||ch===44||$('plant').checked)addReq(list,'USDA APHIS','likely','Plant, seed, wood, fruit, vegetable or other agricultural commodities can be subject to APHIS admissibility, permit, treatment or phytosanitary requirements.','Commodity and country of origin can materially change the requirement.');
-if([1,2,4,5,16].includes(ch)||$('animal').checked)addReq(list,'USDA APHIS / FSIS','conditional','Animal-origin goods can require APHIS review; meat, poultry and certain egg products can also involve FSIS requirements.','Product species, processing and country are critical.');
-if(ch===44||ch===6||ch===14||$('plant').checked)addReq(list,'Lacey Act / plant declaration','conditional','Certain plants and plant products may require a Lacey Act declaration or other plant-origin reporting.','Confirm product scope and current declaration requirements.');
-if((ch>=28&&ch<=39)||$('chemical').checked)addReq(list,'EPA TSCA','conditional','Chemical substances and mixtures may require TSCA import certification and compliance review.','Some products are excluded from TSCA but may be regulated by another agency.');
-if(heading==='3808')addReq(list,'EPA FIFRA','likely','Pesticides and certain pesticidal products may be subject to FIFRA import requirements.','EPA registration, Notice of Arrival or other requirements can apply.');
-if($('wireless').checked||[85].includes(ch))addReq(list,'FCC','conditional','Radio-frequency devices can be subject to FCC equipment authorization and import rules.','HTS chapter alone does not establish that the product contains an RF transmitter.');
-if([30,33].includes(ch)||$('medical').checked)addReq(list,'FDA','likely','Drugs, cosmetics, medical products and related articles can be subject to FDA entry and product requirements.','Product-specific registration, listing, approval/clearance or labeling rules may apply.');
-if([72,73,74,76].includes(ch))addReq(list,'Section 232 / metal reporting','conditional','Steel or aluminum classifications can be subject to Section 232 additional duties and origin-of-metal reporting.','For steel, first melt/pour may differ from country of origin; aluminum can require smelt/cast information.');
-if(ch===93)addReq(list,'ATF','conditional','Firearms, ammunition or regulated components can be subject to ATF import licensing and permit requirements.','Exact product and importer status determine applicability.');
-if(ch===22)addReq(list,'TTB','conditional','Alcoholic beverages can be subject to TTB permits, label approvals, excise tax and other requirements.','FDA and state requirements may also apply.');
-if(ch===24)addReq(list,'TTB / FDA','conditional','Tobacco and nicotine-related products can involve TTB, FDA and excise requirements depending on the product.','Product category and intended use are decisive.');
-if($('food').checked)addReq(list,'FDA','likely','Food imports may require Prior Notice and facility registration review.','FSVP responsibilities can also apply to many commercial food imports.');
-if($('medical').checked)addReq(list,'FDA','likely','Selected product characteristics indicate likely FDA jurisdiction.','Verify the exact center and product-specific entry data.');
-const special=[];if(ch===87){const y=Number($('vehicleYear').value);const now=new Date().getFullYear();if(y&&now-y>=25)special.push({title:'Potential NHTSA 25-year exemption identified',body:'A vehicle at least 25 years old may be imported without regard to FMVSS conformity, subject to the actual date of manufacture and the HS-7 declaration requirements.'});if(y&&now-y>=21){const eng=$('engineStatus').value;special.push({title:'Potential EPA 21-year provision identified',body:eng==='original'?'The entered age and original/unmodified engine configuration may fit EPA’s age-based provision. Verify the exact manufacture year and emissions configuration.':'EPA’s 21-year treatment is different from NHTSA’s 25-year rule and generally depends on the original/unmodified or otherwise qualifying engine/emissions configuration. Do not assume the NHTSA exemption also satisfies EPA.'});}if(['temporary','prototype','research','display','racing','repair'].includes(purpose))special.push({title:'Special-purpose vehicle import path may exist',body:`The selected purpose (${purpose.replace(/\b\w/g,c=>c.toUpperCase())}) can have a separate EPA and/or NHTSA exemption or temporary-import process. Some paths require agency approval before shipment or entry.`});}
-if(['temporary','prototype','research'].includes(purpose)&&ch!==87)special.push({title:'Temporary / special-use treatment to review',body:'Temporary importation, prototype, research or testing use can change the applicable entry process, bond, PGA or permit requirements. HTS code alone cannot confirm eligibility.'});
-return{d,ch,heading,list,special,country}}
-function renderScreen(){try{const s=screening();$('requirements').classList.remove('hidden');$('reqIntro').textContent=`Screening based on HTS ${fmt(s.d)}${s.country?` and origin ${dn.of(s.country)||s.country}`:''}. These are likely or conditional requirements, not automatic determinations.`;const grid=$('reqGrid');grid.innerHTML='';s.list.forEach(r=>{const div=document.createElement('div');div.className='req';div.innerHTML=`<span class="badge ${r.status}">${r.status==='likely'?'Likely':'Review / conditional'}</span><h4>${esc(r.title)}</h4><p>${esc(r.body)}</p>${r.detail?`<div class="small">${esc(r.detail)}</div>`:''}`;grid.appendChild(div)});const sp=$('specialCases');sp.innerHTML='';if(s.special.length){const h=document.createElement('h3');h.className='section-title';h.textContent='Potential exemptions / special cases';sp.appendChild(h);s.special.forEach(x=>{const d=document.createElement('div');d.className='notice warn';d.innerHTML=`<strong>${esc(x.title)}</strong><br>${esc(x.body)}`;sp.appendChild(d)})}return s}catch(e){$('status').textContent=e.message;return null}}$('screenBtn').onclick=()=>{const s=renderScreen();if(s){$('status').textContent='Import-requirement screening complete.';$('requirements').scrollIntoView({behavior:'smooth',block:'start'})}};
-$('calcForm').addEventListener('submit',async e=>{e.preventDefault();const s=renderScreen();if(!s)return;if(!$('country').value||!$('value').value){$('status').textContent='Country of origin and customs value are required for the duty estimate.';return}$('dutyBtn').disabled=true;$('status').textContent='Checking live USITC data…';try{const payload={action:'calculate',hts:$('hts').value,country:$('country').value,meltPourCountry:$('meltPourCountry').value,customsValue:$('value').value,mode:$('mode').value,quantity:$('qty').value,quantityUnit:$('qtyUnit').value,ftaQualified:false};const r=await fetch('/api/hts-duty',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const raw=await r.text();let data;try{data=JSON.parse(raw)}catch{throw new Error('The tariff service returned an invalid response.')}if(!r.ok)throw new Error(data.error||'Duty lookup failed.');renderDuty(data);$('status').textContent='Live duty lookup and import screening complete.'}catch(err){$('status').textContent=err.message||'Lookup failed.'}finally{$('dutyBtn').disabled=false}});
-function renderDuty(data){$('dutyResult').classList.remove('hidden');$('desc').textContent=data.classification?.description||'HTS result';$('sourceLine').textContent=`USITC live data retrieved ${new Date(data.source?.retrievedAt||Date.now()).toLocaleString()}`;$('fullCode').textContent=data.classification?.displayHts||data.classification?.hts||'—';$('fullDesc').textContent=data.classification?.description||'—';$('countryDisplay').textContent=dn.of(data.query?.country)||data.query?.country||'—';$('appliedBasis').textContent=data.rates?.appliedBasis||'—';$('appliedRate').textContent=data.rates?.appliedRate||'—';$('units').textContent=Array.isArray(data.classification?.units)&&data.classification.units.length?data.classification.units.join(', '):'—';$('baseDuty').textContent=money(data.estimate?.baseDuty);$('mpf').textContent=money(data.estimate?.mpf);$('hmf').textContent=money(data.estimate?.hmf);const measures=Array.isArray(data.review?.applicableAdditionalMeasures)?data.review.applicableAdditionalMeasures:[];const add=measures.reduce((n,m)=>n+Number(m.amount||0),0)+Number(data.estimate?.otherAdditionalDuty||0);const total=data.estimate?.baseDuty==null?null:Number(data.estimate.baseDuty||0)+Number(data.estimate.mpf||0)+Number(data.estimate.hmf||0)+add;$('total').textContent=money(total);const box=$('additionalReview');box.innerHTML='';if(measures.length){measures.forEach(m=>{const d=document.createElement('div');d.className='ch99';d.innerHTML=`<strong>${esc(m.program||'Additional measure')} ${m.hts?`— ${esc(m.hts)}`:''}</strong><br>${esc(m.description||m.tariffTreatment||'Review applicable provision')}${m.applicableRate?`<br><span class="tiny">Rate: ${esc(m.applicableRate)}</span>`:''}${m.amount!=null?`<br><span class="tiny">Estimated additional duty: ${esc(money(m.amount))}</span>`:''}`;box.appendChild(d)})}else box.innerHTML='<div class="notice ok">No additional Chapter 99 measure was identified by the current rule set. This does not confirm that no additional measure applies.</div>';$('dutyNotice').textContent=data.estimate?.baseDutySupported===false?(data.estimate?.baseDutyReason||'The published rate could not be converted automatically into a dollar duty.'):`Applicable base tariff: ${data.rates?.appliedRate||'—'} under ${data.rates?.appliedBasis||'the returned tariff treatment'}.`;window.__lastResult=data;$('dutyResult').scrollIntoView({behavior:'smooth',block:'start'})}
-$('resetBtn').onclick=()=>{$('calcForm').reset();$('requirements').classList.add('hidden');$('dutyResult').classList.add('hidden');$('status').textContent='';$('vehicleYearWrap').classList.add('hidden');$('engineWrap').classList.add('hidden')};
-const TIME_TICKER_ZONES=[{label:'New York',tz:'America/New_York'},{label:'London',tz:'Europe/London'},{label:'Mumbai',tz:'Asia/Kolkata'},{label:'Singapore',tz:'Asia/Singapore'},{label:'Tokyo',tz:'Asia/Tokyo'}];function tick(){const el=$('timeTicker');el.innerHTML=TIME_TICKER_ZONES.map(z=>`<span>${z.label}: ${new Date().toLocaleTimeString('en-US',{timeZone:z.tz,hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>`).join('')}tick();setInterval(tick,1000);
+const ISO_CODES = `AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BV BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF TF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HM VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB UM US UY UZ VU VE VN VG VI WF EH YE ZM ZW`.split(' ');
+const $ = id => document.getElementById(id);
+const countryEl = $('country');
+const meltPourCountryEl = $('meltPourCountry');
+const dn = new Intl.DisplayNames(['en'], { type: 'region' });
+const money = value => value == null ? 'Not calculated' : new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(value);
+const text = value => value == null || value === '' ? '—' : String(value);
+
+const CLIENT_RULESET_VERSION = '2026-08-24-trade-measures-v6';
+
+const CLIENT_SEC232_PREFIXES = [
+  '7206','7207','7208','7209','7210','7211','7212','7213','7214','7215',
+  '72161000','72162100','72162200','72163100','72163200','72163300',
+  '72164000','72165000','72169900',
+  '7217','7218','7219','7220','7221','7222','7223','7224','7225','7226','7227','7228','7229',
+  '73011000','730210','73024000','730290','7304','7305','7306',
+  '7216910010','73012010','73012050','73023000','73071930','73071990',
+  '73072110','73072150','73072210','73072250','73072300','73072900',
+  '73079110','73079130','73079150','73079230','73079290','73079330','73079360','73079390',
+  '73079910','73079930','73079950','73081000','73082000','73083010','73083050',
+  '73084000','73089030','73089060','73089070','73089095','73090000'
+];
+
+const CLIENT_CHINA_301_25_99038803 = new Set([
+  '72011000','72012000','72015030','72015060',
+  '72021110','72021150','72021910','72021950',
+  '72022110','72022150','72022175','72022190',
+  '72022900','72023000','72024100','72024910','72024950','72025000',
+  '72028000','72029100','72029200','72029910','72029920',
+  '72031000','72039000','72041000','72042100','72042900','72043000',
+  '72044100','72044900','72045000','72051000','72052100','72052900'
+]);
+
+const CLIENT_CHINA_301_25_99039101 = new Set([
+  '72026000','72029340','72029380',
+  '72061000','72069000','72071100','72071200','72071900','72072000',
+  '72081015','72081030','72081060','72082530','72082560','72082600','72082700',
+  '72083600','72083700','72083800','72083900','72084030','72084060',
+  '72085100','72085200','72085300','72085400','72089000',
+  '72091500','72091600','72091700','72091815','72091825','72091860',
+  '72092500','72092600','72092700','72092800','72099000',
+  '72101100','72101200','72102000','72103000','72104100','72104900',
+  '72105000','72106100','72106900','72107030','72107060'
+]);
+
+function clientTradeMeasureFallbacks(data) {
+  const measures = [];
+  const code = String(data?.query?.hts || '').replace(/\D/g, '');
+  const code8 = code.slice(0, 8);
+  const country = String(data?.query?.country || '').toUpperCase();
+  const customsValue = Number(data?.query?.customsValue || 0);
+
+  if (CLIENT_SEC232_PREFIXES.some(prefix => code.startsWith(prefix))) {
+    measures.push({
+      program: 'Section 232',
+      hts: country === 'RU' ? '9903.82.14' : '9903.82.02',
+      description: 'Steel article or derivative steel article identified by the current Section 232 steel rule set.',
+      applicableRate: '+50%',
+      amount: Number.isFinite(customsValue) ? customsValue * 0.50 : null,
+      tariffTreatment: 'Illustrative Section 232 treatment if the selected country of origin is also the country of first melt and pour.',
+      illustrativeAssumption: 'Selected country of origin is assumed to be the first melt/pour country for this estimate.',
+      clientFallback: true
+    });
+  }
+
+  if (country === 'CN') {
+    if (CLIENT_CHINA_301_25_99038803.has(code8)) {
+      measures.push({
+        program: 'Section 301',
+        hts: '9903.88.03',
+        description: `Product of China classified in ${code8.slice(0,4)}.${code8.slice(4,6)}.${code8.slice(6,8)} is covered by the current Section 301 mapping in this rule set.`,
+        applicableRate: '+25%',
+        amount: Number.isFinite(customsValue) ? customsValue * 0.25 : null,
+        tariffTreatment: 'Section 301 additional duty for products of China',
+        clientFallback: true
+      });
+    } else if (CLIENT_CHINA_301_25_99039101.has(code8)) {
+      measures.push({
+        program: 'Section 301',
+        hts: '9903.91.01',
+        description: `Product of China classified in ${code8.slice(0,4)}.${code8.slice(4,6)}.${code8.slice(6,8)} is covered by the current Section 301 mapping in this rule set.`,
+        applicableRate: '+25%',
+        amount: Number.isFinite(customsValue) ? customsValue * 0.25 : null,
+        tariffTreatment: 'Section 301 additional duty for products of China',
+        clientFallback: true
+      });
+    }
+  }
+
+  return measures;
+}
+
+
+const COUNTRY_OPTIONS = ISO_CODES
+  .map(code => [code, dn.of(code) || code])
+  .sort((a,b) => a[1].localeCompare(b[1]));
+
+COUNTRY_OPTIONS.forEach(([code,name]) => {
+  const option = document.createElement('option');
+  option.value = code;
+  option.textContent = name;
+  countryEl.appendChild(option);
+
+  const meltOption = document.createElement('option');
+  meltOption.value = code;
+  meltOption.textContent = name;
+  meltPourCountryEl.appendChild(meltOption);
+});
+
+function formatInput(value) {
+  const d = String(value || '').replace(/\D/g,'').slice(0,10);
+  if (d.length > 6) return `${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6)}`;
+  if (d.length > 4) return `${d.slice(0,4)}.${d.slice(4)}`;
+  return d;
+}
+
+async function readJsonResponse(response) {
+  const raw = await response.text();
+  if (!raw.trim()) throw new Error('The tariff service returned an empty response. Please try again.');
+  try { return JSON.parse(raw); }
+  catch { throw new Error('The tariff service returned an invalid response. Please try again.'); }
+}
+
+let searchTimer = null;
+let searchSequence = 0;
+let activeSuggestion = -1;
+
+$('hts').addEventListener('input', event => {
+  event.target.value = formatInput(event.target.value);
+  activeSuggestion = -1;
+  clearTimeout(searchTimer);
+  const digits = event.target.value.replace(/\D/g,'');
+  if (digits.length < 4) {
+    closeSuggestions();
+    return;
+  }
+  searchTimer = setTimeout(() => lookupSuggestions(digits), 300);
+});
+
+$('hts').addEventListener('keydown', event => {
+  const items = [...$('suggestions').querySelectorAll('.suggestion')];
+  if (!items.length) return;
+  if (event.key === 'ArrowDown') {
+    event.preventDefault(); activeSuggestion = Math.min(activeSuggestion + 1, items.length - 1); updateActive(items);
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault(); activeSuggestion = Math.max(activeSuggestion - 1, 0); updateActive(items);
+  } else if (event.key === 'Enter' && activeSuggestion >= 0) {
+    event.preventDefault(); items[activeSuggestion].click();
+  } else if (event.key === 'Escape') closeSuggestions();
+});
+
+document.addEventListener('click', event => {
+  if (!event.target.closest('.hts-wrap')) closeSuggestions();
+});
+
+function updateActive(items) {
+  items.forEach((item,index) => item.classList.toggle('active', index === activeSuggestion));
+  items[activeSuggestion]?.scrollIntoView({block:'nearest'});
+}
+
+async function lookupSuggestions(digits) {
+  const sequence = ++searchSequence;
+  try {
+    const response = await fetch('/api/hts-duty', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'search',hts:digits})
+    });
+    const data = await readJsonResponse(response);
+    if (sequence !== searchSequence) return;
+    if (!response.ok) throw new Error(data.error || 'HTS search failed.');
+    renderSuggestions(data.suggestions || [], digits);
+  } catch (error) {
+    if (sequence !== searchSequence) return;
+    const box = $('suggestions');
+    box.innerHTML = `<div class="no-match">${escapeHtml(error.message || 'HTS search failed.')}</div>`;
+    box.classList.remove('hidden');
+  }
+}
+
+function renderSuggestions(items, digits) {
+  const box = $('suggestions');
+  box.innerHTML = '';
+  if (!items.length) {
+    box.innerHTML = `<div class="no-match">No current HTS lines begin with ${escapeHtml(formatInput(digits))}.</div>`;
+    box.classList.remove('hidden');
+    $('hts').setAttribute('aria-expanded','true');
+    return;
+  }
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'suggestion';
+    div.setAttribute('role','option');
+    div.innerHTML = `<strong>${escapeHtml(item.hts || item.code)}</strong><span>${escapeHtml(item.description || '')}</span>`;
+    div.addEventListener('click', () => {
+      $('hts').value = item.hts || formatInput(item.code);
+      closeSuggestions();
+      $('country').focus();
+    });
+    box.appendChild(div);
+  });
+  box.classList.remove('hidden');
+  $('hts').setAttribute('aria-expanded','true');
+}
+
+function closeSuggestions() {
+  $('suggestions').classList.add('hidden');
+  $('hts').setAttribute('aria-expanded','false');
+  activeSuggestion = -1;
+}
+
+$('calcForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  closeSuggestions();
+  $('submitBtn').disabled = true;
+  $('status').textContent = 'Checking live USITC data…';
+  $('result').classList.add('hidden');
+  try {
+    const payload = {
+      action:'calculate', hts:$('hts').value, country:$('country').value,
+      meltPourCountry:$('meltPourCountry').value,
+      customsValue:$('value').value, mode:$('mode').value,
+      quantity:$('qty').value, quantityUnit:$('qtyUnit').value,
+      ftaQualified:$('fta').checked
+    };
+    const response = await fetch('/api/hts-duty', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data = await readJsonResponse(response);
+    if (!response.ok) {
+      if (Array.isArray(data.suggestions) && data.suggestions.length) renderSuggestions(data.suggestions, $('hts').value.replace(/\D/g,''));
+      throw new Error(data.error || 'Lookup failed.');
+    }
+    render(data);
+    $('status').textContent = 'Live lookup complete.';
+  } catch (error) {
+    $('status').textContent = error.message || 'Lookup failed.';
+  } finally {
+    $('submitBtn').disabled = false;
+  }
+});
+
+function render(data) {
+  $('result').classList.remove('hidden');
+  $('desc').textContent = text(data.classification.description);
+  $('resultHts').textContent = text(data.classification.displayHts || data.classification.hts);
+  const rulesVersion = data?.source?.buildVersion || data?.diagnostics?.buildVersion || 'legacy backend';
+  $('sourceLine').textContent = `USITC live data retrieved ${new Date(data.source.retrievedAt).toLocaleString()} • rules ${rulesVersion}`;
+
+  const heading = data.classification.heading;
+  $('headingRow').classList.toggle('hidden', !heading);
+  if (heading) { $('headingCode').textContent = text(heading.displayHts || heading.hts); $('headingDesc').textContent = text(heading.description); }
+
+  const subheading = data.classification.subheading;
+  $('subheadingRow').classList.toggle('hidden', !subheading);
+  if (subheading) { $('subheadingCode').textContent = text(subheading.displayHts || subheading.hts); $('subheadingDesc').textContent = text(subheading.description); }
+
+  $('fullCode').textContent = text(data.classification.displayHts || data.classification.hts);
+  $('fullDesc').textContent = text(data.classification.description);
+  $('countryDisplay').textContent = dn.of(data.query.country) || data.query.country;
+
+  const effectiveMeltCountry = data?.query?.meltPourCountry || data?.query?.country;
+  const meltAssumed = Boolean(data?.query?.meltPourAssumed);
+  const backendMeasures = Array.isArray(data?.review?.applicableAdditionalMeasures)
+    ? data.review.applicableAdditionalMeasures
+    : [];
+  const hasSection232Result = backendMeasures.some(
+    m => String(m?.program || '').toLowerCase() === 'section 232'
+  );
+
+  $('meltPourDisplayRow').classList.toggle('hidden', !hasSection232Result);
+  if (hasSection232Result) {
+    const meltName = dn.of(effectiveMeltCountry) || effectiveMeltCountry;
+    $('meltPourDisplay').textContent = meltAssumed
+      ? `${meltName} — assumed from country of origin`
+      : `${meltName} — entered by user`;
+  }
+  $('appliedBasis').textContent = text(data.rates.appliedBasis);
+  $('appliedRate').textContent = text(data.rates.appliedRate);
+
+  const broadSummary = data?.rates?.broadDutySummary || null;
+  const multiplePanel = $('multipleRatesPanel');
+  const multipleBody = $('multipleRatesBody');
+
+  multiplePanel.classList.toggle(
+    'hidden',
+    !broadSummary?.multipleRates
+  );
+
+  if (broadSummary?.multipleRates) {
+    $('multipleRatesTitle').textContent =
+      `Multiple duty rates under ${broadSummary.displayTarget}`;
+
+    $('multipleRatesMessage').textContent =
+      `This ${broadSummary.level} contains ${broadSummary.rateCount} different applicable base-duty rates across the returned full HTS classifications. Use the complete HTS code to determine the shipment-specific rate.`;
+
+    multipleBody.innerHTML = '';
+
+    (broadSummary.listedCodes || []).forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        `<td>${escapeHtml(item.displayHts || item.hts)}</td>` +
+        `<td>${escapeHtml(item.description || '')}</td>` +
+        `<td>${escapeHtml(item.rate || '—')}</td>`;
+      multipleBody.appendChild(tr);
+    });
+
+    $('multipleRatesFoot').textContent =
+      broadSummary.truncated
+        ? `Showing the first ${broadSummary.listedCodes.length} of ${broadSummary.totalMatchingCodes} full HTS codes returned for this ${broadSummary.level}.`
+        : `${broadSummary.totalMatchingCodes} full HTS code${broadSummary.totalMatchingCodes === 1 ? '' : 's'} returned for this ${broadSummary.level}.`;
+  } else {
+    multipleBody.innerHTML = '';
+    $('multipleRatesFoot').textContent = '';
+  }
+  $('units').textContent = Array.isArray(data.classification.units) && data.classification.units.length ? data.classification.units.join(', ') : '—';
+
+  const inherited = data.rates.rateInherited;
+  $('rateSourceRow').classList.toggle('hidden', !data.rates.appliedRateSourceHts);
+  $('rateSource').textContent = data.rates.appliedRateSourceHts ? `${data.rates.appliedRateSourceHts}${inherited ? ' — inherited by the full HTS code' : ''}` : '—';
+
+  $('baseDuty').textContent = money(data.estimate.baseDuty);
+  $('mpf').textContent = money(data.estimate.mpf);
+  $('hmf').textContent = money(data.estimate.hmf);
+
+  const calc = $('calcNotice');
+  if (data.estimate.baseDutySupported) {
+    calc.className = 'notice info';
+    const broadNote = data?.rates?.broadDutySummary?.singleRate
+      ? ` All returned full HTS lines under ${data.rates.broadDutySummary.displayTarget} currently carry the same applicable base rate.`
+      : '';
+    const feeMode = data?.fees?.sourceMode === 'live'
+      ? 'CBP user-fee schedule checked live.'
+      : 'Using last verified CBP user-fee schedule because the live fee source was unavailable.';
+    calc.textContent = `Applicable base tariff: ${text(data.rates.appliedRate)} under ${text(data.rates.appliedBasis)}${inherited ? `, inherited from ${data.rates.appliedRateSourceHts}` : ''}.${broadNote} ${data.estimate.mpfNote} ${feeMode}`;
+  } else {
+    const multiple = data?.rates?.broadDutySummary?.multipleRates;
+    calc.className = multiple ? 'notice warn' : 'notice danger';
+    calc.textContent = multiple
+      ? `${text(data.estimate.baseDutyReason)} The full HTS codes and their applicable rates are listed above.`
+      : `The applicable published rate is shown, but the dollar duty could not be calculated automatically: ${text(data.estimate.baseDutyReason)} ${data.estimate.mpfNote}`;
+  }
+
+  const pref = $('preferenceNotice');
+  if (data.rates.potentialPreference && !data.query.ftaQualified) {
+    pref.classList.remove('hidden');
+    pref.textContent = `Potential special program: ${data.rates.potentialPreference.name}. It is not applied unless you confirm the merchandise qualifies.`;
+  } else pref.classList.add('hidden');
+
+  const review = $('additionalReview');
+  review.innerHTML = '';
+  const countryName = dn.of(data.query.country) || data.query.country;
+  $('additionalTitle').textContent = `Additional duties — ${countryName}`;
+
+  let measures = Array.isArray(data.review.applicableAdditionalMeasures)
+    ? [...data.review.applicableAdditionalMeasures]
+    : [];
+
+  // Fill only missing programs from the browser rule set. This protects the
+  // visible estimate from a stale function deploy without double counting.
+  const fallbackMeasures = clientTradeMeasureFallbacks(data);
+  const existingPrograms = new Set(
+    measures.map(m => String(m?.program || '').toLowerCase())
+  );
+
+  fallbackMeasures.forEach(m => {
+    if (!existingPrograms.has(String(m.program || '').toLowerCase())) {
+      measures.push(m);
+      existingPrograms.add(String(m.program || '').toLowerCase());
+    }
+  });
+
+  const sumProgram = name => measures
+    .filter(m => String(m?.program || '').toLowerCase() === name.toLowerCase())
+    .reduce((sum, m) => sum + Number(m?.amount || 0), 0);
+
+  const section232Amount = sumProgram('Section 232');
+  const section301Amount = sumProgram('Section 301');
+  const allMeasureAmount = measures.reduce(
+    (sum, m) => sum + Number(m?.amount || 0),
+    0
+  );
+
+  // Per-line additional duties returned directly by the HTS row, if parseable.
+  const backendPerLineAdditional = Number(data.estimate.otherAdditionalDuty ?? data.estimate.additionalDutyIncluded ?? 0);
+
+  const knownProgramAmount = section232Amount + section301Amount;
+  const otherMeasureAmount = Math.max(0, allMeasureAmount - knownProgramAmount);
+  const otherAdditionalAmount = otherMeasureAmount + backendPerLineAdditional;
+  const displayAdditional = section232Amount + section301Amount + otherAdditionalAmount;
+
+  // Recompute the visible total from the visible components.
+  const base = Number(data.estimate.baseDuty ?? 0);
+  const mpf = Number(data.estimate.mpf ?? 0);
+  const hmf = Number(data.estimate.hmf ?? 0);
+  const displayTotal = data.estimate.baseDuty == null
+    ? null
+    : base + displayAdditional + mpf + hmf;
+
+  $('section232Duty').textContent = money(section232Amount);
+  $('section301Duty').textContent = money(section301Amount);
+  $('otherAdditionalDuty').textContent = money(otherAdditionalAmount);
+  $('total').textContent = money(displayTotal);
+
+  if (measures.length) {
+    const intro = document.createElement('div');
+    intro.className = 'notice info';
+    intro.textContent = `Additional trade measures identified by the current rule set for ${countryName}:`;
+    review.appendChild(intro);
+
+    measures.forEach(measure => {
+      const div = document.createElement('div');
+      div.className = 'ch99';
+      const rate = measure.applicableRate || measure.rawRate || 'See provision';
+      const amountLine = measure.amount != null
+        ? `<br><span class="tiny">Estimated additional duty: <strong>${escapeHtml(money(measure.amount))}</strong></span>`
+        : '';
+      const sourceLine = measure.ruleSource
+        ? `<br><span class="tiny">Rule source: ${escapeHtml(measure.ruleSource)}</span>`
+        : '';
+      const assumptionLine = measure.illustrativeAssumption
+        ? `<br><span class="assumption-note">${escapeHtml(measure.illustrativeAssumption)}</span>`
+        : '';
+      const program = measure.program ? `${escapeHtml(measure.program)} — ` : '';
+      const fallbackTag = measure.clientFallback ? ' <span class="tiny">(local rule fallback)</span>' : '';
+      div.innerHTML = `<strong>${program}${escapeHtml(measure.hts || 'Chapter 99')} — ${escapeHtml(rate)}</strong>${fallbackTag}` +
+        `${measure.description ? `<br>${escapeHtml(measure.description)}` : ''}` +
+        `<br><span class="tiny">Applicable treatment for ${escapeHtml(countryName)}: ${escapeHtml(measure.tariffTreatment || 'published Chapter 99 treatment')}</span>` +
+        amountLine +
+        sourceLine +
+        assumptionLine;
+      review.appendChild(div);
+    });
+  } else {
+    const none = document.createElement('div');
+    none.className = data.review.additionalTariffReviewRequired ? 'notice warn' : 'notice ok';
+    none.textContent = data.review.additionalTariffReviewRequired
+      ? `No additional trade-measure rate could be resolved automatically for ${countryName}. Verify current Chapter 99 measures before filing.`
+      : `No additional Chapter 99 trade measure was identified by the current rule set for ${countryName}. This does not confirm that no other measure applies.`;
+    review.appendChild(none);
+  }
+
+
+  const checks = data?.review?.screeningChecks || {};
+
+  // AD/CVD card appears only when the backend finds a country-compatible
+  // AD/CVD signal in the returned government data.
+  const adCvd = checks?.adCvd || {};
+  $('adCvdCard').classList.toggle('hidden', !adCvd.mayApply);
+  if (adCvd.mayApply) {
+    const cases = Array.isArray(adCvd.caseReferences) && adCvd.caseReferences.length
+      ? ` Potential case reference${adCvd.caseReferences.length > 1 ? 's' : ''}: ${adCvd.caseReferences.join(', ')}.`
+      : '';
+
+    $('adCvdText').textContent =
+      `${adCvd.note || 'Potential AD/CVD applicability identified.'}${cases}`;
+
+    $('adCvdDetail').textContent =
+      'Where a general cash-deposit rate is shown, it is an all-others, China-wide, or country-wide rate for reference only. It may or may not apply to your merchandise. Confirm scope and the applicable rate with your customs broker.';
+  }
+
+  // Quota / TRQ card appears only when the returned HTS data produces a
+  // country-compatible quota signal.
+  const quota = checks?.quota || {};
+  $('quotaCard').classList.toggle('hidden', !quota.mayApply);
+  if (quota.mayApply) {
+    $('quotaBadge').textContent = quota.countryMatch
+      ? 'Country / HTS indicator'
+      : 'HTS indicator';
+    $('quotaBadge').className = 'badge identified';
+    $('quotaText').textContent =
+      quota.note ||
+      'A quota or tariff-rate quota indicator was identified for this HTS/country combination.';
+    $('quotaDetail').textContent =
+      'Confirm the applicable quota/TRQ program, quantity limits, current fill status, entry date treatment, and any required certificate or license before entry.';
+  }
+
+  // Steel melt & pour appears only when the Section 232 steel rules apply.
+  const melt = checks?.steelMeltPour || {};
+  const has232 = section232Amount > 0 || Boolean(melt?.mayApply);
+  $('meltPourCard').classList.toggle('hidden', !has232);
+  if (has232) {
+    const sec232Measure = measures.find(
+      m => String(m?.program || '').toLowerCase() === 'section 232'
+    );
+    const rate = sec232Measure?.applicableRate
+      || melt?.illustrativeRate
+      || 'See applicable Section 232 provision';
+
+    const effectiveCountry =
+      melt?.effectiveCountry ||
+      data?.query?.meltPourCountry ||
+      data?.query?.country;
+    const meltName = dn.of(effectiveCountry) || effectiveCountry;
+    const assumed =
+      melt?.assumedFromOrigin ??
+      data?.query?.meltPourAssumed ??
+      true;
+
+    $('meltPourText').textContent =
+      'This HTS may require steel melt/pour information. The country where the steel was first melted and poured is not necessarily the same as the country of origin.';
+
+    $('meltPourRate').innerHTML = assumed
+      ? `No melt/pour country was entered, so <strong>${escapeHtml(meltName)}</strong> was assumed from the country of origin. Section 232 rate used: <strong>${escapeHtml(rate)}</strong>.`
+      : `First melt/pour country entered: <strong>${escapeHtml(meltName)}</strong>. Section 232 rate used: <strong>${escapeHtml(rate)}</strong>.`;
+  }
+
+  // Other import/CBP card appears only when the HTS data contains a specific
+  // additional note/reference/requirement.
+  const otherCbp = checks?.otherCbp || {};
+  $('cbpCard').classList.toggle('hidden', !otherCbp.mayApply);
+  if (otherCbp.mayApply) {
+    $('cbpText').textContent =
+      otherCbp.note ||
+      'The returned HTS data contains an additional import requirement or reference that should be reviewed.';
+
+    const refs = Array.isArray(otherCbp.chapter99References)
+      ? otherCbp.chapter99References
+      : [];
+    const statements = Array.isArray(otherCbp.statements)
+      ? otherCbp.statements
+      : [];
+
+    const parts = [];
+    if (refs.length) parts.push(`Other Chapter 99 reference${refs.length > 1 ? 's' : ''}: ${refs.join(', ')}`);
+    if (statements.length) parts.push(`HTS note: ${statements.slice(0, 3).join(' • ')}`);
+
+    $('cbpDetail').textContent =
+      parts.join(' — ') ||
+      'Review the applicable HTS notes and shipment-specific CBP requirements.';
+  }
+
+  // User fees are read automatically from CBP. If the live CBP page cannot be
+  // parsed, the backend clearly identifies that it used the last verified
+  // official schedule instead.
+  const fees = data?.fees || {};
+  if (fees.sourceMode === 'live') {
+    $('feeSourceLine').textContent =
+      `User fees: CBP live schedule • FY${fees.fiscalYear} • MPF ${Number(fees.mpfRatePercent || 0).toFixed(4)}% (${money(fees.mpfMinimum)} min / ${money(fees.mpfMaximum)} max) • HMF ${Number(fees.hmfRatePercent || 0).toFixed(3)}%.`;
+  } else {
+    $('feeSourceLine').textContent =
+      `User fees: ${fees.sourceLabel || 'last verified CBP schedule'} • FY${fees.fiscalYear || '—'} • live CBP fee lookup was unavailable for this calculation.`;
+  }
+
+  const unresolved = Array.isArray(data.review.unresolvedChapter99References)
+    ? data.review.unresolvedChapter99References
+    : [];
+  if (unresolved.length) {
+    const div = document.createElement('div');
+    div.className = 'notice warn';
+    div.textContent = `Could not resolve the current published rate for: ${unresolved.join(', ')}. These provisions still require review.`;
+    review.appendChild(div);
+  }
+
+  window.__lastResult = data;
+  $('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+
+$('resetBtn').addEventListener('click', () => {
+  $('calcForm').reset(); $('result').classList.add('hidden'); $('status').textContent=''; closeSuggestions();
+});
+
+$('copyBtn').addEventListener('click', async () => {
+  const data = window.__lastResult; if (!data) return;
+  const out = [
+    `HTS: ${data.classification.displayHts || data.classification.hts}`,
+    `Description: ${data.classification.description}`,
+    `Country: ${dn.of(data.query.country) || data.query.country}`,
+    ...(data.query.meltPourCountry ? [
+      `Steel first melt/pour: ${dn.of(data.query.meltPourCountry) || data.query.meltPourCountry}${data.query.meltPourAssumed ? ' (assumed from origin)' : ''}`
+    ] : []),
+    `Applicable treatment: ${data.rates.appliedBasis}`,
+    `Applicable rate: ${data.rates.appliedRate}`,
+    `Rate source: ${data.rates.appliedRateSourceHts || data.classification.displayHts}`,
+    `Base duty: ${money(data.estimate.baseDuty)}`,
+    `MPF: ${money(data.estimate.mpf)}`,
+    `HMF: ${money(data.estimate.hmf)}`,
+    `Estimated charges: ${$('total').textContent}`
+  ].join('\n');
+  await navigator.clipboard.writeText(out);
+  $('copyBtn').textContent='Copied'; setTimeout(() => $('copyBtn').textContent='Copy results',1200);
+});
 </script>
-<script src="js/fx-ticker.js" defer></script><script src="js/support.js" defer></script>
-</body></html>
+
+<script>
+const TIME_TICKER_ZONES=[{label:"New York",tz:"America/New_York"},{label:"London",tz:"Europe/London"},{label:"Mumbai",tz:"Asia/Kolkata"},{label:"Singapore",tz:"Asia/Singapore"},{label:"Tokyo",tz:"Asia/Tokyo"}];
+const timeTickerEl=document.getElementById("timeTicker");
+function updateTimeTicker(){timeTickerEl.innerHTML=TIME_TICKER_ZONES.map(z=>{const t=new Date().toLocaleTimeString("en-US",{timeZone:z.tz,hour:"2-digit",minute:"2-digit",second:"2-digit"});return `<span>${z.label}: ${t}</span>`}).join("")}
+updateTimeTicker();setInterval(updateTimeTicker,1000);
+</script>
+<script src="js/fx-ticker.js" defer></script>
+<script src="js/support.js" defer></script>
+</body>
+</html>
