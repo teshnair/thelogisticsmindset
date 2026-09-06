@@ -47,12 +47,15 @@ jobs:
           required={'16:c:vi','16:c:vii','16:c:viii','16:c:xi'}
           assert required.issubset(targets), {'targets':sorted(targets),'missing':sorted(required-targets)}
           assert '9903.82.09' in p.get('codes',{}).get('73211110',[]), p.get('codes',{}).get('73211110')
-          for code in ('68091100','6809110010'):
+          # Gypsum must never inherit Subchapter III vehicle/lumber provisions.
+          # Check every prefix that the runtime resolver may use.
+          for code in ('680911','68091100','6809110010'):
               bad=set(p.get('codes',{}).get(code,[])) & {'9903.74.01','9903.76.01'}
               assert not bad, {'code':code,'falseChapter99':sorted(bad),'allCandidates':p.get('codes',{}).get(code,[])}
           print(json.dumps(p['stats'],indent=2))
           print('87032301:',p['codes'].get('87032301'))
           print('73211110:',p['codes'].get('73211110'))
+          print('680911:',p['codes'].get('680911'))
           print('68091100:',p['codes'].get('68091100'))
           for h in ['9903.88.01','9903.90.08','9903.94.01','9903.94.02','9903.94.03','9903.94.04','9903.82.05','9903.82.06','9903.82.09','9903.82.15','9903.82.16','9903.88.03']:
               print('\nHEADING',h)
