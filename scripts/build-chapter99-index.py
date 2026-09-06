@@ -145,12 +145,6 @@ for key, parts in subdivision_text.items():
         continue
     for hm in re.finditer(r'\bHeading\s+(9903\.\d{2}\.\d{2})\s+applies\s+to\b', block, re.I):
         add_relation(hm.group(1), key, block)
-    # Chapter 99 often groups several headings in one applicability sentence,
-    # e.g. "Headings 9903.xx.xx, ... apply to ...". Capture every heading in
-    # that list rather than only singular "Heading X applies to" statements.
-    for hm in re.finditer(r'\bHeadings\s+(.{1,700}?)\s+apply\s+to\b', block, re.I):
-        for h in re.findall(r'9903\.\d{2}\.\d{2}', hm.group(1)):
-            add_relation(h, key, block)
     for pm in re.finditer(r'(?:rates? of duty|rates?)\s+set\s+forth\s+in\s+headings?\s+(.{0,520}?)\s+apply\s+to\b', block, re.I):
         for h in re.findall(r'9903\.\d{2}\.\d{2}', pm.group(1)):
             add_relation(h, key, block)
@@ -229,9 +223,6 @@ for rm in row_re.finditer(text):
     if heading not in heading_blocks:
         continue
     block = f"{heading} 1/ {rm.group(2)}"
-    # Limit the relation parser to the immediate tariff-row material. Page
-    # headers may occur inside the capture, but the next heading remains the
-    # hard stop. References near the start are the operative description.
     parse_heading_relations(heading, block[:12000])
 
 code_candidates = defaultdict(set)
