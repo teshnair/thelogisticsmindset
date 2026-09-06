@@ -391,7 +391,15 @@ function updateHtsUnitHint(items, target) {
   }
   const matches = (Array.isArray(items) ? items : []).filter(item => String(item?.code || '').startsWith(d));
   const exact = matches.filter(item => String(item?.code || '') === d);
-  const pool = exact.length ? exact : matches;
+  const exactWithUnits = exact.filter(item => suggestionUnits(item).length);
+  const descendantsWithUnits = matches.filter(item => String(item?.code || '').length > d.length && suggestionUnits(item).length);
+  const pool = exactWithUnits.length
+    ? exactWithUnits
+    : descendantsWithUnits.length
+      ? descendantsWithUnits
+      : exact.length
+        ? exact
+        : matches;
   if (!pool.length) {
     hint.textContent = `HTS reporting unit: not identified yet for ${formatInput(d)}.`;
     return;
