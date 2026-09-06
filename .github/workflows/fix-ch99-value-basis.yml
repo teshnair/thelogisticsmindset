@@ -1,4 +1,4 @@
-name: Capture India Section 232 debug response
+name: Apply Chapter 99 note 16 exception gates
 
 on:
   push:
@@ -11,50 +11,32 @@ permissions:
   contents: write
 
 jobs:
-  capture:
+  patch:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           ref: preview-import-calculator
           fetch-depth: 0
 
-      - name: Capture deployed API response
+      - name: Patch note 16(j) and 16(k) applicability
         run: |
           python - <<'PY'
-          import json, time, urllib.parse, urllib.request
-          base = 'https://deploy-preview-43--thelogisticsmindset.netlify.app'
-          data = None
-          last = None
-          for attempt in range(12):
-              try:
-                  params = urllib.parse.urlencode({
-                      'hts':'7321113050',
-                      'country':'IN',
-                      'customsValue':'100000',
-                      '_debug':time.time_ns(),
-                  })
-                  req = urllib.request.Request(base + '/api/trade-rules?' + params, headers={'Cache-Control':'no-cache','User-Agent':'TLM-Debug/1.0'})
-                  with urllib.request.urlopen(req, timeout=35) as res:
-                      candidate = json.loads(res.read().decode('utf-8'))
-                  if candidate.get('revisionVerified') is True:
-                      data = candidate
-                      break
-                  last = candidate
-              except Exception as exc:
-                  last = {'error': repr(exc)}
-              time.sleep(8)
-          if data is None:
-              data = last or {'error':'no response'}
-          with open('tmp-india-232-debug.json','w') as f:
-              json.dump(data,f,indent=2)
+          from pathlib import Path
+
+          p = Path('netlify/functions/trade-rules.mts')
+          text = p.read_text()
+          old = '''if(noteTarget(meta,"16:e")){let q=boolValue(fact(input,"usMetalContentQualification"));'''
+          new = '''if(noteTarget(meta,"16:j")){if(!["CA","MX"].includes(country))return{state:"not-applicable" as const,reason:"U.S. note 16(j) is limited to qualifying Canada/Mexico USMCA derivative steel articles.",requiredFacts:[]};const fta=boolValue(fact(input,"ftaQualification"));if(fta===false)return{state:"not-applicable" as const,reason:"U.S. note 16(j) requires USMCA eligibility.",requiredFacts:[]};if(fta===null)required.add("ftaQualification");}if(noteTarget(meta,"16:k")){if(![84,85,87].includes(chapter))return{state:"not-applicable" as const,reason:"U.S. note 16(k) is limited to qualifying parts in chapters 84, 85, or 87.",requiredFacts:[]};}if(noteTarget(meta,"16:e")){let q=boolValue(fact(input,"usMetalContentQualification"));'''
+          if old not in text:
+              raise SystemExit('note 16(e) insertion point not found')
+          p.write_text(text.replace(old, new, 1))
           PY
 
-      - name: Commit debug response
+      - name: Commit targeted fix
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tmp-india-232-debug.json
-          git commit -m 'Capture India Section 232 debug response'
+          git add netlify/functions/trade-rules.mts
+          git commit -m 'Gate Chapter 99 note 16 exceptions correctly'
           git push origin HEAD:preview-import-calculator
