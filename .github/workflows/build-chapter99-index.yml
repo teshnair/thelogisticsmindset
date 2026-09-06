@@ -43,7 +43,10 @@ jobs:
           p=json.load(open('data/chapter99-index.json'))
           assert p.get('htsRevision') == 18, p.get('htsRevision')
           assert '9903.88.01' in p.get('codes',{}).get('87032301',[]), p.get('codes',{}).get('87032301')
-          assert '9903.82.16' in p.get('codes',{}).get('73211110',[]) or '9903.82.09' in p.get('codes',{}).get('73211110',[]), p.get('codes',{}).get('73211110')
+          targets=set((p.get('headings',{}).get('9903.82.09') or {}).get('noteTargets',[]))
+          required={'16:c:vi','16:c:vii','16:c:viii','16:c:xi'}
+          assert required.issubset(targets), {'targets':sorted(targets),'missing':sorted(required-targets)}
+          assert '9903.82.09' in p.get('codes',{}).get('73211110',[]), p.get('codes',{}).get('73211110')
           print(json.dumps(p['stats'],indent=2))
           print('87032301:',p['codes'].get('87032301'))
           print('73211110:',p['codes'].get('73211110'))
