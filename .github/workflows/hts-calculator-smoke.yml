@@ -28,7 +28,7 @@ jobs:
               last = None
               for attempt in range(retries):
                   try:
-                      req = urllib.request.Request(url, headers={'User-Agent':'TheLogisticsMindset-SmokeTest/2.0','Cache-Control':'no-cache'})
+                      req = urllib.request.Request(url, headers={'User-Agent':'TheLogisticsMindset-SmokeTest/3.0','Cache-Control':'no-cache'})
                       with urllib.request.urlopen(req, timeout=35) as res:
                           body = res.read().decode('utf-8')
                           if res.status == 200:
@@ -38,6 +38,22 @@ jobs:
                       last = exc
                   time.sleep(8)
               raise last or RuntimeError('request failed')
+
+          def post_json(path, payload, retries=20):
+              last = None
+              for attempt in range(retries):
+                  try:
+                      body = json.dumps(payload).encode('utf-8')
+                      req = urllib.request.Request(base + path, data=body, method='POST', headers={'User-Agent':'TheLogisticsMindset-SmokeTest/3.0','Cache-Control':'no-cache','Content-Type':'application/json'})
+                      with urllib.request.urlopen(req, timeout=35) as res:
+                          data = json.loads(res.read().decode('utf-8'))
+                          if res.status == 200:
+                              return data
+                          last = RuntimeError(f'HTTP {res.status}: {str(data)[:500]}')
+                  except Exception as exc:
+                      last = exc
+                  time.sleep(8)
+              raise last or RuntimeError('POST request failed')
 
           def lookup(hts, country, value=10000, **facts):
               params = {'hts':hts,'country':country,'customsValue':value,'_smoke':time.time_ns()}
@@ -51,31 +67,42 @@ jobs:
           def measure(data, ref):
               return next((m for m in data.get('measures',[]) if m.get('hts') == ref), None)
 
-          def screened(data, ref):
-              return next((m for m in data.get('screenedOut',[]) if m.get('hts') == ref), None)
-
           def assert_current(data):
               assert data.get('revisionVerified') is True, data
               assert (data.get('currentHts') or {}).get('revision') == 18, data
               assert (data.get('indexHts') or {}).get('revision') == 18, data
+
+          def quick_amount(m):
+              return m.get('estimatedDuty') if m.get('estimatedDuty') is not None else m.get('worstCaseEstimatedDuty')
 
           # 4/6-digit classifications must never receive a definitive Chapter 99 answer.
           broad = lookup('7321','RU')
           assert broad.get('needsFullHts') is True, broad
           assert broad.get('status') == 'needs-full-hts', broad
 
+          # Autocomplete must return the current HTS reporting quantity unit.
+          unit_search = post_json('/api/hts-duty', {'action':'search','hts':'73211130'})
+          suggestions = unit_search.get('suggestions', [])
+          unit_line = next((s for s in suggestions if str(s.get('code','')).startswith('73211130')), None)
+          assert unit_line is not None, unit_search
+          assert isinstance(unit_line.get('units'), list), unit_line
+          assert any(str(u).lower().startswith('no') for u in unit_line.get('units', [])), unit_line
+
           # China passenger automobile: Section 301 + normal automobile Section 232.
+          # A live exclusion question may keep 301 in needs-facts, but the quick estimate must still use 25%.
           china_auto = lookup('8703230100','CN', vehicleManufactureYear=2024)
           assert_current(china_auto)
           m301 = measure(china_auto, '9903.88.01')
           assert m301 and m301.get('program') == 'Section 301', china_auto
-          assert m301.get('applicability') == 'applicable', m301
+          assert m301.get('applicability') in ('applicable','needs-facts'), m301
           assert m301.get('ratePercent') == 25, m301
+          assert quick_amount(m301) == 2500, m301
           assert not measure(china_auto, '9903.90.08'), china_auto
           auto232 = measure(china_auto, '9903.94.01')
           assert auto232 and auto232.get('program') == 'Section 232', china_auto
           assert auto232.get('applicability') == 'applicable', auto232
           assert auto232.get('ratePercent') == 25, auto232
+          assert quick_amount(auto232) == 2500, auto232
           assert not measure(china_auto, '9903.94.04'), china_auto
 
           # Same automobile from India must not inherit China 301 or Russia Chapter 99.
@@ -94,11 +121,12 @@ jobs:
           assert not measure(old_china_auto, '9903.94.01'), old_china_auto
           assert measure(old_china_auto, '9903.88.01'), old_china_auto
 
-          # Russia derivative steel: unknown U.S.-steel-content condition must ask, not stack 10% and 25%.
+          # Russia derivative steel: missing U.S.-content facts must keep review status but return the higher-duty quick estimate.
           ru_unknown = lookup('7321111000','RU')
           assert_current(ru_unknown)
           assert 'usMetalContentQualification' in ru_unknown.get('requiredFacts',[]), ru_unknown
-          assert not any(m.get('estimatedDuty') for m in ru_unknown.get('measures',[]) if m.get('hts') in ('9903.82.15','9903.82.16')), ru_unknown
+          ru_unknown_25 = measure(ru_unknown, '9903.82.16')
+          assert ru_unknown_25 and quick_amount(ru_unknown_25) == 2500, ru_unknown
 
           # Russia default derivative-steel treatment when U.S.-content reduction is not met.
           ru_default = lookup('7321111000','RU', usMetalContentQualification='false')
@@ -106,6 +134,7 @@ jobs:
           ru25 = measure(ru_default, '9903.82.16')
           assert ru25 and ru25.get('applicability') == 'applicable', ru_default
           assert ru25.get('ratePercent') == 25, ru25
+          assert quick_amount(ru25) == 2500, ru25
           assert not measure(ru_default, '9903.82.15'), ru_default
 
           # Russia reduced treatment when the U.S.-metal-content test is met.
@@ -114,6 +143,7 @@ jobs:
           ru10 = measure(ru_reduced, '9903.82.15')
           assert ru10 and ru10.get('applicability') == 'applicable', ru_reduced
           assert ru10.get('ratePercent') == 10, ru10
+          assert quick_amount(ru10) == 1000, ru10
           assert not measure(ru_reduced, '9903.82.16'), ru_reduced
 
           # Non-Russia derivative steel must use the current all-other treatment, not a Russia heading.
@@ -124,6 +154,7 @@ jobs:
           all_other = measure(ca_steel, '9903.82.09')
           assert all_other and all_other.get('applicability') == 'applicable', ca_steel
           assert all_other.get('ratePercent') == 25, all_other
+          assert quick_amount(all_other) == 2500, all_other
 
-          print('\nAll Chapter 99 resolver smoke tests passed.')
+          print('\nAll Chapter 99 and HTS-unit smoke tests passed.')
           PY
