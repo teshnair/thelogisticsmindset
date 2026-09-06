@@ -135,7 +135,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 // and Chapter 99 result rendering continues to work.
 if (/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
   const screeningScript = document.createElement("script");
-  screeningScript.src = "js/hts-import-screening.js?v=20260906-3";
+  screeningScript.src = "js/hts-import-screening.js?v=20260906-4";
   screeningScript.async = false;
   document.head.appendChild(screeningScript);
+
+  const questionGatingScript = document.createElement("script");
+  questionGatingScript.src = "js/hts-question-gating.js?v=20260906-1";
+  questionGatingScript.async = false;
+  document.head.appendChild(questionGatingScript);
 }
