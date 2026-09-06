@@ -26,7 +26,7 @@ in_notes = False
 
 code_re = re.compile(r'\b(\d{4}(?:\.\d{2}){1,3})\b')
 heading_re = re.compile(r'^\s*(99\d{2}\.\d{2}\.\d{2})\b')
-note_start_re = re.compile(r'^\s*(\d{1,3})\.\s*(?:\(([a-z])\))?\s+')
+note_start_re = re.compile(r'^\s*(\d{1,3})\.\s*(?:\(([a-z])\))?(?:\s+|$)')
 sub_re = re.compile(r'^\s*\(([a-z]|[ivxlcdm]+)\)\s+')
 roman_tokens = {"i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv","xvi","xvii","xviii","xix","xx"}
 
@@ -230,6 +230,24 @@ for code, keys in note_membership.items():
     for heading, target_keys in relations.items():
         if keys.intersection(target_keys):
             code_candidates[code].add(heading)
+
+# Structural safety checks. Bare note numbers such as "38." occur frequently
+# in the official Chapter 99 PDF. If a note boundary is missed, an unrelated
+# HTS list can be assigned to the prior note and create catastrophic false
+# positives. Fail the build instead of publishing such an index.
+note38b_codes = sorted(code for code, keys in note_membership.items() if '38:b' in keys)
+invalid_note38b = [code for code in note38b_codes if not code.startswith('87')]
+if invalid_note38b:
+    raise RuntimeError(
+        'Chapter 99 note 38(b) contains non-vehicle HTS codes; note-boundary parsing is contaminated: '
+        + ', '.join(invalid_note38b[:20])
+    )
+for gypsum_code in ('68091100', '6809110010'):
+    bad = sorted(set(code_candidates.get(gypsum_code, set())) & {'9903.74.01', '9903.76.01'})
+    if bad:
+        raise RuntimeError(
+            f'False Chapter 99 mapping for gypsum HTS {gypsum_code}: {bad}'
+        )
 
 headings_out = {}
 for h, block in heading_blocks.items():
