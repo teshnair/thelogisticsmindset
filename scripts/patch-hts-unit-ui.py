@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# One-time preview patch runner.
 
 def replace_once(path, old, new, label):
     p = Path(path)
