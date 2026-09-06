@@ -1,0 +1,97 @@
+name: Fix Chapter 99 value basis and melt-pour logic
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/fix-ch99-value-basis.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+          fetch-depth: 0
+
+      - name: Patch Section 232 calculation basis
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          backend = Path('netlify/functions/trade-rules.mts')
+          text = backend.read_text()
+
+          old = '''if(noteTarget(meta,"16:e")){const q=boolValue(fact(input,"usMetalContentQualification"));if(q===null)required.add("usMetalContentQualification");else if(!q)return{state:"not-applicable" as const,reason:"The article does not meet U.S. note 16(e).",requiredFacts:[]};}'''
+          new = '''if(noteTarget(meta,"16:e")){let q=boolValue(fact(input,"usMetalContentQualification"));const reportedMeltPour=clean(fact(input,"meltPourCountry")),assumedMeltPour=(reportedMeltPour||country).toUpperCase();if(q===null&&[72,73].includes(chapter)&&assumedMeltPour!=="US")q=false;if(q===null)required.add("usMetalContentQualification");else if(!q)return{state:"not-applicable" as const,reason:reportedMeltPour?"The entered melt/pour country does not establish the U.S.-metal-content qualification.":"Using the entered country of origin as the assumed melt/pour country, the U.S.-metal-content qualification is not met.",requiredFacts:[]};}'''
+          if old not in text:
+              raise SystemExit('16:e block not found')
+          text = text.replace(old, new, 1)
+
+          old = '''const note20Targets=targets.filter(t=>/^20:/.test(t)),base301=new Set(["20:b","20:d","20:f","20:g"]),rowText=clean(meta?.text),hasBase301Target=note20Targets.some(t=>base301.has(t)),productSpecific=/particular products|product exclusion|covered by an exclusion|exclusion granted by|described in statistical reporting number|the following particular products/i.test(rowText);'''
+          new = '''const note20Targets=targets.filter(t=>/^20:/.test(t)),base301=new Set(["20:b","20:d","20:f","20:g"]),hasBase301Target=note20Targets.some(t=>base301.has(t)),productSpecific=/particular products|product exclusion|covered by an exclusion|exclusion granted by|described in statistical reporting number|the following particular products/i.test(rowText);'''
+          if old not in text:
+              raise SystemExit('duplicate rowText block not found')
+          text = text.replace(old, new, 1)
+
+          old = '''if(/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(context)&&numberValue(fact(input,"metalContentValue"))===null)required.add("metalContentValue");'''
+          new = '''if(!ref.startsWith("9903.82.")&&/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(context)&&numberValue(fact(input,"metalContentValue"))===null)required.add("metalContentValue");'''
+          if old not in text:
+              raise SystemExit('metal-content fact block not found')
+          text = text.replace(old, new, 1)
+
+          old = '''function calculationBase(input:any,context:string,customsValue:number){if(/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(context))return numberValue(fact(input,"metalContentValue"));return customsValue>0?customsValue:null;}'''
+          new = '''function calculationBase(ref:string,input:any,context:string,customsValue:number){if(ref==="9903.82.20")return numberValue(fact(input,"nonUsContentValue"));if(ref==="9903.82.21")return numberValue(fact(input,"usContentValue"))??customsValue;if(ref.startsWith("9903.82."))return customsValue>0?customsValue:null;if(/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(context))return numberValue(fact(input,"metalContentValue"));return customsValue>0?customsValue:null;}'''
+          if old not in text:
+              raise SystemExit('calculationBase not found')
+          text = text.replace(old, new, 1)
+
+          old = '''base=calculationBase(input,context,customsValue)'''
+          new = '''base=calculationBase(ref,input,context,customsValue)'''
+          if old not in text:
+              raise SystemExit('calculationBase call not found')
+          text = text.replace(old, new, 1)
+          backend.write_text(text)
+
+          frontend = Path('js/hts-import-screening-v2.js')
+          text = frontend.read_text()
+          old = '''      metalContentValue: "Value of covered metal content (USD)",'''
+          new = '''      metalContentValue: "Value of covered metal content (USD)",\n      usMetalContentQualification: "Meets U.S.-metal-content qualification (85% threshold)",'''
+          if old not in text:
+              raise SystemExit('question label marker not found')
+          text = text.replace(old, new, 1)
+
+          old = '''    if (key === "metalContentValue") return `<div><label for="metalContentValue">${questionLabel(key)}</label><input id="metalContentValue" type="number" min="0" step="0.01" placeholder="Only the covered metal content"></div>`;'''
+          new = '''    if (key === "metalContentValue") return `<div><label for="metalContentValue">${questionLabel(key)}</label><input id="metalContentValue" type="number" min="0" step="0.01" placeholder="Only the covered metal content"></div>`;\n    if (key === "usMetalContentQualification") return `<div><label for="usMetalContentQualification">${questionLabel(key)}</label><select id="usMetalContentQualification"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;'''
+          if old not in text:
+              raise SystemExit('fieldHtml marker not found')
+          text = text.replace(old, new, 1)
+
+          old = '''      metalContentValue: value("metalContentValue"),'''
+          new = '''      metalContentValue: value("metalContentValue"),\n      usMetalContentQualification: value("usMetalContentQualification"),'''
+          if old not in text:
+              raise SystemExit('factsPayload marker not found')
+          text = text.replace(old, new, 1)
+          frontend.write_text(text)
+
+          smoke = Path('.github/workflows/hts-calculator-smoke.yml')
+          text = smoke.read_text()
+          marker = '''          # Russia derivative steel: unknown U.S.-steel-content condition must ask, not stack 10% and 25%.'''
+          case = '''          # India Chapter 73 stove/range: blank melt/pour assumes India, so the U.S.-content reduction is not met and 9903.82.09 applies to full customs value.\n          india_steel = lookup('7321113050','IN',100000)\n          assert_current(india_steel)\n          assert not measure(india_steel, '9903.82.06'), india_steel\n          india232 = measure(india_steel, '9903.82.09')\n          assert india232 and india232.get('applicability') == 'applicable', india_steel\n          assert india232.get('ratePercent') == 25, india232\n          assert india232.get('estimatedDuty') == 25000, india232\n          assert 'metalContentValue' not in india_steel.get('requiredFacts',[]), india_steel\n\n'''
+          if marker not in text:
+              raise SystemExit('smoke insertion marker not found')
+          smoke.write_text(text.replace(marker, case + marker, 1))
+          PY
+
+      - name: Commit targeted fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add netlify/functions/trade-rules.mts js/hts-import-screening-v2.js .github/workflows/hts-calculator-smoke.yml
+          git commit -m 'Fix Section 232 full-value calculation'
+          git push origin HEAD:preview-import-calculator
