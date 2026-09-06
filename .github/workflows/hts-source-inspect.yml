@@ -1,27 +1,42 @@
-name: Apply vehicle-parts applicability gate
+name: Inspect current Chapter 99 source
 
 on:
   push:
     branches:
       - preview-import-calculator
-    paths:
-      - .github/workflows/hts-source-inspect.yml
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  patch:
+  inspect:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: preview-import-calculator
-          fetch-depth: 0
-      - run: python scripts/patch-vehicle-parts-gate.py
-      - run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add netlify/functions/trade-rules.mts
-          git commit -m 'Exclude automobile-parts rules from finished vehicles'
-          git push origin HEAD:preview-import-calculator
+      - name: Install PDF text utility
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+
+      - name: Download and inspect official current Chapter 99
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 3 --max-time 90 \
+            'https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099' \
+            -o /tmp/ch99.pdf
+          file /tmp/ch99.pdf
+          ls -lh /tmp/ch99.pdf
+          pdftotext -layout /tmp/ch99.pdf /tmp/ch99.txt
+          echo '--- 8703.23.01 contexts ---'
+          grep -n -B 25 -A 12 '8703\.23\.01' /tmp/ch99.txt | head -n 220 || true
+          echo '--- 7321.11.10 contexts ---'
+          grep -n -B 30 -A 15 '7321\.11\.10' /tmp/ch99.txt | head -n 260 || true
+          echo '--- 9903.88.01 contexts ---'
+          grep -n -B 8 -A 25 '9903\.88\.01' /tmp/ch99.txt | head -n 180 || true
+          echo '--- 9903.82.16 contexts ---'
+          grep -n -B 12 -A 35 '9903\.82\.16' /tmp/ch99.txt | head -n 220 || true
+          echo '--- current HTS revision ---'
+          curl -fsSL --retry 3 --max-time 30 \
+            'https://www.usitc.gov/harmonized_tariff_information/hts/archive/list' \
+            | grep -Eo '2026 HTS Revision[^<]{0,80}' | head -n 5 || true
