@@ -1,4 +1,4 @@
-name: Apply Chapter 99 note 16 exception gates
+name: Verify corrected India Section 232 result
 
 on:
   push:
@@ -8,35 +8,49 @@ on:
       - .github/workflows/fix-ch99-value-basis.yml
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  patch:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 7
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: preview-import-calculator
-          fetch-depth: 0
-
-      - name: Patch note 16(j) and 16(k) applicability
+      - name: Verify deployed India Section 232 calculation
         run: |
           python - <<'PY'
-          from pathlib import Path
+          import json, time, urllib.parse, urllib.request
 
-          p = Path('netlify/functions/trade-rules.mts')
-          text = p.read_text()
-          old = '''if(noteTarget(meta,"16:e")){let q=boolValue(fact(input,"usMetalContentQualification"));'''
-          new = '''if(noteTarget(meta,"16:j")){if(!["CA","MX"].includes(country))return{state:"not-applicable" as const,reason:"U.S. note 16(j) is limited to qualifying Canada/Mexico USMCA derivative steel articles.",requiredFacts:[]};const fta=boolValue(fact(input,"ftaQualification"));if(fta===false)return{state:"not-applicable" as const,reason:"U.S. note 16(j) requires USMCA eligibility.",requiredFacts:[]};if(fta===null)required.add("ftaQualification");}if(noteTarget(meta,"16:k")){if(![84,85,87].includes(chapter))return{state:"not-applicable" as const,reason:"U.S. note 16(k) is limited to qualifying parts in chapters 84, 85, or 87.",requiredFacts:[]};}if(noteTarget(meta,"16:e")){let q=boolValue(fact(input,"usMetalContentQualification"));'''
-          if old not in text:
-              raise SystemExit('note 16(e) insertion point not found')
-          p.write_text(text.replace(old, new, 1))
+          base = 'https://deploy-preview-43--thelogisticsmindset.netlify.app'
+          last = None
+          for attempt in range(30):
+              try:
+                  params = urllib.parse.urlencode({
+                      'hts':'7321113050',
+                      'country':'IN',
+                      'customsValue':'100000',
+                      '_verify':time.time_ns(),
+                  })
+                  req = urllib.request.Request(base + '/api/trade-rules?' + params, headers={'Cache-Control':'no-cache','User-Agent':'TLM-Preview-Verify/3.0'})
+                  with urllib.request.urlopen(req, timeout=35) as res:
+                      data = json.loads(res.read().decode('utf-8'))
+                  last = data
+                  measures = data.get('measures', [])
+                  residual = next((m for m in measures if m.get('hts') == '9903.82.09'), None)
+                  blockers = [m for m in measures if m.get('hts') in ('9903.82.06','9903.82.20','9903.82.21','9903.82.23','9903.82.24','9903.82.25','9903.82.26')]
+                  if (data.get('revisionVerified') is True and
+                      residual and residual.get('applicability') == 'applicable' and
+                      residual.get('ratePercent') == 25 and
+                      residual.get('estimatedDuty') == 25000 and
+                      not blockers and
+                      not data.get('requiredFacts')):
+                      print(json.dumps(data, indent=2)[:12000])
+                      print('INDIA_232_PREVIEW_OK')
+                      raise SystemExit(0)
+              except SystemExit:
+                  raise
+              except Exception as exc:
+                  last = {'error':repr(exc)}
+              time.sleep(10)
+          print(json.dumps(last, indent=2)[:12000] if isinstance(last,dict) else str(last))
+          raise SystemExit('Corrected India Section 232 result did not appear in preview')
           PY
-
-      - name: Commit targeted fix
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add netlify/functions/trade-rules.mts
-          git commit -m 'Gate Chapter 99 note 16 exceptions correctly'
-          git push origin HEAD:preview-import-calculator
