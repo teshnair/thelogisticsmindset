@@ -1,337 +1,225 @@
 (() => {
   if (!/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) return;
 
-  const BUILD = "2026-09-06-import-screening-v2";
+  const BUILD = "2026-09-06-import-screening-v3";
   const digits = value => String(value ?? "").replace(/\D/g, "");
-  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[c]));
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-  function currentFormFacts() {
-    return {
-      manufactureYear: Number(document.getElementById("vehicleManufactureYear")?.value || 0) || null,
-      originalEngine: document.getElementById("vehicleOriginalEngine")?.value || "",
-      importPurpose: document.getElementById("vehicleImportPurpose")?.value || "permanent"
-    };
-  }
+  const SEC232_PREFIXES = [
+    "7206","7207","7208","7209","7210","7211","7212","7213","7214","7215","7216","7217","7218","7219","7220","7221","7222","7223","7224","7225","7226","7227","7228","7229",
+    "7301","7302","7304","7305","7306","7307","7308","7309","7601","7604","7605","7606","7607","7608","7609","7610","7616",
+    "8703","8704"
+  ];
 
-  function addMeasure(data, measure) {
-    data.review ||= {};
-    data.review.applicableAdditionalMeasures ||= [];
-    const list = data.review.applicableAdditionalMeasures;
-    const key = `${measure.hts}|${measure.program}`;
-    if (list.some(item => `${item?.hts || ""}|${item?.program || ""}` === key)) return;
-    list.push(measure);
-  }
-
-  function moneyAmount(value, rate) {
-    const n = Number(value);
-    return Number.isFinite(n) && n >= 0 ? n * rate : null;
-  }
-
-  function vehicleRequirements(code, facts) {
-    if (!code.startsWith("8703")) return [];
-    const year = facts.manufactureYear;
-    const nowYear = new Date().getFullYear();
-    const nhtsa25 = year && year <= nowYear - 25;
-    const epa21 = year && year <= nowYear - 21;
-    const rows = [];
-
-    rows.push({
-      agency: "NHTSA / DOT",
-      status: nhtsa25 ? "Age exemption indicated" : "Review required",
-      detail: nhtsa25
-        ? `Manufacture year ${year} is at least 25 years before ${nowYear}. Review the NHTSA 25-year provision and HS-7 declaration requirements.`
-        : "Passenger vehicles generally require an HS-7 declaration. If the vehicle is not at least 25 years old, confirm FMVSS conformity, Registered Importer eligibility, or another applicable import basis."
-    });
-
-    let epaDetail = "EPA Form 3520-1 and emissions import requirements should be reviewed.";
-    if (epa21) {
-      if (facts.originalEngine === "yes") {
-        epaDetail = `Manufacture year ${year} is at least 21 years old and the engine is reported as original/equivalent. Review the EPA age-based provision and Form 3520-1 declaration.`;
-      } else if (facts.originalEngine === "no") {
-        epaDetail = `Manufacture year ${year} meets the 21-year age threshold, but the engine is reported as changed. The EPA age-based provision may not apply; review the replacement-engine requirements before import.`;
-      } else {
-        epaDetail = `Manufacture year ${year} meets the 21-year age threshold, but original engine/configuration has not been confirmed. EPA eligibility depends on that fact.`;
-      }
-    }
-    rows.push({ agency: "EPA", status: "Review required", detail: epaDetail });
-
-    const purposeNotes = {
-      testing: "Testing/research imports can require agency preapproval and temporary-import conditions.",
-      display: "Show/display imports can require NHTSA eligibility/permission and EPA temporary-import treatment.",
-      racing: "Competition-racing vehicles have separate EPA/NHTSA criteria; road-capable vehicles are not automatically exempt.",
-      repair: "Repair/alteration imports can require temporary admission, agency authorization, and export after the approved activity.",
-      nonresident: "Temporary nonresident-use provisions have time limits and documentary requirements.",
-      permanent: "Permanent import requires the normal EPA/NHTSA compliance or an applicable exemption."
-    };
-    rows.push({
-      agency: "Vehicle import purpose",
-      status: "Shipment fact",
-      detail: purposeNotes[facts.importPurpose] || purposeNotes.permanent
-    });
-
-    return rows;
-  }
-
-  function genericRequirements(code) {
-    const chapter = Number(code.slice(0, 2));
-    const rows = [];
-    const add = (agency, status, detail) => rows.push({ agency, status, detail });
-
-    if (chapter >= 2 && chapter <= 22) add("FDA", "Possible PGA filing", "Food, beverage, agricultural and related products can require FDA admissibility data, prior notice, facility/registration or other product-specific requirements.");
-    if (chapter >= 1 && chapter <= 14) add("USDA / APHIS", "Possible PGA filing", "Animal, plant and agricultural products can require APHIS permits, certificates, inspection or admissibility review.");
-    if ([29,32,38].includes(chapter)) add("EPA / TSCA", "Possible certification", "Chemical products can require TSCA import certification and may also be subject to EPA program-specific requirements.");
-    if ([30,33].includes(chapter)) add("FDA", "Possible PGA filing", "Drugs, medical preparations, cosmetics or related goods can require FDA product and establishment data.");
-    if ([44,92].includes(chapter)) add("USDA / APHIS / Lacey Act", "Possible declaration", "Wood, plant products and certain instruments can require Lacey Act or APHIS review depending on species, composition and use.");
-    if (chapter === 85) add("FCC", "Conditional", "Radio-frequency or communications equipment may require FCC authorization or an applicable import condition.");
-    if (code.startsWith("9503")) add("CPSC", "Likely review", "Toys and children's products can require CPSC compliance/certification and product-specific testing records.");
-
-    return rows;
-  }
-
-  function augmentCalculation(data, requestPayload) {
-    if (!data || typeof data !== "object") return data;
-    data.query ||= {};
-    const code = digits(requestPayload?.hts || data.query?.hts);
-    const country = String(requestPayload?.country || data.query?.country || "").toUpperCase();
-    const customsValue = Number(requestPayload?.customsValue ?? data.query?.customsValue ?? 0);
-    const facts = currentFormFacts();
-
-    data.review ||= {};
-    data.review.screeningBuild = BUILD;
-
-    if (country === "CN" && code.startsWith("870323")) {
-      addMeasure(data, {
-        program: "Section 301",
-        hts: "9903.88.01",
-        description: "Product of China classified under 8703.23.01 is included in the Section 301 List 1 action.",
-        applicableRate: "+25%",
-        amount: moneyAmount(customsValue, 0.25),
-        tariffTreatment: "Section 301 additional duty for products of China",
-        ruleSource: "USTR Section 301 List 1 / U.S. note 20",
-        extendedScreening: true
-      });
-    }
-
-    if (country === "CN" && code.startsWith("8703")) {
-      addMeasure(data, {
-        program: "China IEEPA — Synthetic Opioid",
-        hts: "9903.01.24",
-        description: "Current additional duty on covered products of China under the synthetic-opioid IEEPA action.",
-        applicableRate: "+10%",
-        amount: moneyAmount(customsValue, 0.10),
-        tariffTreatment: "China synthetic-opioid IEEPA additional duty, subject to the applicable exclusions and U.S. notes",
-        ruleSource: "Executive Order 14357 / U.S. note 2(u)",
-        extendedScreening: true
-      });
-    }
-
-    if (code.startsWith("8703")) {
-      const nowYear = new Date().getFullYear();
-      const oldVehicle = facts.manufactureYear && facts.manufactureYear <= nowYear - 25;
-      if (oldVehicle) {
-        addMeasure(data, {
-          program: "Section 232 Automobiles",
-          hts: "9903.94.04",
-          description: `Passenger vehicle reported as manufactured in ${facts.manufactureYear}, at least 25 years before the year of entry.`,
-          applicableRate: "0% additional (25-year exception)",
-          amount: 0,
-          tariffTreatment: "Automobile Section 232 age exception; verify manufacture year and eligibility at entry",
-          ruleSource: "U.S. note 33(e), subchapter III, chapter 99",
-          extendedScreening: true
-        });
-      } else {
-        addMeasure(data, {
-          program: "Section 232 Automobiles",
-          hts: "9903.94.01",
-          description: "Passenger vehicle covered by the automobile Section 232 action, unless a specific exception or alternative automobile provision applies.",
-          applicableRate: "+25%",
-          amount: moneyAmount(customsValue, 0.25),
-          tariffTreatment: "Automobile Section 232 additional duty",
-          ruleSource: "Proclamation 10908 / U.S. note 33",
-          extendedScreening: true
-        });
-      }
-
-      addMeasure(data, {
-        program: "Reciprocal Tariff Exception",
-        hts: "9903.01.33",
-        description: "Passenger vehicles covered by the automobile Section 232 provisions are excluded from the reciprocal-tariff additional duty.",
-        applicableRate: "0% additional (exception)",
-        amount: 0,
-        tariffTreatment: "Reciprocal tariff exception for covered passenger vehicles",
-        ruleSource: "U.S. note 2(v) / heading 9903.01.33",
-        extendedScreening: true
-      });
-    }
-
-    data.review.importRequirementsScreening = [
-      ...vehicleRequirements(code, facts),
-      ...genericRequirements(code)
-    ];
-    data.review.importScreeningFacts = facts;
-    return data;
-  }
-
-  const nativeFetch = window.fetch.bind(window);
-  window.fetch = async function(input, init) {
-    const response = await nativeFetch(input, init);
-    try {
-      const url = typeof input === "string" ? input : input?.url || "";
-      if (!url.includes("/api/hts-duty") || !init?.body) return response;
-
-      let requestPayload;
-      try { requestPayload = JSON.parse(init.body); } catch { return response; }
-      if (requestPayload?.action !== "calculate" || !response.ok) return response;
-
-      const data = await response.clone().json();
-      augmentCalculation(data, requestPayload);
-
-      const headers = new Headers(response.headers);
-      headers.delete("content-length");
-      headers.set("content-type", "application/json; charset=utf-8");
-      return new Response(JSON.stringify(data), {
-        status: response.status,
-        statusText: response.statusText,
-        headers
-      });
-    } catch (error) {
-      console.warn("Import screening augmentation skipped:", error);
-      return response;
-    }
-  };
-
-  function injectStyles() {
-    if (document.getElementById("importScreeningStyles")) return;
+  function addStyles() {
+    if (document.getElementById("htsExtendedStyles")) return;
     const style = document.createElement("style");
-    style.id = "importScreeningStyles";
+    style.id = "htsExtendedStyles";
     style.textContent = `
-      .import-screening-inputs{grid-column:1/-1;border:1px solid #d8dee6;border-radius:5px;background:#f8fafc;padding:16px;margin-top:2px}
-      .import-screening-inputs h3{margin:0 0 5px;color:#1a2a3a;font-size:1rem}
-      .import-screening-inputs p{margin:0 0 14px;color:#667085;font-size:.84rem}
-      .import-screening-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-      .import-screening-panel{margin-top:24px}
-      .import-screening-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-      .import-screening-card{border:1px solid #e1e6eb;border-radius:5px;background:#fff;padding:14px}
-      .import-screening-card h4{margin:0 0 5px;color:#1a2a3a;font-size:.95rem}
-      .import-screening-status{display:inline-block;margin-bottom:7px;padding:3px 8px;border-radius:999px;background:#fff3d6;color:#765000;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.35px}
-      .import-screening-card p{margin:0;color:#444;font-size:.87rem}
-      @media(max-width:760px){.import-screening-grid,.import-screening-cards{grid-template-columns:1fr}}
+      body.hts-modal-open{overflow:hidden}
+      #htsResultBackdrop{position:fixed;inset:0;background:rgba(10,20,30,.58);z-index:9998;display:none}
+      #htsResultBackdrop.open{display:block}
+      #result.hts-result-modal{position:fixed;z-index:9999;top:4vh;left:50%;transform:translateX(-50%);width:min(1120px,94vw);max-height:92vh;overflow:auto;margin:0;box-shadow:0 18px 60px rgba(0,0,0,.35);border:1px solid #cfd6de}
+      .hts-modal-close{position:sticky;top:0;float:right;z-index:2;border:0;background:#1a2a3a;color:#fff;width:38px;height:38px;border-radius:999px;font-size:24px;line-height:1;cursor:pointer;margin:-8px -8px 8px 12px}
+      .extended-screening-inputs{margin-top:18px;padding:16px;border:1px solid #d9e0e7;border-radius:5px;background:#f8fafc}
+      .extended-screening-inputs h3{margin:0 0 6px;color:#1a2a3a;font-size:1rem}
+      .extended-screening-inputs p{margin:0 0 14px;color:#667085;font-size:.84rem}
+      .extended-screening-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+      .screening-panel{margin-top:18px;padding:16px;border:1px solid #d9e0e7;border-radius:5px;background:#fff}
+      .screening-panel h3{margin:0 0 5px;color:#1a2a3a}
+      .screening-note{font-size:.82rem;color:#667085;margin-bottom:12px}
+      .screening-row{padding:10px 12px;border:1px solid #e5e9ee;border-radius:4px;margin:8px 0;background:#fafbfc}
+      .screening-row strong{color:#1a2a3a}
+      .screening-row .status{display:inline-block;margin-left:8px;font-size:.72rem;font-weight:800;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:#e9f2ff;color:#285b91}
+      .screening-row .status.flag{background:#fff3d6;color:#765000}
+      .screening-row .status.ok{background:#e8f6ee;color:#22633e}
+      .screening-row p{margin:5px 0 0;font-size:.84rem;color:#4d5660}
+      .regulatory-freshness{margin-top:12px;font-size:.8rem;color:#667085}
+      @media(max-width:760px){.extended-screening-grid{grid-template-columns:1fr}#result.hts-result-modal{top:2vh;max-height:96vh;width:96vw}}
     `;
     document.head.appendChild(style);
   }
 
-  function injectExtendedInputs() {
-    if (document.getElementById("importScreeningInputs")) return;
-    const grid = document.querySelector("#calcForm .grid");
+  function injectExtraInputs() {
+    if (document.getElementById("extendedScreeningInputs")) return;
+    const form = document.getElementById("calcForm");
+    const grid = form?.querySelector(".grid");
     if (!grid) return;
 
-    const block = document.createElement("div");
-    block.className = "import-screening-inputs";
-    block.id = "importScreeningInputs";
-    block.innerHTML = `
-      <h3>Import / PGA requirements screening <span class="tiny">(optional)</span></h3>
-      <p>Additional shipment facts improve agency and vehicle-import screening. Duty calculation still works if these are left blank.</p>
-      <div class="import-screening-grid">
+    const box = document.createElement("div");
+    box.id = "extendedScreeningInputs";
+    box.className = "full extended-screening-inputs";
+    box.innerHTML = `
+      <h3>Additional import screening details <span class="tiny">(optional)</span></h3>
+      <p>These details help screen for EPA, NHTSA/DOT and other special import requirements that cannot be determined from the HTS code alone.</p>
+      <div class="extended-screening-grid">
         <div>
-          <label for="vehicleManufactureYear">Vehicle manufacture year <span class="tiny">(if applicable)</span></label>
-          <input id="vehicleManufactureYear" type="number" min="1900" max="${new Date().getFullYear()}" placeholder="e.g. 2000">
-        </div>
-        <div>
-          <label for="vehicleOriginalEngine">Original / equivalent engine <span class="tiny">(if applicable)</span></label>
-          <select id="vehicleOriginalEngine">
-            <option value="">Unknown / not applicable</option>
-            <option value="yes">Yes</option>
-            <option value="no">No / replaced or modified</option>
-          </select>
-        </div>
-        <div>
-          <label for="vehicleImportPurpose">Import purpose</label>
-          <select id="vehicleImportPurpose">
-            <option value="permanent">Permanent import</option>
-            <option value="testing">Testing / research</option>
-            <option value="display">Show / display</option>
-            <option value="racing">Competition / racing</option>
+          <label for="importPurpose">Import purpose</label>
+          <select id="importPurpose">
+            <option value="standard">Standard import / consumption</option>
+            <option value="temporary">Temporary import</option>
             <option value="repair">Repair / alteration</option>
-            <option value="nonresident">Temporary nonresident use</option>
+            <option value="testing">Testing / research / prototype</option>
+            <option value="show">Show / display / exhibition</option>
+            <option value="racing">Racing / competition</option>
           </select>
         </div>
-      </div>
-    `;
-
-    const fta = grid.querySelector(".checkbox");
-    if (fta) fta.insertAdjacentElement("afterend", block);
-    else grid.appendChild(block);
+        <div>
+          <label for="vehicleManufactureYear">Vehicle manufacture year</label>
+          <input id="vehicleManufactureYear" type="number" min="1900" max="2100" placeholder="Only needed for vehicles">
+        </div>
+        <div>
+          <label for="vehicleEngineStatus">Vehicle engine</label>
+          <select id="vehicleEngineStatus">
+            <option value="unknown">Not specified</option>
+            <option value="original">Original / equivalent configuration</option>
+            <option value="modified">Modified / replaced</option>
+          </select>
+        </div>
+      </div>`;
+    grid.appendChild(box);
   }
 
-  function updateHeader() {
-    const title = document.querySelector(".page-header h1");
-    const subtitle = document.querySelector(".page-header .subtitle");
-    if (title) title.textContent = "U.S. Import Requirements & Duty Calculator";
-    if (subtitle) subtitle.textContent = "Live HTS duty lookup with Chapter 99 tariff screening and import / PGA requirement checks";
+  function updateHeading() {
+    const h1 = document.querySelector(".page-header h1");
+    const sub = document.querySelector(".page-header .subtitle");
+    if (h1) h1.textContent = "U.S. Import Requirements & Duty Calculator";
+    if (sub) sub.textContent = "HTS duty, Chapter 99, trade-remedy and import-requirement screening";
     document.title = "U.S. Import Requirements & Duty Calculator | The Logistics Mindset";
   }
 
-  function renderScreeningPanel() {
+  function ensureModal() {
+    if (!document.getElementById("htsResultBackdrop")) {
+      const backdrop = document.createElement("div");
+      backdrop.id = "htsResultBackdrop";
+      backdrop.addEventListener("click", closeModal);
+      document.body.appendChild(backdrop);
+    }
     const result = document.getElementById("result");
-    const data = window.__lastResult;
-    if (!result || !data || result.classList.contains("hidden")) return;
+    if (result && !document.getElementById("htsModalClose")) {
+      const close = document.createElement("button");
+      close.type = "button";
+      close.id = "htsModalClose";
+      close.className = "hts-modal-close";
+      close.setAttribute("aria-label", "Close results");
+      close.textContent = "×";
+      close.addEventListener("click", closeModal);
+      result.prepend(close);
+    }
+  }
 
-    let panel = document.getElementById("importRequirementsPanel");
+  function openModal() {
+    const result = document.getElementById("result");
+    if (!result || result.classList.contains("hidden")) return;
+    ensureModal();
+    result.classList.add("hts-result-modal");
+    document.getElementById("htsResultBackdrop")?.classList.add("open");
+    document.body.classList.add("hts-modal-open");
+    result.scrollTop = 0;
+  }
+
+  function closeModal() {
+    const result = document.getElementById("result");
+    result?.classList.remove("hts-result-modal");
+    result?.classList.add("hidden");
+    document.getElementById("htsResultBackdrop")?.classList.remove("open");
+    document.body.classList.remove("hts-modal-open");
+  }
+
+  function facts() {
+    return {
+      purpose: document.getElementById("importPurpose")?.value || "standard",
+      year: Number(document.getElementById("vehicleManufactureYear")?.value || 0) || null,
+      engine: document.getElementById("vehicleEngineStatus")?.value || "unknown"
+    };
+  }
+
+  function screeningRows(data) {
+    const hts = digits(data?.classification?.hts || data?.query?.hts || document.getElementById("hts")?.value);
+    const country = String(data?.query?.country || document.getElementById("country")?.value || "").toUpperCase();
+    const chapter = hts.slice(0,2);
+    const f = facts();
+    const backend = Array.isArray(data?.review?.applicableAdditionalMeasures) ? data.review.applicableAdditionalMeasures : [];
+    const rows = [];
+
+    rows.push({name:"Chapter 99 / additional duties", status:backend.length ? "flag" : "ok", text:backend.length ? `${backend.length} additional trade-measure provision(s) were identified by the current rules. Review every Chapter 99 line shown in the duty results.` : "No additional Chapter 99 measure was identified by the current rule set. The weekly regulatory monitor still checks official sources for changes before production publication."});
+
+    const has301 = backend.some(x => /301/i.test(String(x?.program || "")));
+    if (country === "CN" && hts.startsWith("870323") && !has301) {
+      rows.push({name:"Section 301",status:"flag",text:"China-origin passenger automobiles under 8703.23 require Section 301 screening. Current verified mapping includes Chapter 99 9903.88.01 at +25%, subject to current exclusions and entry-date rules."});
+    } else {
+      rows.push({name:"Section 301",status:has301 ? "flag" : "ok",text:has301 ? "A Section 301 measure was identified and is shown in the duty results." : "No Section 301 measure was identified for this HTS/country combination by the current rules. The weekly monitor checks USTR/Federal Register sources for new or modified actions."});
+    }
+
+    const has232 = backend.some(x => /232/i.test(String(x?.program || ""))) || SEC232_PREFIXES.some(p => hts.startsWith(p));
+    rows.push({name:"Section 232",status:has232 ? "flag" : "ok",text:has232 ? "This classification falls within a product family that can be subject to Section 232. Review the Chapter 99 treatment, origin/content rules and any exemption or derivative-product rules shown above." : "No Section 232 product-family match was identified by the current screening rules."});
+
+    if (country === "CN") {
+      rows.push({name:"China IEEPA / other country-wide Chapter 99",status:"flag",text:"Country-wide China Chapter 99 measures must also be checked in addition to Section 301. The current screening includes the China synthetic-opioid tariff framework and reciprocal-tariff provisions/exceptions where applicable."});
+    }
+
+    if (chapter === "87") {
+      const age = f.year ? new Date().getFullYear() - f.year : null;
+      rows.push({name:"EPA vehicle requirements",status:"flag",text:`Motor vehicles require EPA emissions screening. ${age != null ? `Entered manufacture year indicates approximately ${age} years of age. ` : "Enter the manufacture year for age-based screening. "}${f.engine === "modified" ? "A modified or replaced engine can change eligibility and documentation requirements." : "Confirm emissions conformity or the applicable exemption/import provision."}`});
+      rows.push({name:"NHTSA / DOT vehicle requirements",status:"flag",text:`Motor vehicles require NHTSA/DOT safety screening. ${age != null && age >= 25 ? "The entered year may qualify for the 25-year NHTSA age exception, subject to the actual manufacture date." : "Confirm FMVSS conformity, Registered Importer requirements, or an applicable exception."}`});
+      if (f.purpose !== "standard") rows.push({name:"Special import purpose",status:"flag",text:`Selected purpose: ${f.purpose}. Temporary, testing, show/display, racing and repair imports can have separate eligibility, bond, declaration or re-export requirements.`});
+    }
+
+    if (["01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","30","33"].includes(chapter)) {
+      rows.push({name:"FDA / USDA screening",status:"flag",text:"This chapter can involve FDA and/or USDA/APHIS requirements. Confirm admissibility, prior notice, facility/registration, permits, inspections, labeling and commodity-specific restrictions as applicable."});
+    }
+    if (["28","29","30","31","32","33","34","35","36","37","38","39"].includes(chapter)) {
+      rows.push({name:"EPA / TSCA screening",status:"flag",text:"Chemical or chemical-containing merchandise can require TSCA certification or other EPA review. Confirm substance identity, exclusions and shipment-specific certification requirements."});
+    }
+    if (hts.startsWith("8517") || hts.startsWith("8525") || hts.startsWith("8526") || hts.startsWith("8528")) {
+      rows.push({name:"FCC screening",status:"flag",text:"Radiofrequency or communications equipment can require FCC authorization, equipment identification or an import-condition review."});
+    }
+    if (["44","47","48","94"].includes(chapter)) {
+      rows.push({name:"Lacey Act / plant-product screening",status:"flag",text:"Wood, paper or products containing plant material may require Lacey Act declaration data and/or USDA/APHIS review depending on species, processing and product composition."});
+    }
+
+    rows.push({name:"AD/CVD, quota and other CBP requirements",status:"flag",text:"The calculator screens returned HTS data for AD/CVD, quota/TRQ and other notes, but scope and applicability can depend on producer/exporter, product description, country and shipment facts. Treat any hit as a review item, not a final legal determination."});
+    return rows;
+  }
+
+  function addScreeningPanel(data) {
+    const result = document.getElementById("result");
+    if (!result) return;
+    let panel = document.getElementById("extendedScreeningPanel");
     if (!panel) {
       panel = document.createElement("div");
-      panel.id = "importRequirementsPanel";
-      panel.className = "import-screening-panel";
-      const disclaimer = result.querySelector(".disclaimer-box");
-      if (disclaimer) disclaimer.insertAdjacentElement("beforebegin", panel);
-      else result.appendChild(panel);
+      panel.id = "extendedScreeningPanel";
+      panel.className = "screening-panel";
+      const header = result.querySelector(".result-header");
+      if (header) header.insertAdjacentElement("afterend", panel); else result.prepend(panel);
     }
-
-    const items = Array.isArray(data?.review?.importRequirementsScreening)
-      ? data.review.importRequirementsScreening
-      : [];
-
-    panel.innerHTML = `
-      <h3 class="section-title">Import / PGA requirements screening</h3>
-      <div class="notice info">Screening is based on the HTS code and the shipment facts entered above. A PGA flag here is a prompt to review the agency requirement, not a substitute for ACE/PGA validation or shipment-specific broker review.</div>
-      <div class="import-screening-cards">
-        ${items.length ? items.map(item => `
-          <div class="import-screening-card">
-            <span class="import-screening-status">${esc(item.status || "Review")}</span>
-            <h4>${esc(item.agency || "Requirement")}</h4>
-            <p>${esc(item.detail || "")}</p>
-          </div>
-        `).join("") : `
-          <div class="import-screening-card">
-            <span class="import-screening-status">No specific flag</span>
-            <h4>Additional agency screening</h4>
-            <p>No specific PGA category was identified by this preliminary HTS screen. Shipment-specific requirements can still apply.</p>
-          </div>
-        `}
-      </div>
-    `;
+    const rows = screeningRows(data);
+    panel.innerHTML = `<h3>Import / regulatory screening</h3><div class="screening-note">Guidance based on the entered HTS code, country and optional shipment facts. The production rules are checked against official regulatory sources during the weekly release cycle.</div>${rows.map(r => `<div class="screening-row"><strong>${esc(r.name)}</strong><span class="status ${r.status}">${r.status === "flag" ? "Review" : "Checked"}</span><p>${esc(r.text)}</p></div>`).join("")}<div class="regulatory-freshness">Screening build: ${BUILD}. Always verify shipment-specific applicability before filing.</div>`;
   }
 
-  function boot() {
-    injectStyles();
-    updateHeader();
-    injectExtendedInputs();
-
+  function watchResults() {
     const result = document.getElementById("result");
-    if (result && "MutationObserver" in window) {
-      let timer;
-      const observer = new MutationObserver(() => {
-        clearTimeout(timer);
-        timer = setTimeout(renderScreeningPanel, 0);
-      });
-      observer.observe(result, { attributes: true, childList: true, subtree: true });
-    }
+    if (!result) return;
+    const observer = new MutationObserver(() => {
+      if (!result.classList.contains("hidden")) {
+        setTimeout(() => {
+          const data = window.__lastResult;
+          if (data) addScreeningPanel(data);
+          openModal();
+        }, 60);
+      }
+    });
+    observer.observe(result,{attributes:true,attributeFilter:["class"]});
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot, { once: true });
-  } else {
-    boot();
+  function init() {
+    addStyles();
+    updateHeading();
+    injectExtraInputs();
+    ensureModal();
+    watchResults();
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
   }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
