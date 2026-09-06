@@ -75,6 +75,24 @@ jobs:
           def quick_amount(m):
               return m.get('estimatedDuty') if m.get('estimatedDuty') is not None else m.get('worstCaseEstimatedDuty')
 
+          def assert_metal_mutual_exclusivity(data):
+              candidates = []
+              for m in data.get('measures', []):
+                  ref = str(m.get('hts',''))
+                  if not ref.startswith('9903.82.'):
+                      continue
+                  try:
+                      suffix = int(ref.rsplit('.',1)[1])
+                  except Exception:
+                      continue
+                  if 2 <= suffix <= 26:
+                      candidates.append(m)
+              applied = [m for m in candidates if m.get('applicability') == 'applicable']
+              assert len(applied) <= 1, candidates
+              if len(candidates) > 1:
+                  assert all(m.get('applicability') != 'applicable' for m in candidates), candidates
+                  assert all('mutually exclusive' in str(m.get('reason','')).lower() for m in candidates), candidates
+
           broad = lookup('7321','RU')
           assert broad.get('needsFullHts') is True, broad
           assert broad.get('status') == 'needs-full-hts', broad
@@ -84,9 +102,11 @@ jobs:
           assert suggestions, unit_search
           assert all(isinstance(s.get('units'), list) for s in suggestions), suggestions
           assert any(s.get('units') for s in suggestions), suggestions
+          assert all('<sup' not in str(u).lower() for s in suggestions for u in s.get('units', [])), suggestions
 
           china_auto = lookup('8703230100','CN', vehicleManufactureYear=2024)
           assert_current(china_auto)
+          assert_metal_mutual_exclusivity(china_auto)
           m301 = measure(china_auto, '9903.88.01')
           assert m301 and m301.get('program') == 'Section 301', china_auto
           assert m301.get('applicability') in ('applicable','needs-facts'), m301
@@ -103,6 +123,7 @@ jobs:
 
           india_auto = lookup('8703230100','IN', vehicleManufactureYear=2024)
           assert_current(india_auto)
+          assert_metal_mutual_exclusivity(india_auto)
           assert not measure(india_auto, '9903.88.01'), india_auto
           assert not measure(india_auto, '9903.90.08'), india_auto
           assert measure(india_auto, '9903.94.01'), india_auto
@@ -110,6 +131,7 @@ jobs:
 
           old_china_auto = lookup('8703230100','CN', vehicleManufactureYear=1995)
           assert_current(old_china_auto)
+          assert_metal_mutual_exclusivity(old_china_auto)
           old232 = measure(old_china_auto, '9903.94.04')
           assert old232 and old232.get('applicability') == 'applicable', old_china_auto
           assert old232.get('ratePercent') == 0, old232
@@ -118,6 +140,7 @@ jobs:
 
           ru_unknown = lookup('7321111000','RU')
           assert_current(ru_unknown)
+          assert_metal_mutual_exclusivity(ru_unknown)
           ru_unknown_25 = measure(ru_unknown, '9903.82.16')
           assert ru_unknown_25 and ru_unknown_25.get('applicability') == 'applicable', ru_unknown
           assert ru_unknown_25.get('ratePercent') == 25, ru_unknown_25
@@ -127,6 +150,7 @@ jobs:
 
           ru_default = lookup('7321111000','RU', usMetalContentQualification='false')
           assert_current(ru_default)
+          assert_metal_mutual_exclusivity(ru_default)
           ru25 = measure(ru_default, '9903.82.16')
           assert ru25 and ru25.get('applicability') == 'applicable', ru_default
           assert ru25.get('ratePercent') == 25, ru25
@@ -135,6 +159,7 @@ jobs:
 
           ru_reduced = lookup('7321111000','RU', usMetalContentQualification='true')
           assert_current(ru_reduced)
+          assert_metal_mutual_exclusivity(ru_reduced)
           ru10 = measure(ru_reduced, '9903.82.15')
           assert ru10 and ru10.get('applicability') == 'applicable', ru_reduced
           assert ru10.get('ratePercent') == 10, ru10
@@ -143,6 +168,7 @@ jobs:
 
           ca_steel = lookup('7321111000','CA', usMetalContentQualification='false')
           assert_current(ca_steel)
+          assert_metal_mutual_exclusivity(ca_steel)
           assert not measure(ca_steel, '9903.82.15'), ca_steel
           assert not measure(ca_steel, '9903.82.16'), ca_steel
           all_other = measure(ca_steel, '9903.82.09')
