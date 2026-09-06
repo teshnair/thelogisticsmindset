@@ -75,20 +75,16 @@ jobs:
           def quick_amount(m):
               return m.get('estimatedDuty') if m.get('estimatedDuty') is not None else m.get('worstCaseEstimatedDuty')
 
-          # 4/6-digit classifications must never receive a definitive Chapter 99 answer.
           broad = lookup('7321','RU')
           assert broad.get('needsFullHts') is True, broad
           assert broad.get('status') == 'needs-full-hts', broad
 
-          # Autocomplete must expose reporting units from the exact row or its statistical descendants.
           unit_search = post_json('/api/hts-duty', {'action':'search','hts':'73211130'})
           suggestions = [s for s in unit_search.get('suggestions', []) if str(s.get('code','')).startswith('73211130')]
           assert suggestions, unit_search
           assert all(isinstance(s.get('units'), list) for s in suggestions), suggestions
           assert any(s.get('units') for s in suggestions), suggestions
 
-          # China passenger automobile: Section 301 + normal automobile Section 232.
-          # A live exclusion question may keep 301 in needs-facts, but the quick estimate must still use 25%.
           china_auto = lookup('8703230100','CN', vehicleManufactureYear=2024)
           assert_current(china_auto)
           m301 = measure(china_auto, '9903.88.01')
@@ -103,15 +99,15 @@ jobs:
           assert auto232.get('ratePercent') == 25, auto232
           assert quick_amount(auto232) == 2500, auto232
           assert not measure(china_auto, '9903.94.04'), china_auto
+          assert not measure(china_auto, '9903.94.05'), china_auto
 
-          # Same automobile from India must not inherit China 301 or Russia Chapter 99.
           india_auto = lookup('8703230100','IN', vehicleManufactureYear=2024)
           assert_current(india_auto)
           assert not measure(india_auto, '9903.88.01'), india_auto
           assert not measure(india_auto, '9903.90.08'), india_auto
           assert measure(india_auto, '9903.94.01'), india_auto
+          assert not measure(india_auto, '9903.94.05'), india_auto
 
-          # 25-year vehicle exception supersedes ordinary auto Section 232, but not China 301.
           old_china_auto = lookup('8703230100','CN', vehicleManufactureYear=1995)
           assert_current(old_china_auto)
           old232 = measure(old_china_auto, '9903.94.04')
@@ -120,7 +116,6 @@ jobs:
           assert not measure(old_china_auto, '9903.94.01'), old_china_auto
           assert measure(old_china_auto, '9903.88.01'), old_china_auto
 
-          # Russia derivative steel with melt/pour omitted: assume origin = melt/pour and return the higher-duty path.
           ru_unknown = lookup('7321111000','RU')
           assert_current(ru_unknown)
           ru_unknown_25 = measure(ru_unknown, '9903.82.16')
@@ -130,7 +125,6 @@ jobs:
           assert not ru_unknown.get('requiredFacts'), ru_unknown
           assert any('melt/pour' in str(a).lower() and 'origin' in str(a).lower() for a in ru_unknown.get('assumptions',[])), ru_unknown
 
-          # Russia default derivative-steel treatment when U.S.-content reduction is not met.
           ru_default = lookup('7321111000','RU', usMetalContentQualification='false')
           assert_current(ru_default)
           ru25 = measure(ru_default, '9903.82.16')
@@ -139,7 +133,6 @@ jobs:
           assert quick_amount(ru25) == 2500, ru25
           assert not measure(ru_default, '9903.82.15'), ru_default
 
-          # Russia reduced treatment when the U.S.-metal-content test is explicitly met.
           ru_reduced = lookup('7321111000','RU', usMetalContentQualification='true')
           assert_current(ru_reduced)
           ru10 = measure(ru_reduced, '9903.82.15')
@@ -148,15 +141,17 @@ jobs:
           assert quick_amount(ru10) == 1000, ru10
           assert not measure(ru_reduced, '9903.82.16'), ru_reduced
 
-          # Non-Russia derivative steel must use the current all-other treatment, not a Russia heading.
           ca_steel = lookup('7321111000','CA', usMetalContentQualification='false')
           assert_current(ca_steel)
           assert not measure(ca_steel, '9903.82.15'), ca_steel
           assert not measure(ca_steel, '9903.82.16'), ca_steel
           all_other = measure(ca_steel, '9903.82.09')
-          assert all_other and all_other.get('applicability') == 'applicable', ca_steel
+          assert all_other, ca_steel
+          assert all_other.get('applicability') in ('applicable','needs-facts'), all_other
           assert all_other.get('ratePercent') == 25, all_other
           assert quick_amount(all_other) == 2500, all_other
+          if all_other.get('applicability') == 'needs-facts':
+              assert 'ftaQualification' in ca_steel.get('requiredFacts',[]), ca_steel
 
           print('\nAll Chapter 99 and HTS-unit smoke tests passed.')
           PY
