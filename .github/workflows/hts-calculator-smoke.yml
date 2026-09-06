@@ -12,9 +12,9 @@ permissions:
 jobs:
   regulatory-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
-      - name: Wait for deploy preview and test trade-rule resolver
+      - name: Wait for deploy preview and test Chapter 99 resolver
         env:
           BASE_URL: https://deploy-preview-43--thelogisticsmindset.netlify.app
         run: |
@@ -23,13 +23,13 @@ jobs:
 
           base = os.environ['BASE_URL']
 
-          def request(path, retries=15):
+          def request(path, retries=20):
               url = base + path
               last = None
               for attempt in range(retries):
                   try:
-                      req = urllib.request.Request(url, headers={'User-Agent':'TheLogisticsMindset-SmokeTest/1.0'})
-                      with urllib.request.urlopen(req, timeout=30) as res:
+                      req = urllib.request.Request(url, headers={'User-Agent':'TheLogisticsMindset-SmokeTest/2.0'})
+                      with urllib.request.urlopen(req, timeout=35) as res:
                           body = res.read().decode('utf-8')
                           if res.status == 200:
                               return json.loads(body)
@@ -39,39 +39,91 @@ jobs:
                   time.sleep(8)
               raise last or RuntimeError('request failed')
 
-          def lookup(hts, country, value=10000):
-              q = urllib.parse.urlencode({'hts':hts,'country':country,'customsValue':value})
+          def lookup(hts, country, value=10000, **facts):
+              params = {'hts':hts,'country':country,'customsValue':value}
+              params.update(facts)
+              q = urllib.parse.urlencode(params)
               data = request('/api/trade-rules?' + q)
-              print('\nCASE', hts, country)
-              print(json.dumps(data, indent=2)[:16000])
+              print('\nCASE', hts, country, facts)
+              print(json.dumps(data, indent=2)[:24000])
               return data
 
-          def programs(data, name):
-              return [m for m in data.get('measures',[]) if str(m.get('program','')).lower() == name.lower()]
+          def measure(data, ref):
+              return next((m for m in data.get('measures',[]) if m.get('hts') == ref), None)
 
-          # Broad classifications must not get a definitive Chapter 99 answer.
+          def screened(data, ref):
+              return next((m for m in data.get('screenedOut',[]) if m.get('hts') == ref), None)
+
+          def assert_current(data):
+              assert data.get('revisionVerified') is True, data
+              assert (data.get('currentHts') or {}).get('revision') == 18, data
+              assert (data.get('indexHts') or {}).get('revision') == 18, data
+
+          # 4/6-digit classifications must never receive a definitive Chapter 99 answer.
           broad = lookup('7321','RU')
           assert broad.get('needsFullHts') is True, broad
           assert broad.get('status') == 'needs-full-hts', broad
 
-          # Known China Section 301 automobile case: never return a clean no-301.
-          china_auto = lookup('8703230100','CN')
-          assert china_auto.get('chapter99SourceAvailable') is True, china_auto
-          assert programs(china_auto,'Section 301') or china_auto.get('status') == 'review-required', china_auto
+          # China passenger automobile: Section 301 + normal automobile Section 232.
+          china_auto = lookup('8703230100','CN', vehicleManufactureYear=2024)
+          assert_current(china_auto)
+          m301 = measure(china_auto, '9903.88.01')
+          assert m301 and m301.get('program') == 'Section 301', china_auto
+          assert m301.get('applicability') == 'applicable', m301
+          assert m301.get('ratePercent') == 25, m301
+          assert not measure(china_auto, '9903.90.08'), china_auto
+          auto232 = measure(china_auto, '9903.94.01')
+          assert auto232 and auto232.get('program') == 'Section 232', china_auto
+          assert auto232.get('applicability') == 'applicable', auto232
+          assert auto232.get('ratePercent') == 25, auto232
+          assert not measure(china_auto, '9903.94.04'), china_auto
 
-          # Same automobile HTS from India must not inherit a China-only Section 301 action.
-          india_auto = lookup('8703230100','IN')
-          assert not programs(india_auto,'Section 301'), india_auto
+          # Same automobile from India must not inherit China 301 or Russia Chapter 99.
+          india_auto = lookup('8703230100','IN', vehicleManufactureYear=2024)
+          assert_current(india_auto)
+          assert not measure(india_auto, '9903.88.01'), india_auto
+          assert not measure(india_auto, '9903.90.08'), india_auto
+          assert measure(india_auto, '9903.94.01'), india_auto
 
-          # Known Section 232 derivative-steel family from Russia: never return a clean no-232.
-          russia_7321 = lookup('7321111000','RU')
-          assert russia_7321.get('chapter99SourceAvailable') is True, russia_7321
-          assert programs(russia_7321,'Section 232') or russia_7321.get('status') == 'review-required', russia_7321
+          # 25-year vehicle exception supersedes ordinary auto Section 232, but not China 301.
+          old_china_auto = lookup('8703230100','CN', vehicleManufactureYear=1995)
+          assert_current(old_china_auto)
+          old232 = measure(old_china_auto, '9903.94.04')
+          assert old232 and old232.get('applicability') == 'applicable', old_china_auto
+          assert old232.get('ratePercent') == 0, old232
+          assert not measure(old_china_auto, '9903.94.01'), old_china_auto
+          assert measure(old_china_auto, '9903.88.01'), old_china_auto
 
-          # The resolver must report the current HTS revision source, not a hardcoded calculator version.
-          for case in (china_auto, india_auto, russia_7321):
-              current = case.get('currentHts') or {}
-              assert current.get('label'), case
+          # Russia derivative steel: unknown U.S.-steel-content condition must ask, not stack 10% and 25%.
+          ru_unknown = lookup('7321111000','RU')
+          assert_current(ru_unknown)
+          assert 'usMetalContentQualification' in ru_unknown.get('requiredFacts',[]), ru_unknown
+          assert not any(m.get('estimatedDuty') for m in ru_unknown.get('measures',[]) if m.get('hts') in ('9903.82.15','9903.82.16')), ru_unknown
 
-          print('\nAll regulatory smoke tests passed.')
+          # Russia default derivative-steel treatment when U.S.-content reduction is not met.
+          ru_default = lookup('7321111000','RU', usMetalContentQualification='false')
+          assert_current(ru_default)
+          ru25 = measure(ru_default, '9903.82.16')
+          assert ru25 and ru25.get('applicability') == 'applicable', ru_default
+          assert ru25.get('ratePercent') == 25, ru25
+          assert not measure(ru_default, '9903.82.15'), ru_default
+
+          # Russia reduced treatment when the U.S.-metal-content test is met.
+          ru_reduced = lookup('7321111000','RU', usMetalContentQualification='true')
+          assert_current(ru_reduced)
+          ru10 = measure(ru_reduced, '9903.82.15')
+          assert ru10 and ru10.get('applicability') == 'applicable', ru_reduced
+          assert ru10.get('ratePercent') == 10, ru10
+          assert not measure(ru_reduced, '9903.82.16'), ru_reduced
+
+          # Non-Russia derivative steel must use the current all-other treatment, not a Russia heading.
+          ca_steel = lookup('7321111000','CA', usMetalContentQualification='false')
+          assert_current(ca_steel)
+          assert not measure(ca_steel, '9903.82.15'), ca_steel
+          assert not measure(ca_steel, '9903.82.16'), ca_steel
+          all_other = measure(ca_steel, '9903.82.09')
+          assert all_other and all_other.get('applicability') == 'applicable', ca_steel
+          assert all_other.get('ratePercent') == 25, all_other
+
+          print('\nAll Chapter 99 resolver smoke tests passed.')
           PY
