@@ -119,7 +119,7 @@ def add_relation(heading, key, context):
     if heading in heading_blocks and key:
         relations[heading].add(key)
         if len(relation_context[heading]) < 8:
-            relation_context[heading].append(context[:1600])
+            relation_context[heading].append(context[:2000])
 
 for key, parts in subdivision_text.items():
     block = ' '.join(p for p in parts if p).strip()
@@ -127,7 +127,7 @@ for key, parts in subdivision_text.items():
         continue
     for hm in re.finditer(r'\bHeading\s+(9903\.\d{2}\.\d{2})\s+applies\s+to\b', block, re.I):
         add_relation(hm.group(1), key, block)
-    for pm in re.finditer(r'(?:rates? of duty|rates?)\s+set\s+forth\s+in\s+headings?\s+(.{0,260}?)\s+apply\s+to\b', block, re.I):
+    for pm in re.finditer(r'(?:rates? of duty|rates?)\s+set\s+forth\s+in\s+headings?\s+(.{0,320}?)\s+apply\s+to\b', block, re.I):
         for h in re.findall(r'9903\.\d{2}\.\d{2}', pm.group(1)):
             add_relation(h, key, block)
 
@@ -147,12 +147,21 @@ def int_to_roman(n):
     return None
 
 def subdivision_keys(fragment, note):
+    """Parse references such as (c)(vi)-(viii), (xi) and (e).
+
+    The first single-letter token is the parent subdivision. Roman numerals
+    after it are children. A later non-Roman single-letter token is a separate
+    top-level condition and is retained as its own target. This is important
+    for provisions such as note 16(c)(vii) *and* note 16(e).
+    """
     fragment = fragment.replace('–','-').replace('—','-')
-    letters = re.findall(r'\(([a-z])\)', fragment)
-    base = letters[0] if letters else None
-    romans = re.findall(r'\(([ivxlcdm]+)\)', fragment, re.I)
+    parent_match = re.search(r'\(([a-z])\)', fragment, re.I)
+    base = parent_match.group(1).lower() if parent_match else None
+    remainder = fragment[parent_match.end():] if parent_match else fragment
+
+    romans = re.findall(r'\(([ivxlcdm]+)\)', remainder, re.I)
     expanded=[]
-    for a,b in re.findall(r'\(([ivxlcdm]+)\)\s*-\s*\(([ivxlcdm]+)\)', fragment, re.I):
+    for a,b in re.findall(r'\(([ivxlcdm]+)\)\s*-\s*\(([ivxlcdm]+)\)', remainder, re.I):
         ai,bi=roman_to_int(a),roman_to_int(b)
         if ai and bi and 0 < bi-ai <= 20:
             for n in range(ai,bi+1):
@@ -161,15 +170,25 @@ def subdivision_keys(fragment, note):
     for r in romans:
         r=r.lower()
         if r not in expanded: expanded.append(r)
+
     keys=[]
     if base and expanded:
         keys.extend(f"{note}:{base}:{r}" for r in expanded)
     elif base:
         keys.append(f"{note}:{base}")
+
+    # Capture additional top-level letters such as the (e) in
+    # "subdivisions (c)(iv), (vii) ... and (e) of U.S. note 16".
+    for letter in re.findall(r'\(([a-z])\)', remainder, re.I):
+        letter = letter.lower()
+        if letter not in roman_tokens:
+            key = f"{note}:{letter}"
+            if key not in keys:
+                keys.append(key)
     return keys
 
 for heading, block in heading_blocks.items():
-    for rm in re.finditer(r'subdivisions?\s+(.{1,180}?)\s+of\s+U\.S\.\s+note\s+(\d+)', block, re.I):
+    for rm in re.finditer(r'subdivisions?\s+(.{1,240}?)\s+of\s+U\.S\.\s+note\s+(\d+)', block, re.I):
         for key in subdivision_keys(rm.group(1), int(rm.group(2))):
             add_relation(heading, key, block)
     for rm in re.finditer(r'U\.S\.\s+note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', block, re.I):
@@ -187,14 +206,22 @@ headings_out = {}
 for h, block in heading_blocks.items():
     if h not in relations:
         continue
+    targets = sorted(relations[h])
+    legal_context = {}
+    for key in targets:
+        if key in subdivision_text:
+            legal = ' '.join(p for p in subdivision_text[key] if p).strip()
+            if legal:
+                legal_context[key] = re.sub(r'\s+', ' ', legal).strip()[:5000]
     headings_out[h] = {
-        "noteTargets": sorted(relations[h]),
-        "text": re.sub(r'\s+', ' ', block).strip()[:2200],
-        "relationContext": [re.sub(r'\s+',' ',x).strip() for x in relation_context[h][:3]]
+        "noteTargets": targets,
+        "text": re.sub(r'\s+', ' ', block).strip()[:3000],
+        "relationContext": [re.sub(r'\s+',' ',x).strip() for x in relation_context[h][:3]],
+        "legalContext": legal_context
     }
 
 payload = {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "source": "USITC current Chapter 99 PDF",
     "sourceUrl": "https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099",
     "htsYear": 2026,
@@ -223,4 +250,5 @@ print(f"HTS revision: {rev}")
 for test in ("87032301","73211110"):
     print(test, payload["codes"].get(test, []), "membership", sorted(note_membership.get(test, [])))
 print("9903.88.01 targets", sorted(relations.get("9903.88.01", [])))
+print("9903.82.15 targets", sorted(relations.get("9903.82.15", [])))
 print("9903.82.16 targets", sorted(relations.get("9903.82.16", [])))
