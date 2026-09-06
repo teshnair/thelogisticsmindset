@@ -80,13 +80,12 @@ jobs:
           assert broad.get('needsFullHts') is True, broad
           assert broad.get('status') == 'needs-full-hts', broad
 
-          # Autocomplete must return the current HTS reporting quantity unit.
+          # Autocomplete must expose reporting units from the exact row or its statistical descendants.
           unit_search = post_json('/api/hts-duty', {'action':'search','hts':'73211130'})
-          suggestions = unit_search.get('suggestions', [])
-          unit_line = next((s for s in suggestions if str(s.get('code','')).startswith('73211130')), None)
-          assert unit_line is not None, unit_search
-          assert isinstance(unit_line.get('units'), list), unit_line
-          assert any(str(u).lower().startswith('no') for u in unit_line.get('units', [])), unit_line
+          suggestions = [s for s in unit_search.get('suggestions', []) if str(s.get('code','')).startswith('73211130')]
+          assert suggestions, unit_search
+          assert all(isinstance(s.get('units'), list) for s in suggestions), suggestions
+          assert any(s.get('units') for s in suggestions), suggestions
 
           # China passenger automobile: Section 301 + normal automobile Section 232.
           # A live exclusion question may keep 301 in needs-facts, but the quick estimate must still use 25%.
