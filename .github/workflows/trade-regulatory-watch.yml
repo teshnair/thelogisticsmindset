@@ -2,11 +2,13 @@ name: Weekly trade regulatory watch
 
 on:
   schedule:
-    - cron: "30 6 * * 0"
+    # Saturday morning, after the Friday regulatory publication window and
+    # roughly 24 hours before the Sunday production release.
+    - cron: "0 10 * * 6"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 jobs:
@@ -17,6 +19,8 @@ jobs:
     steps:
       - name: Check out site
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -27,6 +31,29 @@ jobs:
         id: regulatory_check
         continue-on-error: true
         run: REGULATORY_WATCH_STRICT=1 node scripts/check-trade-regulations.mjs
+
+      - name: Advance regulatory checkpoint when check passes
+        if: steps.regulatory_check.outcome == 'success'
+        shell: bash
+        run: |
+          CHECK_DATE=$(TZ=America/New_York date +%F)
+          node - "$CHECK_DATE" <<'NODE'
+          const fs = require("fs");
+          const checkDate = process.argv[2];
+          const path = "data/trade-regulatory-reviewed.json";
+          const data = JSON.parse(fs.readFileSync(path, "utf8"));
+          data.reviewedThrough = checkDate;
+          data.lastAutomaticCheck = new Date().toISOString();
+          data.note = "Automatically advanced only after the Saturday official-source regulatory watch passed with no new review items. If a notice is found, review it and update calculator rules before advancing this checkpoint.";
+          fs.writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/trade-regulatory-reviewed.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Advance trade regulatory checkpoint to ${CHECK_DATE}"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
 
       - name: Upload regulatory watch report
         if: always()
@@ -70,7 +97,7 @@ jobs:
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: existing.number,
-                  body: `Regulatory watch passed on ${report.generatedAt}. No new potentially relevant Federal Register notices were found after ${report.reviewedThrough}. Closing this alert.`
+                  body: `Saturday regulatory watch passed on ${report.generatedAt}. No new potentially relevant Federal Register notices were found after ${report.reviewedThrough}. The Sunday release gate may proceed.`
                 });
                 await github.rest.issues.update({
                   owner: context.repo.owner,
@@ -90,7 +117,7 @@ jobs:
             const failureLines = failures.map(f => `- ${f.name}: ${f.status || f.error || "unavailable"}`);
 
             const body = [
-              "The weekly U.S. tariff/import regulatory check requires review before the next production publish.",
+              "The Saturday U.S. tariff/import regulatory check requires review before the Sunday production publish.",
               "",
               `Last reviewed-through date: **${report?.reviewedThrough || "unknown"}**`,
               `Detected: ${report?.generatedAt || new Date().toISOString()}`,
@@ -98,7 +125,7 @@ jobs:
               ...(lines.length ? ["## New potentially relevant Federal Register documents", ...lines] : []),
               ...(failureLines.length ? ["", "## Official-source check failures", ...failureLines] : []),
               "",
-              "Review the notices, update calculator rules if required, then advance `data/trade-regulatory-reviewed.json`. Production deployment is configured to fail until this review checkpoint is current."
+              "Review the notices, update calculator rules if required, then advance `data/trade-regulatory-reviewed.json`. The Sunday production deployment will remain blocked until the checkpoint is current."
             ].join("\n");
 
             if (existing) {
