@@ -1,0 +1,53 @@
+name: Apply targeted Chapter 99 exception parser fix
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/fix-ch99-exceptions.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+          fetch-depth: 0
+
+      - name: Patch Chapter 99 exception list parsing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('netlify/functions/trade-rules.mts')
+          text = p.read_text()
+
+          old = r'''function exceptionRefs(text:string){const refs=new Set<string>();const n=clean(text);for(const m of n.matchAll(/except(?:\s+as\s+provided(?:\s+for)?|\s+for\s+products\s+described)?(?:\s+in)?\s+headings?\s+(.{1,500}?)(?=\.|;|\bapplies\b|\barticles\b|$)/gi))for(const ref of m[1].match(/9903\.\d{2}\.\d{2}/g)||[])refs.add(ref);return[...refs];}'''
+          new = r'''function expandHeadingRange(start:string,end:string){const a=start.match(/^(9903\.\d{2}\.)(\d{2})$/),b=end.match(/^(9903\.\d{2}\.)(\d{2})$/);if(!a||!b||a[1]!==b[1])return[start,end];const s=Number(a[2]),e=Number(b[2]);if(!Number.isInteger(s)||!Number.isInteger(e)||e<s||e-s>99)return[start,end];return Array.from({length:e-s+1},(_,i)=>`${a[1]}${String(s+i).padStart(2,"0")}`);}
+function exceptionRefs(text:string){const refs=new Set<string>(),n=clean(text),starter=/\bexcept(?:\s+as\s+provided(?:\s+for)?|\s+for\s+products\s+described)?(?:\s+in)?\s+headings?\s+/gi;for(const m of n.matchAll(starter)){const start=(m.index||0)+m[0].length,tail=n.slice(start,start+1800),stop=tail.search(/(?:;|\.\s|,\s*(?:articles?|passenger\s+vehicles?|automobile\s+parts?|goods?|products?)\b)/i),list=stop>=0?tail.slice(0,stop):tail;for(const r of list.matchAll(/(9903\.\d{2}\.\d{2})(?:\s*[\u2013\u2014-]\s*(9903\.\d{2}\.\d{2}))?/g)){if(r[2])for(const ref of expandHeadingRange(r[1],r[2]))refs.add(ref);else refs.add(r[1]);}}return[...refs];}'''
+          if old not in text:
+              raise SystemExit('exceptionRefs pattern not found')
+          text = text.replace(old, new, 1)
+
+          old_call = 'exceptions=exceptionRefs(`${clean(live?.description)} ${clean(meta?.text)} ${(meta?.relationContext||[]).join(" ")}`)'
+          new_call = 'exceptions=exceptionRefs(`${clean(live?.description)} ${clean(meta?.text)}`)'
+          if old_call not in text:
+              raise SystemExit('exceptionRefs call pattern not found')
+          text = text.replace(old_call, new_call, 1)
+
+          p.write_text(text)
+          PY
+
+      - name: Commit targeted fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add netlify/functions/trade-rules.mts
+          git commit -m 'Fix Chapter 99 exception precedence parsing'
+          git push origin HEAD:preview-import-calculator
