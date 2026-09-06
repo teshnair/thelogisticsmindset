@@ -82,13 +82,22 @@ for raw in lines:
             subdivision_text[key].append(line.strip())
         add_codes(line, keys)
 
-# Keep the richest occurrence of every printed Chapter 99 heading. The same
-# heading can also appear later as a short cross-reference; using the last
-# occurrence silently destroyed the operative text for provisions such as
-# 9903.82.09.
+# A heading can appear many times in Chapter 99: once as the operative tariff
+# row and later in notes/cross-references. Preserve every occurrence for legal
+# relation parsing, while separately keeping the most tariff-row-like block as
+# the heading's display/rate context.
 heading_blocks = {}
+all_heading_occurrences = defaultdict(list)
 current_heading = None
 buffer = []
+
+def heading_score(block):
+    score = len(block)
+    if re.match(r'^99\d{2}\.\d{2}\.\d{2}\s+1/', block): score += 20000
+    if re.search(r'\bThe duty\b|\bNo change\b|\bFree\b|\+\s*\d+(?:\.\d+)?%', block, re.I): score += 12000
+    if re.search(r'as provided for in subdivisions?|as provided for in U\.S\. note', block, re.I): score += 6000
+    if re.search(r'\badditional duties?\b|\brate of duty\b', block, re.I): score += 2000
+    return score
 
 def store_heading(heading, parts):
     if not heading:
@@ -96,10 +105,9 @@ def store_heading(heading, parts):
     block = ' '.join(parts).strip()
     if not block:
         return
+    all_heading_occurrences[heading].append(block)
     old = heading_blocks.get(heading, '')
-    score = len(block) + (500 if re.search(r'\b(?:duty|rate|additional|provided for)\b', block, re.I) else 0)
-    old_score = len(old) + (500 if re.search(r'\b(?:duty|rate|additional|provided for)\b', old, re.I) else 0)
-    if score > old_score:
+    if heading_score(block) > heading_score(old):
         heading_blocks[heading] = block
 
 for raw in lines:
@@ -125,16 +133,19 @@ relation_context = defaultdict(list)
 def add_relation(heading, key, context):
     if heading in heading_blocks and key:
         relations[heading].add(key)
-        if len(relation_context[heading]) < 8:
-            relation_context[heading].append(context[:2500])
+        normalized = re.sub(r'\s+', ' ', context).strip()
+        if normalized and normalized not in relation_context[heading] and len(relation_context[heading]) < 8:
+            relation_context[heading].append(normalized[:3000])
 
+# Legal-note statements can directly declare that a heading applies to a
+# subdivision. These are stronger than adjacency or chapter-level inference.
 for key, parts in subdivision_text.items():
     block = ' '.join(p for p in parts if p).strip()
     if not block:
         continue
     for hm in re.finditer(r'\bHeading\s+(9903\.\d{2}\.\d{2})\s+applies\s+to\b', block, re.I):
         add_relation(hm.group(1), key, block)
-    for pm in re.finditer(r'(?:rates? of duty|rates?)\s+set\s+forth\s+in\s+headings?\s+(.{0,420}?)\s+apply\s+to\b', block, re.I):
+    for pm in re.finditer(r'(?:rates? of duty|rates?)\s+set\s+forth\s+in\s+headings?\s+(.{0,520}?)\s+apply\s+to\b', block, re.I):
         for h in re.findall(r'9903\.\d{2}\.\d{2}', pm.group(1)):
             add_relation(h, key, block)
 
@@ -182,15 +193,19 @@ def subdivision_keys(fragment, note):
                 keys.append(key)
     return keys
 
-for heading, block in heading_blocks.items():
-    normalized = re.sub(r'\s+', ' ', block)
-    for rm in re.finditer(r'subdivisions?\s+(.{1,520}?)\s+of\s+(?:U\.\s*S\.\s*)?note\s+(\d+)', normalized, re.I):
-        for key in subdivision_keys(rm.group(1), int(rm.group(2))):
+# Parse note/subdivision references from EVERY occurrence of a heading, not
+# only the selected display block. This fixes provisions such as 9903.82.09,
+# whose operative row can otherwise lose to a later cross-reference.
+for heading, occurrences in all_heading_occurrences.items():
+    for block in occurrences:
+        normalized = re.sub(r'\s+', ' ', block)
+        for rm in re.finditer(r'subdivisions?\s+(.{1,700}?)\s+of\s+(?:U\.\s*S\.\s*)?note\s+(\d+)', normalized, re.I):
+            for key in subdivision_keys(rm.group(1), int(rm.group(2))):
+                add_relation(heading, key, normalized)
+        for rm in re.finditer(r'(?:U\.\s*S\.\s*)?note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', normalized, re.I):
+            note, letter, roman = int(rm.group(1)), rm.group(2).lower(), rm.group(3)
+            key = f"{note}:{letter}" + (f":{roman.lower()}" if roman else '')
             add_relation(heading, key, normalized)
-    for rm in re.finditer(r'(?:U\.\s*S\.\s*)?note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', normalized, re.I):
-        note, letter, roman = int(rm.group(1)), rm.group(2).lower(), rm.group(3)
-        key = f"{note}:{letter}" + (f":{roman.lower()}" if roman else '')
-        add_relation(heading, key, normalized)
 
 code_candidates = defaultdict(set)
 for code, keys in note_membership.items():
@@ -212,7 +227,7 @@ for h, block in heading_blocks.items():
     headings_out[h] = {
         "noteTargets": targets,
         "text": re.sub(r'\s+', ' ', block).strip()[:5000],
-        "relationContext": [re.sub(r'\s+',' ',x).strip() for x in relation_context[h][:3]],
+        "relationContext": relation_context[h][:3],
         "legalContext": legal_context
     }
 
