@@ -1,0 +1,41 @@
+name: Apply targeted Section 301 base-heading fix
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/fix-section301-base.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+          fetch-depth: 0
+
+      - name: Patch Section 301 condition logic
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('netlify/functions/trade-rules.mts')
+          text = p.read_text()
+          old = 'const note20Targets=targets.filter(t=>/^20:/.test(t)),base301=new Set(["20:b","20:d","20:f","20:g"]),productSpecific=/particular products|product exclusion|described in statistical reporting number|the following particular products/i.test(context);if(note20Targets.some(t=>!base301.has(t))||(productSpecific&&!note20Targets.some(t=>base301.has(t)))){'
+          new = 'const note20Targets=targets.filter(t=>/^20:/.test(t)),base301=new Set(["20:b","20:d","20:f","20:g"]),rowText=clean(meta?.text),hasBase301Target=note20Targets.some(t=>base301.has(t)),productSpecific=/particular products|product exclusion|covered by an exclusion|exclusion granted by|described in statistical reporting number|the following particular products/i.test(rowText);if(productSpecific||(!hasBase301Target&&note20Targets.length)){'
+          if old not in text:
+              raise SystemExit('Section 301 condition pattern not found')
+          p.write_text(text.replace(old, new, 1))
+          PY
+
+      - name: Commit targeted fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add netlify/functions/trade-rules.mts
+          git commit -m 'Separate Section 301 base and exclusion logic'
+          git push origin HEAD:preview-import-calculator
