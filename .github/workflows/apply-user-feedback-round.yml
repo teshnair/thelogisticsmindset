@@ -6,6 +6,7 @@ on:
       - preview-import-calculator
     paths:
       - scripts/patch-user-feedback-round.py
+      - scripts/patch-user-feedback-round-v2.py
       - .github/workflows/apply-user-feedback-round.yml
   workflow_dispatch:
 
@@ -21,7 +22,7 @@ jobs:
           ref: preview-import-calculator
           fetch-depth: 0
       - name: Apply calculator feedback patch
-        run: python scripts/patch-user-feedback-round.py
+        run: python scripts/patch-user-feedback-round-v2.py
       - name: Commit patched calculator
         run: |
           git config user.name 'github-actions[bot]'
