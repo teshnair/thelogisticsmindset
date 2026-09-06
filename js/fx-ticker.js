@@ -138,4 +138,9 @@ if (/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
   screeningScript.src = "js/hts-import-screening.js?v=20260906-5";
   screeningScript.async = false;
   document.head.appendChild(screeningScript);
+
+  const sec2327321Script = document.createElement("script");
+  sec2327321Script.src = "js/hts-section232-7321.js?v=20260906-1";
+  sec2327321Script.async = false;
+  document.head.appendChild(sec2327321Script);
 }
