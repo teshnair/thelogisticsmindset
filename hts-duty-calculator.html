@@ -137,6 +137,20 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
     <select id="mode"><option value="ocean">Ocean</option><option value="air">Air</option><option value="land">Land / rail</option></select>
   </div>
   <div>
+    <label for="importPurpose">Import purpose</label>
+    <select id="importPurpose">
+      <option value="standard">Standard import / consumption</option>
+      <option value="temporary">Temporary import / re-export</option>
+      <option value="testing">Prototype / testing / research</option>
+      <option value="repair">Repair / alteration / processing</option>
+      <option value="tools">Professional tools / equipment</option>
+      <option value="show">Exhibition / trade show / display</option>
+      <option value="samples">Commercial samples / taking orders</option>
+      <option value="racing">Racing / competition</option>
+    </select>
+    <div class="helper">Used to flag possible Chapter 98, TIB or ATA Carnet alternatives. Eligibility depends on the shipment facts.</div>
+  </div>
+  <div>
     <label for="qty">Quantity <span class="tiny">(optional)</span></label>
     <input id="qty" type="number" min="0" step="any" placeholder="Needed for $/kg, ¢/unit, etc.">
   </div>
@@ -529,6 +543,7 @@ $('calcForm').addEventListener('submit', async event => {
       meltPourCountry:$('meltPourCountry').value,
       customsValue:$('value').value, mode:$('mode').value,
       quantity:$('qty').value, quantityUnit:$('qtyUnit').value,
+      importPurpose:$('importPurpose').value,
       ftaQualified:$('fta').checked
     };
     const response = await fetch('/api/hts-duty', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
