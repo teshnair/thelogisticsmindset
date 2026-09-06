@@ -1,0 +1,22 @@
+name: Trade country coverage validation
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - netlify/functions/trade-rules.mts
+      - scripts/check-trade-country-coverage.mjs
+      - .github/workflows/trade-country-coverage.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-country-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate all ISO country codes
+        run: node scripts/check-trade-country-coverage.mjs
