@@ -145,6 +145,12 @@ for key, parts in subdivision_text.items():
         continue
     for hm in re.finditer(r'\bHeading\s+(9903\.\d{2}\.\d{2})\s+applies\s+to\b', block, re.I):
         add_relation(hm.group(1), key, block)
+    # Chapter 99 often groups several headings in one applicability sentence,
+    # e.g. "Headings 9903.xx.xx, ... apply to ...". Capture every heading in
+    # that list rather than only singular "Heading X applies to" statements.
+    for hm in re.finditer(r'\bHeadings\s+(.{1,700}?)\s+apply\s+to\b', block, re.I):
+        for h in re.findall(r'9903\.\d{2}\.\d{2}', hm.group(1)):
+            add_relation(h, key, block)
     for pm in re.finditer(r'(?:rates? of duty|rates?)\s+set\s+forth\s+in\s+headings?\s+(.{0,520}?)\s+apply\s+to\b', block, re.I):
         for h in re.findall(r'9903\.\d{2}\.\d{2}', pm.group(1)):
             add_relation(h, key, block)
@@ -193,19 +199,40 @@ def subdivision_keys(fragment, note):
                 keys.append(key)
     return keys
 
+def parse_heading_relations(heading, block):
+    normalized = re.sub(r'\s+', ' ', block)
+    for rm in re.finditer(r'subdivisions?\s+(.{1,700}?)\s+of\s+(?:U\.\s*S\.\s*)?note\s+(\d+)', normalized, re.I):
+        for key in subdivision_keys(rm.group(1), int(rm.group(2))):
+            add_relation(heading, key, normalized)
+    for rm in re.finditer(r'(?:U\.\s*S\.\s*)?note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', normalized, re.I):
+        note, letter, roman = int(rm.group(1)), rm.group(2).lower(), rm.group(3)
+        key = f"{note}:{letter}" + (f":{roman.lower()}" if roman else '')
+        add_relation(heading, key, normalized)
+
 # Parse note/subdivision references from EVERY occurrence of a heading, not
-# only the selected display block. This fixes provisions such as 9903.82.09,
-# whose operative row can otherwise lose to a later cross-reference.
+# only the selected display block.
 for heading, occurrences in all_heading_occurrences.items():
     for block in occurrences:
-        normalized = re.sub(r'\s+', ' ', block)
-        for rm in re.finditer(r'subdivisions?\s+(.{1,700}?)\s+of\s+(?:U\.\s*S\.\s*)?note\s+(\d+)', normalized, re.I):
-            for key in subdivision_keys(rm.group(1), int(rm.group(2))):
-                add_relation(heading, key, normalized)
-        for rm in re.finditer(r'(?:U\.\s*S\.\s*)?note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', normalized, re.I):
-            note, letter, roman = int(rm.group(1)), rm.group(2).lower(), rm.group(3)
-            key = f"{note}:{letter}" + (f":{roman.lower()}" if roman else '')
-            add_relation(heading, key, normalized)
+        parse_heading_relations(heading, block)
+
+# Independent tariff-row sweep. pdftotext occasionally introduces page/table
+# boundaries that make the stateful line-block pass lose an otherwise valid
+# operative row. Scan the raw converted text again, from each printed Chapter
+# 99 heading to the next one, and parse its legal note references separately.
+# This is intentionally redundant: a legal index should fail closed, not lose
+# a 25% provision because one PDF line break happened to be inconvenient.
+row_re = re.compile(
+    r'(?ms)^\s*(99\d{2}\.\d{2}\.\d{2})\s+1/\s*(.*?)(?=^\s*99\d{2}\.\d{2}\.\d{2}\s+1/|\Z)'
+)
+for rm in row_re.finditer(text):
+    heading = rm.group(1)
+    if heading not in heading_blocks:
+        continue
+    block = f"{heading} 1/ {rm.group(2)}"
+    # Limit the relation parser to the immediate tariff-row material. Page
+    # headers may occur inside the capture, but the next heading remains the
+    # hard stop. References near the start are the operative description.
+    parse_heading_relations(heading, block[:12000])
 
 code_candidates = defaultdict(set)
 for code, keys in note_membership.items():
