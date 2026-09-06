@@ -1,0 +1,51 @@
+name: Apply targeted Chapter 99 origin-row fix
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/fix-origin-row.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+          fetch-depth: 0
+
+      - name: Patch origin matching to use operative tariff row
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('netlify/functions/trade-rules.mts')
+          text = p.read_text()
+
+          new_fn = r'''function originDecision(country:string,ref:string,meta?:IndexHeading,live?:any){const targets=meta?.noteTargets||[],row=clean(`${live?.description||""} ${meta?.text||""}`),context=headingContext(meta,live),rowLow=row.toLowerCase();if(targets.some(t=>/^20(?::|$)/.test(t)))return country==="CN"?{state:"match" as const,reason:"U.S. note 20 applies to products of China."}:{state:"no-match" as const,reason:"U.S. note 20 is a China measure."};if(targets.some(t=>/^30(?::|$)/.test(t))&&/russian federation/i.test(row||context))return country==="RU"?{state:"match" as const,reason:"This U.S. note 30 provision applies to products of the Russian Federation."}:{state:"no-match" as const,reason:"This U.S. note 30 provision is Russia-specific."};if(/from all countries|products? of all countries|all countries|regardless of country/i.test(row))return{state:"match" as const,reason:"The provision applies to all countries."};if(/product of any country identified in general note 3\(b\)/i.test(row||context))return{state:"conditional" as const,reason:"Applicability depends on whether the origin is a general note 3(b) country.",fact:"column2CountryStatus"};if(/products? of (?:the )?european union|member countr(?:y|ies) of (?:the )?european union/i.test(rowLow))return EU_COUNTRIES.has(country)?{state:"match" as const,reason:"The origin is an EU member state."}:{state:"no-match" as const,reason:"The provision is limited to EU member-state origin."};const normalizedRow=` ${normalizeName(row)} `,explicitCodes=new Set<string>();for(const [code,names] of Object.entries(COUNTRY_ALIASES)){for(const name of names){const n=normalizeName(name);if(!n)continue;if(normalizedRow.includes(` product of ${n} `)||normalizedRow.includes(` products of ${n} `)||normalizedRow.includes(` from ${n} `)){explicitCodes.add(code);break;}}}if(explicitCodes.size)return explicitCodes.has(country)?{state:"match" as const,reason:"The entered origin matches the origin stated in the Chapter 99 tariff row."}:{state:"no-match" as const,reason:`The Chapter 99 tariff row is limited to ${[...explicitCodes].join(", ")} origin.`};const phrases=explicitOriginPhrases(row.slice(0,4000));if(phrases.length){const aliases=aliasesForCountry(country).map(normalizeName),matches=phrases.some(p=>aliases.some(a=>p===a||p.includes(a)||a.includes(p)));return matches?{state:"match" as const,reason:"The entered origin matches the origin stated in the Chapter 99 tariff row."}:{state:"no-match" as const,reason:`The Chapter 99 tariff row is origin-specific (${phrases.slice(0,3).join(", ")}).`};}if(targets.some(t=>/^(16|33)(?::|$)/.test(t)))return{state:"match" as const,reason:"No narrower origin condition is stated in this Section 232 tariff row."};return{state:"unknown" as const,reason:"The origin condition could not be resolved automatically."};}'''
+
+          text, count = re.subn(r'function originDecision\([\s\S]*?\n\nfunction parseDate', new_fn + '\n\nfunction parseDate', text, count=1)
+          if count != 1:
+              raise SystemExit(f'originDecision replacement count={count}')
+
+          old_call = 'origin=originDecision(country,ref,meta)'
+          new_call = 'origin=originDecision(country,ref,meta,live)'
+          if old_call not in text:
+              raise SystemExit('originDecision call pattern not found')
+          text = text.replace(old_call, new_call, 1)
+          p.write_text(text)
+          PY
+
+      - name: Commit targeted fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add netlify/functions/trade-rules.mts
+          git commit -m 'Use tariff row for Chapter 99 origin matching'
+          git push origin HEAD:preview-import-calculator
