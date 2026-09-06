@@ -1,7 +1,7 @@
 (() => {
   if (!/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) return;
 
-  const BUILD = "2026-09-06-worst-case-v2";
+  const BUILD = "2026-09-06-global-worst-case-v3";
   const digits = value => String(value ?? "").replace(/\D/g, "");
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = value => value == null ? "Review required" : new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(Number(value || 0));
@@ -109,7 +109,12 @@
     if (key === "tscaStatus") return `<div><label for="tscaStatus">${questionLabel(key)}</label><select id="tscaStatus"><option value="unknown">Not sure</option><option value="positive">Positive certification expected</option><option value="negative">Negative certification expected</option><option value="exempt">Claimed exemption / not subject</option></select></div>`;
     if (key === "rfCapability") return `<div><label for="rfCapability">${questionLabel(key)}</label><select id="rfCapability"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
     if (key === "plantMaterial") return `<div><label for="plantMaterial">${questionLabel(key)}</label><select id="plantMaterial"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
-    return `<div class="rule-fact-note"><strong>${esc(questionLabel(key))}</strong><br><small>Not entered. The quick estimate uses the higher-duty assumption until this fact is confirmed.</small></div>`;
+    const factId = `ruleFact_${String(key).replace(/[^A-Za-z0-9_-]/g, '_')}`;
+    const numericFacts = new Set(["subjectMetalWeightPercent", "nonUsVehicleContentValue", "nonUsContentValue", "usContentValue"]);
+    if (numericFacts.has(key)) return `<div><label for="${factId}">${esc(questionLabel(key))}</label><input id="${factId}" data-rule-fact="${esc(key)}" type="number" min="0" step="any" placeholder="Enter value if known"></div>`;
+    const booleanFact = key.startsWith("productCondition:") || new Set(["containsAluminumSteelCopper","ukMetalContentQualification","column2CountryStatus","quotaEligibility","approvalStatus","commerceApproval","productSpecificCondition"]).has(key);
+    if (booleanFact) return `<div><label for="${factId}">${esc(questionLabel(key))}</label><select id="${factId}" data-rule-fact="${esc(key)}"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
+    return `<div><label for="${factId}">${esc(questionLabel(key))}</label><input id="${factId}" data-rule-fact="${esc(key)}" placeholder="Enter if known"><small>Leave blank to use the higher-duty quick-estimate assumption.</small></div>`;
   }
 
   function syncExistingMeltField(requiredFacts) {
@@ -166,7 +171,7 @@
 
   function factsPayload() {
     const value = id => document.getElementById(id)?.value ?? null;
-    return {
+    const payload = {
       meltPourCountry: value("meltPourCountry"),
       metalContentValue: value("metalContentValue"),
       usMetalContentQualification: value("usMetalContentQualification"),
@@ -178,6 +183,11 @@
       rfCapability: value("rfCapability"),
       plantMaterial: value("plantMaterial")
     };
+    document.querySelectorAll('[data-rule-fact]').forEach(el => {
+      const key = el.getAttribute('data-rule-fact');
+      if (key) payload[key] = el.value || null;
+    });
+    return payload;
   }
 
   function ensureModal() {
@@ -259,18 +269,20 @@
     else el.textContent = money(value || 0);
   }
 
-  function recalcTotal(baseData, sec232, sec301) {
+  function recalcTotal(baseData, sec232, sec301, liveOther) {
     const totalEl = document.getElementById("total");
     if (!totalEl) return;
-    if (sec232 == null || sec301 == null || baseData?.estimate?.baseDuty == null) {
+    if (sec232 == null || sec301 == null || liveOther == null || baseData?.estimate?.baseDuty == null) {
       totalEl.textContent = "Review required";
       return;
     }
     const base = Number(baseData.estimate.baseDuty || 0);
-    const other = Number(baseData.estimate.otherAdditionalDuty || 0);
+    const legacyOther = Number(baseData.estimate.otherAdditionalDuty || 0);
     const mpf = Number(baseData.estimate.mpf || 0);
     const hmf = Number(baseData.estimate.hmf || 0);
-    totalEl.textContent = money(base + other + mpf + hmf + sec232 + sec301);
+    const otherEl = document.getElementById("otherAdditionalDuty");
+    if (otherEl) otherEl.textContent = money(legacyOther + liveOther);
+    totalEl.textContent = money(base + legacyOther + liveOther + mpf + hmf + sec232 + sec301);
   }
 
   function setEstimateReviewFlag(ruleData) {
@@ -278,14 +290,17 @@
     const card = total?.closest(".metric");
     if (!card) return;
     let flag = card.querySelector(".estimate-review-flag");
-    const needsReview = ["needs-facts", "review-required"].includes(ruleData?.status);
+    const assumptionsUsed = Array.isArray(ruleData?.assumptions) && ruleData.assumptions.length > 0;
+    const needsReview = ["needs-facts", "review-required"].includes(ruleData?.status) || assumptionsUsed;
     if (!needsReview) { flag?.remove(); return; }
     if (!flag) {
       flag = document.createElement("small");
       flag.className = "estimate-review-flag";
       card.appendChild(flag);
     }
-    flag.textContent = "Review required • worst-case assumptions used";
+    flag.textContent = ["needs-facts", "review-required"].includes(ruleData?.status)
+      ? "Review required • worst-case assumptions used"
+      : "Estimate uses assumptions • broker confirmation recommended";
   }
 
   function renderLiveRulePanel(ruleData) {
@@ -339,19 +354,31 @@
 
       const sec232Measures = measures.filter(m => String(m.program).toLowerCase() === "section 232");
       const sec301Measures = measures.filter(m => String(m.program).toLowerCase() === "section 301");
-      const programEstimate = list => {
+      const otherLiveMeasures = measures.filter(m => !["section 232", "section 301"].includes(String(m.program).toLowerCase()));
+      const groupWorstCase = list => {
         if (!list.length) return 0;
         const applied = list.filter(m => m.applicability === "applicable" && m.estimatedDuty != null).reduce((sum,m) => sum + Number(m.estimatedDuty || 0), 0);
-        const available = list.map(m => m.estimatedDuty ?? m.worstCaseEstimatedDuty).filter(v => v != null).map(Number);
-        if (!available.length && applied === 0) return null;
-        return Math.max(applied, ...available, 0);
+        const unresolved = list.filter(m => m.applicability !== "applicable").map(m => m.worstCaseEstimatedDuty).filter(v => v != null).map(Number);
+        if (!unresolved.length) return applied;
+        return Math.max(applied, ...unresolved, 0);
       };
-      const sec232 = programEstimate(sec232Measures);
-      const sec301 = programEstimate(sec301Measures);
+      const sec232 = groupWorstCase(sec232Measures);
+      const sec301 = groupWorstCase(sec301Measures);
+      const otherGroups = new Map();
+      otherLiveMeasures.forEach(m => {
+        const noteFamily = Array.isArray(m.noteTargets) && m.noteTargets.length ? String(m.noteTargets[0]).split(':')[0] : String(m.hts || '').slice(0,7);
+        const key = `${m.program}|${noteFamily}`;
+        if (!otherGroups.has(key)) otherGroups.set(key, []);
+        otherGroups.get(key).push(m);
+      });
+      const liveOther = [...otherGroups.values()].reduce((sum, group) => {
+        const estimate = groupWorstCase(group);
+        return estimate == null ? sum : sum + Number(estimate);
+      }, 0);
       const status = ruleData.status;
       setMetric("section232Duty", sec232, status);
       setMetric("section301Duty", sec301, status);
-      recalcTotal(baseData, sec232, sec301);
+      recalcTotal(baseData, sec232, sec301, liveOther);
       setEstimateReviewFlag(ruleData);
       renderLiveRulePanel(ruleData);
     } catch (error) {

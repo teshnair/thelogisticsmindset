@@ -440,6 +440,9 @@ function searchSuggestions(rows: any[], query: string) {
       code: fullCode(row) || rowCode(row),
       description: cleanText(row?.description),
       indent: Number(row?.indent ?? 0),
+      units: Array.isArray(row?.units)
+        ? row.units.map((unit: any) => cleanText(unit)).filter(Boolean)
+        : [],
     }))
     .filter(
       (item) =>
@@ -462,6 +465,7 @@ function searchSuggestions(rows: any[], query: string) {
       hts: formatHts(item.code),
       code: item.code,
       description: item.description,
+      units: item.units,
     }));
 }
 

@@ -114,7 +114,7 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
       <input id="hts" inputmode="numeric" autocomplete="off" placeholder="e.g. 7309.00.0030" required aria-autocomplete="list" aria-expanded="false">
       <div id="suggestions" class="suggestions hidden" role="listbox"></div>
     </div>
-    <div class="helper">Start with at least 4 digits. Matching HTS lines will narrow automatically as you type.</div>
+    <div class="helper" id="htsUnitHint">Start with at least 4 digits. Matching HTS lines will narrow automatically as you type. The HTS reporting unit will appear here when it can be identified.</div>
   </div>
   <div>
     <label for="country">Country of origin</label>
@@ -375,6 +375,41 @@ function formatInput(value) {
   return d;
 }
 
+function suggestionUnits(item) {
+  return Array.isArray(item?.units)
+    ? [...new Set(item.units.map(unit => String(unit || '').trim()).filter(Boolean))]
+    : [];
+}
+
+function updateHtsUnitHint(items, target) {
+  const hint = $('htsUnitHint');
+  if (!hint) return;
+  const d = String(target || '').replace(/\D/g, '');
+  if (d.length < 4) {
+    hint.textContent = 'Start with at least 4 digits. Matching HTS lines will narrow automatically as you type. The HTS reporting unit will appear here when it can be identified.';
+    return;
+  }
+  const matches = (Array.isArray(items) ? items : []).filter(item => String(item?.code || '').startsWith(d));
+  const exact = matches.filter(item => String(item?.code || '') === d);
+  const pool = exact.length ? exact : matches;
+  if (!pool.length) {
+    hint.textContent = `HTS reporting unit: not identified yet for ${formatInput(d)}.`;
+    return;
+  }
+  const signatures = [...new Set(pool.map(item => suggestionUnits(item).join('|')))];
+  if (signatures.length !== 1) {
+    hint.innerHTML = `<strong>HTS reporting unit:</strong> varies within ${escapeHtml(formatInput(d))}. Select the full HTS line to see the required unit.`;
+    return;
+  }
+  const units = suggestionUnits(pool[0]);
+  if (!units.length) {
+    hint.innerHTML = `<strong>HTS reporting unit:</strong> none listed for the selected HTS line.`;
+    return;
+  }
+  hint.innerHTML = `<strong>HTS reporting unit${units.length > 1 ? 's' : ''}:</strong> ${units.map(escapeHtml).join(', ')}. Use the published unit when entering quantity for a specific-duty formula.`;
+  if (units.length === 1 && $('qtyUnit')) $('qtyUnit').placeholder = `HTS unit: ${units[0]}`;
+}
+
 async function readJsonResponse(response) {
   const raw = await response.text();
   if (!raw.trim()) throw new Error('The tariff service returned an empty response. Please try again.');
@@ -393,6 +428,7 @@ $('hts').addEventListener('input', event => {
   const digits = event.target.value.replace(/\D/g,'');
   if (digits.length < 4) {
     closeSuggestions();
+    updateHtsUnitHint([], digits);
     return;
   }
   searchTimer = setTimeout(() => lookupSuggestions(digits), 300);
@@ -444,15 +480,19 @@ function renderSuggestions(items, digits) {
     box.innerHTML = `<div class="no-match">No current HTS lines begin with ${escapeHtml(formatInput(digits))}.</div>`;
     box.classList.remove('hidden');
     $('hts').setAttribute('aria-expanded','true');
+    updateHtsUnitHint([], digits);
     return;
   }
   items.forEach(item => {
     const div = document.createElement('div');
     div.className = 'suggestion';
     div.setAttribute('role','option');
-    div.innerHTML = `<strong>${escapeHtml(item.hts || item.code)}</strong><span>${escapeHtml(item.description || '')}</span>`;
+    const units = suggestionUnits(item);
+    const unitText = units.length ? ` • Unit${units.length > 1 ? 's' : ''}: ${units.join(', ')}` : ' • No reporting unit listed';
+    div.innerHTML = `<strong>${escapeHtml(item.hts || item.code)}</strong><span>${escapeHtml(item.description || '')}${escapeHtml(unitText)}</span>`;
     div.addEventListener('click', () => {
       $('hts').value = item.hts || formatInput(item.code);
+      updateHtsUnitHint([item], item.code);
       closeSuggestions();
       $('country').focus();
     });
@@ -460,6 +500,7 @@ function renderSuggestions(items, digits) {
   });
   box.classList.remove('hidden');
   $('hts').setAttribute('aria-expanded','true');
+  updateHtsUnitHint(items, digits);
 }
 
 function closeSuggestions() {
@@ -818,7 +859,7 @@ function escapeHtml(value) {
 }
 
 $('resetBtn').addEventListener('click', () => {
-  $('calcForm').reset(); $('result').classList.add('hidden'); $('status').textContent=''; closeSuggestions();
+  $('calcForm').reset(); $('result').classList.add('hidden'); $('status').textContent=''; closeSuggestions(); updateHtsUnitHint([], '');
 });
 
 $('copyBtn').addEventListener('click', async () => {
