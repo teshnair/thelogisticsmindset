@@ -26,18 +26,18 @@ jobs:
 
           def get_trade():
               last=None
-              for i in range(20):
+              for i in range(12):
                   q=urllib.parse.urlencode({'hts':'6809110010','country':'KZ','customsValue':'100000','_verify':time.time_ns()})
                   try:
-                      req=urllib.request.Request(base+'/api/trade-rules?'+q,headers={'Cache-Control':'no-cache','User-Agent':'TLM-Gypsum-Verify/1.0'})
-                      with urllib.request.urlopen(req,timeout=30) as r:
+                      req=urllib.request.Request(base+'/api/trade-rules?'+q,headers={'Cache-Control':'no-cache','User-Agent':'TLM-Gypsum-Verify/2.0'})
+                      with urllib.request.urlopen(req,timeout=40) as r:
                           data=json.loads(r.read().decode())
                       refs={m.get('hts') for m in data.get('measures',[])}
                       if not ({'9903.74.01','9903.76.01'} & refs):
                           return data
                       last=AssertionError(('stale/false refs',sorted(refs)))
                   except Exception as e: last=e
-                  time.sleep(8)
+                  time.sleep(6)
               raise last or RuntimeError('trade-rules verification failed')
 
           trade=get_trade()
@@ -47,8 +47,8 @@ jobs:
           print('Gypsum Chapter 99 refs:',sorted(x for x in refs if x))
 
           payload=json.dumps({'action':'calculate','hts':'6809110010','country':'KZ','customsValue':100000,'mode':'ocean'}).encode()
-          req=urllib.request.Request(base+'/api/hts-duty',data=payload,method='POST',headers={'Content-Type':'application/json','Cache-Control':'no-cache','User-Agent':'TLM-Gypsum-Verify/1.0'})
-          with urllib.request.urlopen(req,timeout=35) as r:
+          req=urllib.request.Request(base+'/api/hts-duty',data=payload,method='POST',headers={'Content-Type':'application/json','Cache-Control':'no-cache','User-Agent':'TLM-Gypsum-Verify/2.0'})
+          with urllib.request.urlopen(req,timeout=40) as r:
               duty=json.loads(r.read().decode())
           units=duty.get('classification',{}).get('units',[])
           assert all('<' not in str(u) and 'sup' not in str(u).lower() for u in units), units
