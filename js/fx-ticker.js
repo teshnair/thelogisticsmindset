@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // The original duty calculator remains intact for base rates and fees.
 if (/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
   const screeningScript = document.createElement("script");
-  screeningScript.src = "js/hts-import-screening-v2.js?v=20260906-1";
+  screeningScript.src = "js/hts-import-screening-v2.js?v=20260906-2";
   screeningScript.async = false;
   document.head.appendChild(screeningScript);
 }

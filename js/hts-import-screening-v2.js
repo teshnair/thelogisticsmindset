@@ -1,7 +1,7 @@
 (() => {
   if (!/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) return;
 
-  const BUILD = "2026-09-06-live-ch99-v1";
+  const BUILD = "2026-09-06-worst-case-v2";
   const digits = value => String(value ?? "").replace(/\D/g, "");
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = value => value == null ? "Review required" : new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(Number(value || 0));
@@ -34,6 +34,8 @@
       .rule-badge.checked{background:#e8f6ee;color:#22633e}
       .rule-warning{padding:10px 12px;margin:10px 0;border-radius:4px;background:#fff3d6;color:#614800;font-size:.86rem}
       .rule-source-note{font-size:.78rem;color:#667085;margin-top:10px}
+      .estimate-review-flag{display:block;margin-top:4px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:#ffd27a}
+      .rule-fact-note small{color:#667085}
       @media(max-width:760px){.dynamic-question-grid{grid-template-columns:1fr}#result.hts-result-modal{top:1.5vh!important;bottom:1.5vh!important;width:97vw!important}}
     `;
     document.head.appendChild(style);
@@ -70,18 +72,30 @@
   }
 
   function questionLabel(key) {
+    const k = String(key || "");
+    if (k.startsWith("productCondition:")) return `Product-specific exclusion / condition for ${k.slice("productCondition:".length)}`;
     return ({
       meltPourCountry: "Steel first melt / pour country",
       metalContentValue: "Value of covered metal content (USD)",
-      usMetalContentQualification: "Meets U.S.-metal-content qualification (85% threshold)",
+      containsAluminumSteelCopper: "Whether the article contains aluminum, steel, or copper",
+      subjectMetalWeightPercent: "Percentage by weight of the subject metal",
+      usMetalContentQualification: "Whether the U.S.-metal-content qualification is met",
+      ukMetalContentQualification: "Whether the U.K. metal-content qualification is met",
       vehicleManufactureYear: "Vehicle manufacture year",
       vehicleEngineStatus: "Vehicle engine configuration",
+      vehicleType: "Vehicle type",
       importPurpose: "Import purpose",
       ftaQualification: "FTA / special-program qualification",
+      commerceApproval: "Commerce approval for the special vehicle treatment",
+      nonUsVehicleContentValue: "Non-U.S. vehicle content value",
+      column2CountryStatus: "Whether the origin is subject to Column 2 treatment",
+      quotaEligibility: "Quota / tariff-rate quota eligibility",
+      approvalStatus: "Required agency or program approval status",
+      productSpecificCondition: "Product-specific exclusion / condition",
       tscaStatus: "TSCA status",
       rfCapability: "Radiofrequency transmitting capability",
       plantMaterial: "Contains plant or wood material"
-    })[key] || key;
+    })[k] || k.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, c => c.toUpperCase());
   }
 
   function fieldHtml(key) {
@@ -95,7 +109,7 @@
     if (key === "tscaStatus") return `<div><label for="tscaStatus">${questionLabel(key)}</label><select id="tscaStatus"><option value="unknown">Not sure</option><option value="positive">Positive certification expected</option><option value="negative">Negative certification expected</option><option value="exempt">Claimed exemption / not subject</option></select></div>`;
     if (key === "rfCapability") return `<div><label for="rfCapability">${questionLabel(key)}</label><select id="rfCapability"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
     if (key === "plantMaterial") return `<div><label for="plantMaterial">${questionLabel(key)}</label><select id="plantMaterial"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
-    return "";
+    return `<div class="rule-fact-note"><strong>${esc(questionLabel(key))}</strong><br><small>Not entered. The quick estimate uses the higher-duty assumption until this fact is confirmed.</small></div>`;
   }
 
   function syncExistingMeltField(requiredFacts) {
@@ -228,8 +242,12 @@
     if (exists) return;
     const div = document.createElement("div");
     div.className = "ch99 live-ch99";
-    const duty = measure.estimatedDuty == null ? "Amount requires additional facts" : `Estimated additional duty: <strong>${esc(money(measure.estimatedDuty))}</strong>`;
-    div.innerHTML = `<strong>${esc(measure.program)} — ${esc(measure.hts)} — ${esc(measure.rateText || "See current provision")}</strong>${measure.description ? `<br>${esc(measure.description)}` : ""}<br><span class="tiny">${duty}</span><br><span class="tiny">Source: current USITC HTS / Chapter 99</span>`;
+    const estimated = measure.estimatedDuty ?? measure.worstCaseEstimatedDuty;
+    const assumed = measure.estimatedDuty == null && measure.worstCaseEstimatedDuty != null;
+    const duty = estimated == null ? "Dollar amount could not be estimated automatically" : `${assumed ? "Worst-case quick estimate" : "Estimated additional duty"}: <strong>${esc(money(estimated))}</strong>`;
+    const facts = Array.isArray(measure.requiredFacts) && measure.requiredFacts.length ? `<br><span class="tiny"><strong>Facts that could change this estimate:</strong> ${esc(measure.requiredFacts.map(questionLabel).join(", "))}</span>` : (measure.applicability !== "applicable" && measure.reason ? `<br><span class="tiny"><strong>Why review is still required:</strong> ${esc(measure.reason)}</span>` : "");
+    const assumptions = Array.isArray(measure.assumptions) && measure.assumptions.length ? `<br><span class="assumption-note"><strong>Assumptions:</strong> ${esc(measure.assumptions.join(" "))}</span>` : "";
+    div.innerHTML = `<strong>${esc(measure.program)} — ${esc(measure.hts)} — ${esc(measure.rateText || "See current provision")}</strong>${measure.description ? `<br>${esc(measure.description)}` : ""}<br><span class="tiny">${duty}</span>${facts}${assumptions}<br><span class="tiny">Source: current USITC HTS / Chapter 99</span>`;
     review.appendChild(div);
   }
 
@@ -255,6 +273,21 @@
     totalEl.textContent = money(base + other + mpf + hmf + sec232 + sec301);
   }
 
+  function setEstimateReviewFlag(ruleData) {
+    const total = document.getElementById("total");
+    const card = total?.closest(".metric");
+    if (!card) return;
+    let flag = card.querySelector(".estimate-review-flag");
+    const needsReview = ["needs-facts", "review-required"].includes(ruleData?.status);
+    if (!needsReview) { flag?.remove(); return; }
+    if (!flag) {
+      flag = document.createElement("small");
+      flag.className = "estimate-review-flag";
+      card.appendChild(flag);
+    }
+    flag.textContent = "Review required • worst-case assumptions used";
+  }
+
   function renderLiveRulePanel(ruleData) {
     const result = document.getElementById("result");
     if (!result) return;
@@ -268,11 +301,20 @@
     }
     const measures = Array.isArray(ruleData?.measures) ? ruleData.measures : [];
     const unresolved = Array.isArray(ruleData?.unresolvedMatches) ? ruleData.unresolvedMatches : [];
+    const assumptions = Array.isArray(ruleData?.assumptions) ? ruleData.assumptions : [];
     const rev = ruleData?.currentHts?.label ? `${ruleData.currentHts.label}${ruleData.currentHts.date ? ` (${ruleData.currentHts.date})` : ""}` : "current HTS source";
     const sourceWarning = ruleData?.status === "source-unavailable" ? `<div class="rule-warning">Current Chapter 99 legal text could not be read. The calculator will not treat missing trade-remedy hits as a definitive “not applicable” result.</div>` : "";
+    const reviewWarning = ["needs-facts", "review-required"].includes(ruleData?.status) ? `<div class="rule-warning"><strong>Review required.</strong> The dollar estimate below uses the higher-duty path where shipment facts are missing or a potential exception/exclusion has not been established.</div>` : "";
     const unresolvedWarning = unresolved.length ? `<div class="rule-warning">The current Chapter 99 text references this HTS in a rule that could not be resolved automatically. Manual review is required before filing.</div>` : "";
-    const lines = measures.length ? measures.map(m => `<div class="live-rule-line"><strong>${esc(m.program)} — ${esc(m.hts)}</strong><span class="rule-badge">Review</span><p>${esc(m.description || m.rateText || "Current Chapter 99 provision identified.")}${m.requiredFacts?.length ? ` Missing/conditional facts: ${esc(m.requiredFacts.map(questionLabel).join(", "))}.` : ""}</p></div>`).join("") : `<div class="live-rule-line"><strong>Chapter 99 / trade remedies</strong><span class="rule-badge checked">Checked</span><p>No Chapter 99 provision was identified by the current live-source scan for the entered HTS and origin. This is not presented as a legal guarantee.</p></div>`;
-    panel.innerHTML = `<h3>Import / regulatory screening</h3><div class="rule-source-note">Checked against ${esc(rev)} and current Chapter 99 source. Screening build ${BUILD}.</div>${sourceWarning}${unresolvedWarning}${lines}`;
+    const assumptionWarning = assumptions.length ? `<div class="rule-warning"><strong>Quick-estimate assumptions:</strong><br>${assumptions.map(a => `• ${esc(a)}`).join("<br>")}</div>` : "";
+    const lines = measures.length ? measures.map(m => {
+      const badge = m.applicability === "applicable" && m.estimatedDuty != null ? `<span class="rule-badge checked">Applied</span>` : `<span class="rule-badge">Review</span>`;
+      const facts = m.requiredFacts?.length ? ` Facts that could change the estimate: ${m.requiredFacts.map(questionLabel).join(", ")}.` : (m.reason ? ` Review reason: ${m.reason}` : "");
+      const estimate = m.estimatedDuty ?? m.worstCaseEstimatedDuty;
+      const estimateText = estimate != null ? ` Quick estimate: ${money(estimate)}${m.estimatedDuty == null ? " using worst-case assumptions." : "."}` : "";
+      return `<div class="live-rule-line"><strong>${esc(m.program)} — ${esc(m.hts)}</strong>${badge}<p>${esc(m.description || m.rateText || "Current Chapter 99 provision identified.")}${esc(estimateText)}${esc(facts)}</p></div>`;
+    }).join("") : `<div class="live-rule-line"><strong>Chapter 99 / trade remedies</strong><span class="rule-badge checked">Checked</span><p>No Chapter 99 provision was identified by the current live-source scan for the entered HTS and origin. This is not presented as a legal guarantee.</p></div>`;
+    panel.innerHTML = `<h3>Import / regulatory screening</h3><div class="rule-source-note">Checked against ${esc(rev)} and current Chapter 99 source. Screening build ${BUILD}.</div>${sourceWarning}${reviewWarning}${unresolvedWarning}${assumptionWarning}${lines}<div class="rule-source-note"><strong>Quick-read reminder:</strong> This site provides a quick estimate of duties, not a filing determination. Confirm shipment facts, classification, exclusions and final rates with your customs broker before entry.</div>`;
   }
 
   async function resolveAndRender(baseData) {
@@ -297,13 +339,20 @@
 
       const sec232Measures = measures.filter(m => String(m.program).toLowerCase() === "section 232");
       const sec301Measures = measures.filter(m => String(m.program).toLowerCase() === "section 301");
-      const sumKnown = list => list.length && list.every(m => m.estimatedDuty != null) ? list.reduce((s,m) => s + Number(m.estimatedDuty || 0), 0) : (list.length ? null : 0);
-      const sec232 = sumKnown(sec232Measures);
-      const sec301 = sumKnown(sec301Measures);
+      const programEstimate = list => {
+        if (!list.length) return 0;
+        const applied = list.filter(m => m.applicability === "applicable" && m.estimatedDuty != null).reduce((sum,m) => sum + Number(m.estimatedDuty || 0), 0);
+        const available = list.map(m => m.estimatedDuty ?? m.worstCaseEstimatedDuty).filter(v => v != null).map(Number);
+        if (!available.length && applied === 0) return null;
+        return Math.max(applied, ...available, 0);
+      };
+      const sec232 = programEstimate(sec232Measures);
+      const sec301 = programEstimate(sec301Measures);
       const status = ruleData.status;
       setMetric("section232Duty", sec232, status);
       setMetric("section301Duty", sec301, status);
       recalcTotal(baseData, sec232, sec301);
+      setEstimateReviewFlag(ruleData);
       renderLiveRulePanel(ruleData);
     } catch (error) {
       setMetric("section232Duty", null, "source-unavailable");
