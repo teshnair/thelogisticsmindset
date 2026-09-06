@@ -268,10 +268,43 @@ for code, keys in note_membership.items():
         if keys.intersection(target_keys):
             code_candidates[code].add(heading)
 
-# Structural safety checks. Bare note numbers such as "38." occur frequently
-# in the official Chapter 99 PDF. If a note boundary is missed, an unrelated
-# HTS list can be assigned to the prior note and create catastrophic false
-# positives. Fail the build instead of publishing such an index.
+# Index-wide structural safety checks. These validate EVERY HTS-to-Chapter-99
+# mapping produced by the parser. A relation is publishable only when the HTS
+# membership and operative heading share the same scoped legal-note key and
+# that key belongs to the heading's Chapter 99 subchapter.
+for code, keys in note_membership.items():
+    unscoped = sorted(key for key in keys if not key_scope(key))
+    if unscoped:
+        raise RuntimeError(f'Unscoped Chapter 99 note membership for HTS {code}: {unscoped[:10]}')
+
+for heading, keys in relations.items():
+    expected_scope = heading_subchapter(heading)
+    if not expected_scope:
+        raise RuntimeError(f'Unable to determine Chapter 99 subchapter for heading {heading}')
+    wrong_scope = sorted(key for key in keys if key_scope(key) != expected_scope)
+    if wrong_scope:
+        raise RuntimeError(
+            f'Cross-subchapter Chapter 99 relation for {heading}: expected scope {expected_scope}, got {wrong_scope[:10]}'
+        )
+
+validated_candidate_links = 0
+for code, headings in code_candidates.items():
+    membership = note_membership.get(code, set())
+    for heading in headings:
+        target_keys = relations.get(heading, set())
+        shared = membership.intersection(target_keys)
+        if not shared:
+            raise RuntimeError(f'Unjustified Chapter 99 candidate mapping: HTS {code} -> {heading}')
+        expected_scope = heading_subchapter(heading)
+        invalid_shared = sorted(key for key in shared if key_scope(key) != expected_scope)
+        if invalid_shared:
+            raise RuntimeError(
+                f'Cross-subchapter candidate mapping: HTS {code} -> {heading} through {invalid_shared[:10]}'
+            )
+        validated_candidate_links += 1
+
+# Keep a few domain-specific sanity checks in addition to the universal checks.
+# They are regression tripwires, not the matching algorithm.
 note38b_codes = sorted(code for code, keys in note_membership.items() if '3|38:b' in keys)
 invalid_note38b = [code for code in note38b_codes if not code.startswith('87')]
 if invalid_note38b:
@@ -279,12 +312,6 @@ if invalid_note38b:
         'Chapter 99 note 38(b) contains non-vehicle HTS codes; note-boundary parsing is contaminated: '
         + ', '.join(invalid_note38b[:20])
     )
-for gypsum_code in ('68091100', '6809110010'):
-    bad = sorted(set(code_candidates.get(gypsum_code, set())) & {'9903.74.01', '9903.76.01'})
-    if bad:
-        raise RuntimeError(
-            f'False Chapter 99 mapping for gypsum HTS {gypsum_code}: {bad}'
-        )
 
 headings_out = {}
 for h, block in heading_blocks.items():
@@ -322,7 +349,8 @@ payload = {
         "noteSubdivisions": len(subdivision_text),
         "noteMembershipCodes": len(note_membership),
         "operativeHeadings": len(headings_out),
-        "codesWithCandidates": sum(1 for v in code_candidates.values() if v)
+        "codesWithCandidates": sum(1 for v in code_candidates.values() if v),
+        "validatedCandidateLinks": validated_candidate_links
     }
 }
 
