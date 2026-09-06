@@ -73,6 +73,7 @@
     return ({
       meltPourCountry: "Steel first melt / pour country",
       metalContentValue: "Value of covered metal content (USD)",
+      usMetalContentQualification: "Meets U.S.-metal-content qualification (85% threshold)",
       vehicleManufactureYear: "Vehicle manufacture year",
       vehicleEngineStatus: "Vehicle engine configuration",
       importPurpose: "Import purpose",
@@ -86,6 +87,7 @@
   function fieldHtml(key) {
     if (key === "meltPourCountry") return ""; // existing field is revealed instead of duplicated
     if (key === "metalContentValue") return `<div><label for="metalContentValue">${questionLabel(key)}</label><input id="metalContentValue" type="number" min="0" step="0.01" placeholder="Only the covered metal content"></div>`;
+    if (key === "usMetalContentQualification") return `<div><label for="usMetalContentQualification">${questionLabel(key)}</label><select id="usMetalContentQualification"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
     if (key === "vehicleManufactureYear") return `<div><label for="vehicleManufactureYear">${questionLabel(key)}</label><input id="vehicleManufactureYear" type="number" min="1900" max="2100" placeholder="e.g. 2021"></div>`;
     if (key === "vehicleEngineStatus") return `<div><label for="vehicleEngineStatus">${questionLabel(key)}</label><select id="vehicleEngineStatus"><option value="unknown">Not specified</option><option value="original">Original / equivalent configuration</option><option value="modified">Modified / replaced</option></select></div>`;
     if (key === "importPurpose") return `<div><label for="importPurpose">${questionLabel(key)}</label><select id="importPurpose"><option value="standard">Standard import / consumption</option><option value="temporary">Temporary import</option><option value="repair">Repair / alteration</option><option value="testing">Testing / research / prototype</option><option value="show">Show / display / exhibition</option><option value="racing">Racing / competition</option></select></div>`;
@@ -153,6 +155,7 @@
     return {
       meltPourCountry: value("meltPourCountry"),
       metalContentValue: value("metalContentValue"),
+      usMetalContentQualification: value("usMetalContentQualification"),
       vehicleManufactureYear: value("vehicleManufactureYear"),
       vehicleEngineStatus: value("vehicleEngineStatus"),
       importPurpose: value("importPurpose"),
