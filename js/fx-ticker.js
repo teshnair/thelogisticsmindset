@@ -174,4 +174,12 @@ if (isHtsCalculatorPage) {
     reverseSearchScript.dataset.htsReverseSearch = "true";
     document.head.appendChild(reverseSearchScript);
   }
+
+  if (!document.querySelector('script[data-hts-copy-print-fix="true"]')) {
+    const copyPrintScript = document.createElement("script");
+    copyPrintScript.src = "/js/hts-copy-print-fix.js?v=20260907-1";
+    copyPrintScript.async = false;
+    copyPrintScript.dataset.htsCopyPrintFix = "true";
+    document.head.appendChild(copyPrintScript);
+  }
 }
