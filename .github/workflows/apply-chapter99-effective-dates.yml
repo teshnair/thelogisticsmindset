@@ -1,0 +1,30 @@
+name: Apply Chapter 99 effective-date filter
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/apply-chapter99-effective-dates.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+          fetch-depth: 0
+      - name: Apply Chapter 99 date filter
+        run: python scripts/patch-chapter99-effective-dates.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add netlify/functions/trade-rules.mts
+          git commit -m 'Filter expired Chapter 99 provisions by effective date'
+          git push origin HEAD:preview-import-calculator
