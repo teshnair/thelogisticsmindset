@@ -168,7 +168,7 @@ function effectiveDecision(context:string,liveDescription:string,entryDateValue?
   return{state:"possible" as const,reason:supplied?`The provision is within its stated effective period for entry date ${supplied}.`:"The provision is within its stated effective period as of the current date."};
 }
 
-function parsePercent(text:string):number|null{const c=clean(text),patterns=[/additional(?:\s+ad\s+valorem)?(?:\s+rate\s+of\s+duty)?[^%]{0,100}?(\d+(?:\.\d+)?)\s*%/i,/additional\s+(\d+(?:\.\d+)?)\s*percent/i,/\+\s*(?:a\s+)?(?:duty\s+of\s+)?(\d+(?:\.\d+)?)\s*%/i,/subject\s+to\s+(?:an?\s+)?(?:additional\s+)?(\d+(?:\.\d+)?)\s*percent/i,/\b(\d+(?:\.\d+)?)\s*%\s+additional/i];for(const re of patterns){const m=c.match(re);if(m)return Number(m[1]);}return null;}
+function parsePercent(text:string):number|null{const c=clean(text),patterns=[/additional(?:\s+ad\s+valorem)?(?:\s+rate\s+of\s+duty)?[^%]{0,100}?(\d+(?:\.\d+)?)\s*%/i,/additional\s+(\d+(?:\.\d+)?)\s*percent/i,/\+\s*(?:a\s+)?(?:duty\s+of\s+)?(\d+(?:\.\d+)?)\s*%/i,/\bplus\s+(?:a\s+)?(?:duty\s+of\s+)?(\d+(?:\.\d+)?)\s*%/i,/\bplus\s+(\d+(?:\.\d+)?)\s*percent(?:\s+ad\s+valorem)?\b/i,/subject\s+to\s+(?:an?\s+)?(?:additional\s+)?(\d+(?:\.\d+)?)\s*percent/i,/\b(\d+(?:\.\d+)?)\s*%\s+additional/i];for(const re of patterns){const m=c.match(re);if(m)return Number(m[1]);}return null;}
 function rateDecision(meta:IndexHeading|undefined,live:any){
   const d=clean(live?.description),a=clean(live?.additionalDuties),g=clean(live?.general),m=clean(meta?.text);
   // Rate treatment must come from the operative tariff row itself. Relation/
