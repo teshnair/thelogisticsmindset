@@ -1,0 +1,30 @@
+name: Apply Chapter 99 word-plus parser patch
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/apply-ch99-word-plus.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+          fetch-depth: 0
+      - name: Patch word-plus rates
+        run: python scripts/patch-ch99-word-plus.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add netlify/functions/trade-rules.mts
+          git commit -m 'Parse Chapter 99 word-plus surcharge rates'
+          git push origin HEAD:preview-import-calculator
