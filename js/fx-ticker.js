@@ -131,10 +131,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // Preview-only live import / Chapter 99 screening layer.
-// The original duty calculator remains intact for base rates and fees.
-if (/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
+// Support both the explicit .html URL and Netlify's clean-URL route so the
+// PGA/import-requirement layer loads whether the calculator is opened directly
+// or reached through navigation from another page.
+if (/\/hts-duty-calculator(?:\.html)?\/?$/i.test(window.location.pathname)) {
   const screeningScript = document.createElement("script");
-  screeningScript.src = "js/hts-import-screening-v2.js?v=20260907-6";
+  screeningScript.src = "js/hts-import-screening-v2.js?v=20260907-7";
   screeningScript.async = false;
   document.head.appendChild(screeningScript);
 }
