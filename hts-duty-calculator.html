@@ -964,7 +964,7 @@ const timeTickerEl=document.getElementById("timeTicker");
 function updateTimeTicker(){timeTickerEl.innerHTML=TIME_TICKER_ZONES.map(z=>{const t=new Date().toLocaleTimeString("en-US",{timeZone:z.tz,hour:"2-digit",minute:"2-digit",second:"2-digit"});return `<span>${z.label}: ${t}</span>`}).join("")}
 updateTimeTicker();setInterval(updateTimeTicker,1000);
 </script>
-<script src="js/fx-ticker.js" defer></script>
+<script src="js/fx-ticker.js?v=20260907-pga-refresh" defer></script>
 <script src="js/support.js" defer></script>
 </body>
 </html>
