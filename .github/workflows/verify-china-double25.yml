@@ -1,0 +1,44 @@
+name: Verify China Chapter 99 rate separation
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/verify-china-double25.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify deployed China case
+        env:
+          BASE_URL: https://deploy-preview-43--thelogisticsmindset.netlify.app
+        run: |
+          python - <<'PY'
+          import json, os, time, urllib.parse, urllib.request
+          q=urllib.parse.urlencode({'hts':'6809110010','country':'CN','customsValue':'350000','_verify':time.time_ns()})
+          req=urllib.request.Request(os.environ['BASE_URL']+'/api/trade-rules?'+q,headers={'Cache-Control':'no-cache','User-Agent':'TLM-China-Rate-Verify/1.0'})
+          with urllib.request.urlopen(req,timeout=40) as r:
+              data=json.loads(r.read().decode())
+          by={m.get('hts'):m for m in data.get('measures',[])}
+          print(json.dumps({k:by.get(k) for k in ['9903.01.30','9903.88.03']},indent=2))
+          if '9903.01.30' in by:
+              m=by['9903.01.30']
+              assert m.get('rateMode')=='no-change', m
+              assert m.get('ratePercent')==0, m
+              assert m.get('estimatedDuty') in (None,0), m
+              assert m.get('worstCaseEstimatedDuty') in (None,0), m
+          m=by.get('9903.88.03')
+          assert m, data
+          assert m.get('rateMode')=='additional', m
+          assert abs(float(m.get('ratePercent'))-25)<1e-9, m
+          amount=m.get('estimatedDuty') if m.get('estimatedDuty') is not None else m.get('worstCaseEstimatedDuty')
+          assert abs(float(amount)-87500)<0.01, m
+          print('China double-25 regression passed.')
+          PY
