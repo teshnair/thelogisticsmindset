@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  // Keep HTS calculator navigation rooted at the site root so the same link
+  // works from root pages and nested/dynamic pages.
+  document.querySelectorAll('a[href$="hts-duty-calculator.html"]').forEach(link => {
+    link.setAttribute('href', '/hts-duty-calculator.html');
+  });
+
   const ticker = document.getElementById("fxTicker");
   if (!ticker) return;
 
@@ -131,10 +137,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // Preview-only live import / Chapter 99 screening layer.
-// The original duty calculator remains intact for base rates and fees.
+// The original PR43 screening code expects the .html pathname. Netlify can
+// serve the same page as a pretty URL without the extension, so normalize the
+// browser pathname before loading the unchanged screening layer.
+if (/\/hts-duty-calculator\/?$/i.test(window.location.pathname)) {
+  history.replaceState(null, "", `/hts-duty-calculator.html${window.location.search}${window.location.hash}`);
+}
+
 if (/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
   const screeningScript = document.createElement("script");
-  screeningScript.src = "js/hts-import-screening-v2.js?v=20260907-6";
+  screeningScript.src = "js/hts-import-screening-v2.js?v=20260907-7";
   screeningScript.async = false;
   document.head.appendChild(screeningScript);
 }
