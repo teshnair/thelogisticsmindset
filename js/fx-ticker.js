@@ -136,17 +136,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     ` <span style="opacity:.6">| updated ${new Date(cachedTime).toLocaleTimeString()}</span>`;
 });
 
-// Preview-only live import / Chapter 99 screening layer.
-// The original PR43 screening code expects the .html pathname. Netlify can
-// serve the same page as a pretty URL without the extension, so normalize the
-// browser pathname before loading the unchanged screening layer.
-if (/\/hts-duty-calculator\/?$/i.test(window.location.pathname)) {
-  history.replaceState(null, "", `/hts-duty-calculator.html${window.location.search}${window.location.hash}`);
-}
+// PR43 import / Chapter 99 / PGA screening layer.
+// Detect the actual calculator DOM instead of relying on the browser pathname.
+// This keeps the original PR43 screening logic intact while allowing Netlify
+// pretty URLs and navigation from any page on the site.
+const isHtsCalculatorPage = Boolean(
+  document.getElementById("calcForm") &&
+  document.getElementById("hts") &&
+  document.getElementById("result")
+);
 
-if (/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
-  const screeningScript = document.createElement("script");
-  screeningScript.src = "js/hts-import-screening-v2.js?v=20260907-7";
-  screeningScript.async = false;
-  document.head.appendChild(screeningScript);
+if (isHtsCalculatorPage) {
+  if (!/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
+    history.replaceState(null, "", `/hts-duty-calculator.html${window.location.search}${window.location.hash}`);
+  }
+
+  if (!document.querySelector('script[data-pr43-hts-screening="true"]')) {
+    const screeningScript = document.createElement("script");
+    screeningScript.src = "/js/hts-import-screening-v2.js?v=20260907-8";
+    screeningScript.async = false;
+    screeningScript.dataset.pr43HtsScreening = "true";
+    document.head.appendChild(screeningScript);
+  }
 }
