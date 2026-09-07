@@ -158,4 +158,12 @@ if (isHtsCalculatorPage) {
     screeningScript.dataset.pr43HtsScreening = "true";
     document.head.appendChild(screeningScript);
   }
+
+  if (!document.querySelector('script[data-hts-rate-formula-fix="true"]')) {
+    const formulaScript = document.createElement("script");
+    formulaScript.src = "/js/hts-rate-formula-fix.js?v=20260907-1";
+    formulaScript.async = false;
+    formulaScript.dataset.htsRateFormulaFix = "true";
+    document.head.appendChild(formulaScript);
+  }
 }
