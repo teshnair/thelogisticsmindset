@@ -1,7 +1,7 @@
 (() => {
   if (!/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) return;
 
-  const BUILD = "2026-09-06-purpose-and-exclusive-metal-v4";
+  const BUILD = "2026-09-06-known-main-facts-v5";
   const digits = value => String(value ?? "").replace(/\D/g, "");
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = value => value == null ? "Review required" : new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(Number(value || 0));
@@ -9,6 +9,14 @@
   let ruleLookupTimer = null;
   let ruleLookupSeq = 0;
   let lastRulePreview = null;
+
+  // Facts collected in the main questionnaire must never be rendered again as
+  // "additional" questions. The dynamic section is reserved for genuinely new,
+  // HTS-specific shipment facts.
+  const MAIN_FORM_FACTS = new Set([
+    "hts", "country", "customsValue", "mode", "quantity", "quantityUnit",
+    "importPurpose", "ftaQualification", "meltPourCountry"
+  ]);
 
   function addStyles() {
     if (document.getElementById("htsLiveRuleStyles")) return;
@@ -136,7 +144,7 @@
     const pgaFacts = highConfidencePgaFacts(code);
     const facts = [...new Set([...ruleFacts, ...pgaFacts])];
     syncExistingMeltField(facts);
-    const renderFacts = facts.filter(x => x !== "meltPourCountry" && x !== "importPurpose");
+    const renderFacts = facts.filter(x => !MAIN_FORM_FACTS.has(x));
     if (!renderFacts.length) {
       box.classList.remove("visible");
       box.innerHTML = "";
@@ -156,7 +164,20 @@
     }
     const seq = ++ruleLookupSeq;
     try {
-      const res = await fetch(`/api/trade-rules?hts=${encodeURIComponent(hts)}&country=${encodeURIComponent(country)}`);
+      const previewPayload = {
+        hts,
+        country,
+        customsValue: document.getElementById("value")?.value || null,
+        mode: document.getElementById("mode")?.value || null,
+        quantity: document.getElementById("qty")?.value || null,
+        quantityUnit: document.getElementById("qtyUnit")?.value || null,
+        ...factsPayload()
+      };
+      const res = await fetch("/api/trade-rules", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(previewPayload)
+      });
       const data = await res.json();
       if (seq !== ruleLookupSeq) return;
       if (!res.ok) throw new Error(data.error || "Trade-rule lookup failed");
@@ -183,7 +204,9 @@
       vehicleManufactureYear: value("vehicleManufactureYear"),
       vehicleEngineStatus: value("vehicleEngineStatus"),
       importPurpose: value("importPurpose"),
-      ftaQualification: value("dynamicFta"),
+      // The main FTA checkbox is the single source of truth. Unchecked means
+      // not established, not an affirmative "no".
+      ftaQualification: document.getElementById("fta")?.checked ? "yes" : "unknown",
       tscaStatus: value("tscaStatus"),
       rfCapability: value("rfCapability"),
       plantMaterial: value("plantMaterial")
@@ -556,6 +579,13 @@
     hts?.addEventListener("input", queueRulePreview);
     hts?.addEventListener("change", queueRulePreview);
     country?.addEventListener("change", queueRulePreview);
+    document.getElementById("value")?.addEventListener("input", queueRulePreview);
+    document.getElementById("value")?.addEventListener("change", queueRulePreview);
+    document.getElementById("meltPourCountry")?.addEventListener("change", queueRulePreview);
+    document.getElementById("fta")?.addEventListener("change", queueRulePreview);
+    document.getElementById("qty")?.addEventListener("change", queueRulePreview);
+    document.getElementById("qtyUnit")?.addEventListener("change", queueRulePreview);
+    document.getElementById("mode")?.addEventListener("change", queueRulePreview);
     document.getElementById("importPurpose")?.addEventListener("change", queueRulePreview);
     watchResults();
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
