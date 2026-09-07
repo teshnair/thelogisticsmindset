@@ -1,7 +1,7 @@
 (() => {
   if (!/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) return;
 
-  const BUILD = "2026-09-06-known-main-facts-v5";
+  const BUILD = "2026-09-07-pga-screening-v6";
   const digits = value => String(value ?? "").replace(/\D/g, "");
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = value => value == null ? "Review required" : new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(Number(value || 0));
@@ -17,6 +17,21 @@
     "hts", "country", "customsValue", "mode", "quantity", "quantityUnit",
     "importPurpose", "ftaQualification", "meltPourCountry"
   ]);
+
+  const FOOD_AGRI_CHAPTERS = new Set(["01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24"]);
+  const PLANT_AGRI_CHAPTERS = new Set(["06","07","08","09","10","11","12","13","14"]);
+  const ANIMAL_AGRI_CHAPTERS = new Set(["01","02","03","04","05","16"]);
+  const CHEM_CHAPTERS = new Set(["28","29","30","31","32","33","34","35","36","37","38","39"]);
+  const LACEY_CHAPTERS = new Set(["44","47","48","94"]);
+  const FCC_PREFIXES = ["8517","8525","8526","8528"];
+  const MEDICAL_DEVICE_PREFIXES = ["9018","9019","9020","9021","9022"];
+  const ENGINE_PREFIXES = ["8407","8408"];
+  const VEHICLE_PREFIXES = ["8701","8702","8703","8704","8705"];
+  const VEHICLE_EQUIPMENT_PREFIXES = ["8706","8707","8708"];
+
+  const PGA_SOURCE_LABELS = {
+    CBP:"CBP", FDA:"FDA", USDA:"USDA / APHIS", FSIS:"USDA / FSIS", EPA:"EPA", DOT:"NHTSA / DOT", FCC:"FCC", LACEY:"Lacey Act / APHIS", TTB:"TTB", ATF:"ATF"
+  };
 
   function addStyles() {
     if (document.getElementById("htsLiveRuleStyles")) return;
@@ -76,11 +91,13 @@
 
   function highConfidencePgaFacts(hts) {
     const code = digits(hts);
+    const chapter = code.slice(0,2);
     const facts = [];
-    if (/^870[1-5]/.test(code)) facts.push("vehicleManufactureYear", "vehicleEngineStatus");
-    if (/^(28|29|30|31|32|33|34|35|36|37|38)/.test(code)) facts.push("tscaStatus");
-    if (/^(8517|8525|8526)/.test(code)) facts.push("rfCapability");
-    if (/^(44|4401|4403|4407|4408|4409|4412|4418)/.test(code)) facts.push("plantMaterial");
+    if (VEHICLE_PREFIXES.some(p => code.startsWith(p))) facts.push("vehicleManufactureYear", "vehicleEngineStatus");
+    if (CHEM_CHAPTERS.has(chapter)) facts.push("tscaStatus");
+    if (FOOD_AGRI_CHAPTERS.has(chapter)) facts.push("foodUse");
+    if (FCC_PREFIXES.some(p => code.startsWith(p))) facts.push("rfCapability");
+    if (LACEY_CHAPTERS.has(chapter)) facts.push("plantMaterial");
     return facts;
   }
 
@@ -107,7 +124,8 @@
       productSpecificCondition: "Product-specific exclusion / condition",
       tscaStatus: "TSCA status",
       rfCapability: "Radiofrequency transmitting capability",
-      plantMaterial: "Contains plant or wood material"
+      plantMaterial: "Contains plant or wood material",
+      foodUse: "Intended use / product type"
     })[k] || k.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, c => c.toUpperCase());
   }
 
@@ -122,6 +140,7 @@
     if (key === "tscaStatus") return `<div><label for="tscaStatus">${questionLabel(key)}</label><select id="tscaStatus"><option value="unknown">Not sure</option><option value="positive">Positive certification expected</option><option value="negative">Negative certification expected</option><option value="exempt">Claimed exemption / not subject</option></select></div>`;
     if (key === "rfCapability") return `<div><label for="rfCapability">${questionLabel(key)}</label><select id="rfCapability"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
     if (key === "plantMaterial") return `<div><label for="plantMaterial">${questionLabel(key)}</label><select id="plantMaterial"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
+    if (key === "foodUse") return `<div><label for="foodUse">${questionLabel(key)}</label><select id="foodUse"><option value="unknown">Not sure</option><option value="human">Human food / beverage</option><option value="animal">Animal food / feed</option><option value="plant">Plant / seed / agricultural use</option><option value="drug">Drug / pharmaceutical</option><option value="cosmetic">Cosmetic / personal care</option><option value="other">Other</option></select></div>`;
     const factId = `ruleFact_${String(key).replace(/[^A-Za-z0-9_-]/g, '_')}`;
     const numericFacts = new Set(["subjectMetalWeightPercent", "nonUsVehicleContentValue", "nonUsContentValue", "usContentValue"]);
     if (numericFacts.has(key)) return `<div><label for="${factId}">${esc(questionLabel(key))}</label><input id="${factId}" data-rule-fact="${esc(key)}" type="number" min="0" step="any" placeholder="Enter value if known"></div>`;
@@ -209,7 +228,8 @@
       ftaQualification: document.getElementById("fta")?.checked ? "yes" : "unknown",
       tscaStatus: value("tscaStatus"),
       rfCapability: value("rfCapability"),
-      plantMaterial: value("plantMaterial")
+      plantMaterial: value("plantMaterial"),
+      foodUse: value("foodUse")
     };
     document.querySelectorAll('[data-rule-fact]').forEach(el => {
       const key = el.getAttribute('data-rule-fact');
@@ -343,6 +363,90 @@
       if (live) live.after(panel); else result.appendChild(panel);
     }
     panel.innerHTML = `<h3>Possible alternate clearance based on import purpose</h3>${options.map(([title,body]) => `<div class="clearance-option"><strong>${esc(title)}</strong><br>${esc(body)}</div>`).join("")}${caution ? `<div class="clearance-caution">${esc(caution)}</div>` : ""}<div class="rule-source-note">These are screening suggestions, not automatic exemptions. The selected route must meet the applicable Chapter 98, CBP and partner-agency conditions.</div>`;
+  }
+
+  function pgaScreeningRows(baseData) {
+    const code = digits(baseData?.query?.hts || document.getElementById("hts")?.value || "");
+    const chapter = code.slice(0,2);
+    const rows = [];
+    const value = id => document.getElementById(id)?.value || "unknown";
+    const year = Number(value("vehicleManufactureYear")) || null;
+    const engine = value("vehicleEngineStatus");
+    const purpose = value("importPurpose");
+    const foodUse = value("foodUse");
+    const tsca = value("tscaStatus");
+    const rf = value("rfCapability");
+    const plant = value("plantMaterial");
+    const age = year ? new Date().getFullYear() - year : null;
+
+    const add = (agency, title, status, text) => rows.push({agency, title, status, text});
+
+    // CBP always remains the primary entry/classification agency. PGA rows below
+    // identify likely partner-agency programs from HTS + entered facts; they are
+    // deliberately phrased as screening flags when HTS alone cannot prove scope.
+    add("CBP", "CBP entry / classification", "checked", "CBP entry requirements, valuation, classification, country of origin, marking and any applicable Chapter 98/99 treatment remain subject to the shipment facts and current entry rules.");
+
+    if (VEHICLE_PREFIXES.some(p => code.startsWith(p))) {
+      add("EPA", "EPA motor-vehicle emissions", "review", `Motor vehicles require EPA emissions eligibility screening. ${age != null ? `Entered manufacture year indicates approximately ${age} years of age. ` : "Manufacture year was not entered. "}${engine === "modified" ? "A modified or replaced engine can change the available conformity or exemption route." : "Confirm conformity or the applicable exemption/import provision."}`);
+      add("DOT", "NHTSA / DOT motor-vehicle safety", "review", age != null && age >= 25 ? "The entered year may qualify for the NHTSA 25-year age exception, subject to the actual manufacture date and proper declaration. EPA treatment is separate." : "Confirm FMVSS conformity, Registered Importer requirements, HS-7 declaration, or an applicable exception such as temporary/testing/show/competition where the facts support it.");
+    } else if (VEHICLE_EQUIPMENT_PREFIXES.some(p => code.startsWith(p))) {
+      add("DOT", "NHTSA / DOT vehicle equipment", "review", "This HTS can include motor-vehicle equipment subject to FMVSS or other NHTSA import requirements. Applicability depends on the actual component and intended use.");
+    }
+
+    if (ENGINE_PREFIXES.some(p => code.startsWith(p))) {
+      add("EPA", "EPA engine emissions", "review", "Internal-combustion engines can be subject to EPA emissions conformity, labeling and import declaration requirements depending on engine type, use and exemption status.");
+    }
+
+    if (FOOD_AGRI_CHAPTERS.has(chapter)) {
+      add("FDA", "FDA food / regulated-product screening", "review", `This HTS is in a food/agricultural chapter. Intended-use answer: ${foodUse}. FDA requirements can include facility registration, Prior Notice, FSVP, admissibility, labeling or other product-specific controls. Some commodities are primarily regulated by USDA instead.`);
+      if (PLANT_AGRI_CHAPTERS.has(chapter) || foodUse === "plant") add("USDA", "USDA / APHIS plant and agricultural requirements", "review", "Plants, seeds, produce and other plant products can require APHIS admissibility review, permits, phytosanitary documentation, treatment or inspection depending on commodity and origin.");
+      if (ANIMAL_AGRI_CHAPTERS.has(chapter) || foodUse === "animal") add("USDA", "USDA / APHIS animal-product requirements", "review", "Live animals and animal-derived products can require APHIS admissibility review, permits, health certificates or other disease-control documentation depending on species, processing and origin.");
+      if (["02","04","16"].includes(chapter)) add("FSIS", "USDA / FSIS screening", "review", "Meat, poultry and certain egg products can fall under FSIS import inspection and foreign-establishment eligibility rules. Chapter 16 also includes products that may instead be FDA-regulated, so confirm the actual commodity.");
+    }
+
+    if (chapter === "22") add("TTB", "TTB alcohol requirements", "review", "Alcoholic beverages can require TTB permits, formula/label approvals, excise-tax treatment and other import requirements in addition to FDA/CBP requirements.");
+    if (chapter === "24") add("TTB", "TTB tobacco requirements", "review", "Tobacco products can involve TTB excise-tax and permit requirements as well as FDA tobacco-product requirements.");
+
+    if (CHEM_CHAPTERS.has(chapter)) {
+      add("EPA", "EPA / TSCA chemical screening", "review", `This HTS can contain chemical substances or mixtures subject to TSCA import certification or an exclusion/exemption. Current TSCA answer: ${tsca}. Product use matters because foods, drugs, cosmetics and pesticides can be governed under other statutes.`);
+    }
+    if (code.startsWith("3808")) add("EPA", "EPA / FIFRA pesticide requirements", "review", "Pesticides and pesticide devices can require EPA registration, Notice of Arrival and labeling/compliance review under FIFRA. Confirm the actual product and intended use.");
+
+    if (chapter === "30") add("FDA", "FDA drug / pharmaceutical requirements", "review", "Drugs and pharmaceutical products can require FDA registration/listing, admissibility, labeling, approval/status and other product-specific import requirements.");
+    if (chapter === "33") add("FDA", "FDA cosmetic / personal-care screening", "review", "Cosmetics and certain personal-care products can be subject to FDA facility/product, ingredient, labeling and admissibility requirements depending on the actual product and claims.");
+    if (MEDICAL_DEVICE_PREFIXES.some(p => code.startsWith(p))) add("FDA", "FDA medical-device screening", "review", "This HTS can include medical devices. Confirm FDA device classification, establishment registration/listing, premarket status where required, labeling and import admissibility for the actual product.");
+
+    if (FCC_PREFIXES.some(p => code.startsWith(p))) {
+      add("FCC", "FCC radiofrequency / communications equipment", "review", `This HTS can include radiofrequency or communications equipment. RF transmitting capability answer: ${rf}. Confirm equipment authorization, labeling and import conditions for the actual device; HTS alone does not determine FCC authorization status.`);
+    }
+
+    if (LACEY_CHAPTERS.has(chapter)) {
+      add("LACEY", "Lacey Act / plant-product screening", "review", `This chapter can include wood or other plant material. Plant/wood answer: ${plant}. A Lacey Act declaration and/or APHIS requirements may apply depending on the exact HTS, plant material, species and country of harvest/origin.`);
+    }
+
+    if (chapter === "93") add("ATF", "ATF firearms / ammunition requirements", "review", "Firearms, ammunition and related articles can require ATF import permits, licensing and other controls. Confirm the specific article and any other applicable federal restrictions before shipment.");
+
+    if (!rows.some(r => r.agency !== "CBP")) {
+      add("PGA", "Partner Government Agency screening", "checked", "No high-confidence PGA flag was identified from the HTS alone. This is not confirmation that no PGA applies; product composition, intended use, claims, technology, species/material and other shipment facts can trigger agency requirements outside an HTS-only screen.");
+    }
+
+    return rows;
+  }
+
+  function renderPgaPanel(baseData) {
+    const result = document.getElementById("result");
+    if (!result) return;
+    let panel = document.getElementById("pgaScreeningPanel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "pgaScreeningPanel";
+      panel.className = "live-rule-panel";
+      const live = document.getElementById("liveTradeRulePanel");
+      if (live) live.after(panel);
+      else { const disclaimer = result.querySelector(".disclaimer-box"); if (disclaimer) result.insertBefore(panel, disclaimer); else result.appendChild(panel); }
+    }
+    const rows = pgaScreeningRows(baseData);
+    panel.innerHTML = `<h3>Partner Government Agency / import requirements</h3><div class="rule-source-note">HTS-based screening only. Agency applicability can depend on product composition, use, claims, technology, species/material, origin and other shipment facts.</div>${rows.map(r => `<div class="live-rule-line"><strong>${esc(PGA_SOURCE_LABELS[r.agency] || r.agency)} — ${esc(r.title)}</strong><span class="rule-badge ${r.status === "checked" ? "checked" : ""}">${r.status === "checked" ? "Checked" : "Review"}</span><p>${esc(r.text)}</p></div>`).join("")}<div class="rule-source-note"><strong>Quick-read reminder:</strong> These notes identify likely agency touchpoints; they do not replace the agency's current admissibility, permit, certification or filing rules. Confirm shipment-specific requirements with the customs broker and the responsible agency before import.</div>`;
   }
 
   function ensureModal() {
@@ -548,6 +652,7 @@
       recalcTotal(baseData, sec232, sec301, liveOther);
       setEstimateReviewFlag(ruleData);
       renderLiveRulePanel(ruleData);
+      renderPgaPanel(baseData);
       renderClearanceOptions(baseData);
     } catch (error) {
       setMetric("section232Duty", null, "source-unavailable");
@@ -555,6 +660,7 @@
       const total = document.getElementById("total");
       if (total) total.textContent = "Review required";
       renderLiveRulePanel({status:"source-unavailable",chapter99SourceAvailable:false,measures:[],unresolvedMatches:[],currentHts:lastRulePreview?.currentHts});
+      renderPgaPanel(baseData);
     }
     openModal();
   }
