@@ -183,12 +183,16 @@ function rateDecision(meta:IndexHeading|undefined,live:any){
     return{rateMode:"replacement" as const,ratePercent:pct,rateText};
   }
 
-  // A row that says to use the duty in the applicable HTS subheading is not an
-  // additional percentage duty. Check this before looking for percentages.
-  if(/\b0\s*%\s+additional|no\s+additional\s+duty|no change|the duty provided in (?:the )?applicable subheading/i.test(rowText))
+  const pct=parsePercent(a)??parsePercent(g)??parsePercent(d)??parsePercent(m);
+
+  // Explicit no-additional-duty wording always controls. The phrase "the duty
+  // provided in the applicable subheading" by itself is also no-change, but
+  // Chapter 99 frequently writes an actual surcharge as that phrase + 25%.
+  if(/\b0\s*%\s+additional|no\s+additional\s+duty|no change/i.test(rowText))
+    return{rateMode:"no-change" as const,ratePercent:0,rateText};
+  if(/the duty provided in (?:the )?applicable subheading/i.test(rowText) && pct===null)
     return{rateMode:"no-change" as const,ratePercent:0,rateText};
 
-  const pct=parsePercent(a)??parsePercent(g)??parsePercent(d)??parsePercent(m);
   if(pct!==null)return{rateMode:"additional" as const,ratePercent:pct,rateText};
   return{rateMode:"unknown" as const,ratePercent:null,rateText};
 }
