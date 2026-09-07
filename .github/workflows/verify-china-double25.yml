@@ -23,7 +23,7 @@ jobs:
           python - <<'PY'
           import json, os, time, urllib.parse, urllib.request
           q=urllib.parse.urlencode({'hts':'6809110010','country':'CN','customsValue':'350000','_verify':time.time_ns()})
-          req=urllib.request.Request(os.environ['BASE_URL']+'/api/trade-rules?'+q,headers={'Cache-Control':'no-cache','User-Agent':'TLM-China-Rate-Verify/1.0'})
+          req=urllib.request.Request(os.environ['BASE_URL']+'/api/trade-rules?'+q,headers={'Cache-Control':'no-cache','User-Agent':'TLM-China-Rate-Verify/2.0'})
           with urllib.request.urlopen(req,timeout=40) as r:
               data=json.loads(r.read().decode())
           by={m.get('hts'):m for m in data.get('measures',[])}
