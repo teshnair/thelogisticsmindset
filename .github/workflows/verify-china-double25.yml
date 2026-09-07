@@ -1,4 +1,4 @@
-name: Verify Chapter 99 rate separation
+name: Verify Chapter 99 rate separation and stacking
 
 on:
   push:
@@ -17,40 +17,86 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
-      - name: Verify deployed tariff-row rate separation
+      - name: Verify deployed tariff-row rates and remedy stacking
         env:
           BASE_URL: https://deploy-preview-43--thelogisticsmindset.netlify.app
         run: |
           python - <<'PY'
           import json, os, time, urllib.parse, urllib.request
 
-          last=None
-          for attempt in range(20):
-              q=urllib.parse.urlencode({'hts':'6809110010','country':'CN','customsValue':'350000','_verify':time.time_ns()})
-              try:
-                  req=urllib.request.Request(os.environ['BASE_URL']+'/api/trade-rules?'+q,headers={'Cache-Control':'no-cache','User-Agent':'TLM-Rate-Separation-Verify/3.0'})
-                  with urllib.request.urlopen(req,timeout=40) as r:
-                      data=json.loads(r.read().decode())
-                  by={m.get('hts'):m for m in data.get('measures',[])}
-                  m=by.get('9903.88.03')
-                  if m and m.get('rateMode')=='additional' and m.get('ratePercent')==25:
-                      amount=m.get('estimatedDuty') if m.get('estimatedDuty') is not None else m.get('worstCaseEstimatedDuty')
-                      if amount is not None and abs(float(amount)-87500)<0.01:
-                          if '9903.01.30' in by:
-                              x=by['9903.01.30']
-                              assert x.get('rateMode')=='no-change', x
-                              assert x.get('ratePercent')==0, x
-                              assert x.get('estimatedDuty') in (None,0), x
-                              assert x.get('worstCaseEstimatedDuty') in (None,0), x
-                          print(json.dumps({k:by.get(k) for k in ['9903.01.30','9903.88.03']},indent=2))
-                          print('Chapter 99 tariff-row rate separation regression passed.')
-                          break
-                  last=AssertionError(data)
-              except Exception as exc:
-                  last=exc
-              time.sleep(8)
-          else:
-              raise last or RuntimeError('deployed rate-separation verification failed')
+          base=os.environ['BASE_URL']
+
+          def lookup(hts,country,value,**facts):
+              last=None
+              for attempt in range(20):
+                  params={'hts':hts,'country':country,'customsValue':value,'_verify':time.time_ns()}
+                  params.update(facts)
+                  q=urllib.parse.urlencode(params)
+                  try:
+                      req=urllib.request.Request(base+'/api/trade-rules?'+q,headers={'Cache-Control':'no-cache','User-Agent':'TLM-Rate-Stacking-Verify/4.0'})
+                      with urllib.request.urlopen(req,timeout=40) as r:
+                          data=json.loads(r.read().decode())
+                      if data.get('revisionVerified') is True:
+                          return data
+                      last=AssertionError(data)
+                  except Exception as exc:
+                      last=exc
+                  time.sleep(8)
+              raise last or RuntimeError('deployed verification failed')
+
+          def byref(data):
+              return {m.get('hts'):m for m in data.get('measures',[])}
+
+          def amount(m):
+              return m.get('estimatedDuty') if m.get('estimatedDuty') is not None else m.get('worstCaseEstimatedDuty')
+
+          # Plain "duty provided in applicable subheading" must never inherit
+          # a percentage from nearby Chapter 99 note text; explicit +25% must.
+          gypsum=lookup('6809110010','CN',350000)
+          by=byref(gypsum)
+          if '9903.01.30' in by:
+              x=by['9903.01.30']
+              assert x.get('rateMode')=='no-change', x
+              assert x.get('ratePercent')==0, x
+              assert amount(x) in (None,0), x
+          x=by.get('9903.88.03')
+          assert x and x.get('rateMode')=='additional', gypsum
+          assert x.get('ratePercent')==25, x
+          assert abs(float(amount(x))-87500)<0.01, x
+
+          # Chapter 99 also uses the word "plus" rather than the + symbol.
+          # That grammar still represents an additional percentage.
+          auto=lookup('8703230100','CN',10000,vehicleManufactureYear=2024)
+          by=byref(auto)
+          x=by.get('9903.88.01')
+          assert x and x.get('rateMode')=='additional', auto
+          assert x.get('ratePercent')==25, x
+          assert abs(float(amount(x))-2500)<0.01, x
+
+          # China steel: one mutually-exclusive 9903.82.02-.26 Section 232
+          # heading may apply, while Section 301 is a separate cumulative remedy.
+          steel=lookup('7310290065','CN',350000)
+          measures=steel.get('measures',[])
+          metal=[]
+          for m in measures:
+              ref=str(m.get('hts',''))
+              if not ref.startswith('9903.82.'):
+                  continue
+              try: suffix=int(ref.rsplit('.',1)[1])
+              except Exception: continue
+              if 2 <= suffix <= 26 and m.get('applicability')=='applicable':
+                  metal.append(m)
+          assert len(metal)==1, metal
+          assert metal[0].get('program')=='Section 232', metal[0]
+          assert metal[0].get('ratePercent')==50, metal[0]
+          assert abs(float(amount(metal[0]))-175000)<0.01, metal[0]
+          by=byref(steel)
+          x=by.get('9903.88.03')
+          assert x and x.get('program')=='Section 301', steel
+          assert x.get('ratePercent')==25, x
+          assert abs(float(amount(x))-87500)<0.01, x
+
+          print('Chapter 99 rate separation, word-plus parsing, and 232/301 stacking regressions passed.')
           PY
