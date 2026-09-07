@@ -1,0 +1,42 @@
+name: Force PR44 HTS PGA cache refresh
+
+on:
+  push:
+    branches:
+      - preview/home-purpose-layout
+    paths:
+      - .github/workflows/pr44-force-pga-cache-refresh.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/home-purpose-layout
+          fetch-depth: 0
+      - name: Cache-bust HTS screening loader
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('hts-duty-calculator.html')
+          s = p.read_text()
+          old = '<script src="js/fx-ticker.js" defer></script>'
+          new = '<script src="js/fx-ticker.js?v=20260907-pga-refresh" defer></script>'
+          if old not in s and new not in s:
+              raise SystemExit('Expected fx-ticker script tag not found')
+          if old in s:
+              s = s.replace(old, new, 1)
+              p.write_text(s)
+          PY
+      - name: Commit patch and remove temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/pr44-force-pga-cache-refresh.yml
+          git add hts-duty-calculator.html
+          git commit -m 'Force fresh HTS PGA screening loader'
+          git push origin HEAD:preview/home-purpose-layout
