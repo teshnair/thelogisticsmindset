@@ -1,0 +1,149 @@
+name: Weekly trade regulatory watch
+
+on:
+  schedule:
+    # Saturday morning, after the Friday regulatory publication window and
+    # roughly 24 hours before the Sunday production release.
+    - cron: "0 10 * * 6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  trade-regulatory-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check trade and tariff regulatory sources
+        id: regulatory_check
+        continue-on-error: true
+        run: REGULATORY_WATCH_STRICT=1 node scripts/check-trade-regulations.mjs
+
+      - name: Advance regulatory checkpoint when check passes
+        if: steps.regulatory_check.outcome == 'success'
+        shell: bash
+        run: |
+          CHECK_DATE=$(TZ=America/New_York date +%F)
+          node - "$CHECK_DATE" <<'NODE'
+          const fs = require("fs");
+          const checkDate = process.argv[2];
+          const path = "data/trade-regulatory-reviewed.json";
+          const data = JSON.parse(fs.readFileSync(path, "utf8"));
+          data.reviewedThrough = checkDate;
+          data.lastAutomaticCheck = new Date().toISOString();
+          data.note = "Automatically advanced only after the Saturday official-source regulatory watch passed with no new review items. If a notice is found, review it and update calculator rules before advancing this checkpoint.";
+          fs.writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/trade-regulatory-reviewed.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Advance trade regulatory checkpoint to ${CHECK_DATE}"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+
+      - name: Upload regulatory watch report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trade-regulatory-watch-report
+          path: trade-regulatory-watch-report.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Create, update, or close regulatory review issue
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          CHECK_OUTCOME: ${{ steps.regulatory_check.outcome }}
+        with:
+          script: |
+            const fs = require("fs");
+            const issueTitle = "[Trade Regulatory Watch] Review required before weekly publish";
+            let report = null;
+            if (fs.existsSync("trade-regulatory-watch-report.json")) {
+              report = JSON.parse(fs.readFileSync("trade-regulatory-watch-report.json", "utf8"));
+            }
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100
+            });
+            const existing = issues.find(issue => issue.title === issueTitle && !issue.pull_request);
+
+            const requiresReview = !report ||
+              report.summary.sourceFailures > 0 ||
+              report.summary.searchFailures > 0 ||
+              report.summary.newFederalRegisterDocuments > 0;
+
+            if (!requiresReview) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  body: `Saturday regulatory watch passed on ${report.generatedAt}. No new potentially relevant Federal Register notices were found after ${report.reviewedThrough}. The Sunday release gate may proceed.`
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  state: "closed"
+                });
+              }
+              return;
+            }
+
+            const docs = report?.findings?.filter(x => !x.error) || [];
+            const failures = report?.sourceHealth?.filter(x => !x.ok) || [];
+            const lines = docs.slice(0, 30).map(d =>
+              `- **${d.publicationDate || "unknown date"}** — ${d.title}\n  - ${d.htmlUrl || d.pdfUrl || "No URL returned"}\n  - Matched: ${(d.matchedTerms || []).join(", ")}`
+            );
+            const failureLines = failures.map(f => `- ${f.name}: ${f.status || f.error || "unavailable"}`);
+
+            const body = [
+              "The Saturday U.S. tariff/import regulatory check requires review before the Sunday production publish.",
+              "",
+              `Last reviewed-through date: **${report?.reviewedThrough || "unknown"}**`,
+              `Detected: ${report?.generatedAt || new Date().toISOString()}`,
+              "",
+              ...(lines.length ? ["## New potentially relevant Federal Register documents", ...lines] : []),
+              ...(failureLines.length ? ["", "## Official-source check failures", ...failureLines] : []),
+              "",
+              "Review the notices, update calculator rules if required, then advance `data/trade-regulatory-reviewed.json`. The Sunday production deployment will remain blocked until the checkpoint is current."
+            ].join("\n");
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body
+              });
+            }
+
+      - name: Fail when regulatory review is required
+        if: steps.regulatory_check.outcome == 'failure'
+        run: exit 1

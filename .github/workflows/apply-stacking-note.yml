@@ -1,0 +1,30 @@
+name: Apply trade-remedy stacking explanation
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/apply-stacking-note.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+          fetch-depth: 0
+      - name: Patch stacking explanation
+        run: python scripts/patch-stacking-note.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add hts-duty-calculator.html
+          git commit -m 'Explain cumulative Section 232 and Section 301 duties'
+          git push origin HEAD:preview-import-calculator

@@ -2,3 +2,14 @@
   # Production deploys are allowed only for explicit Sunday release commits.
   # Deploy Previews and branch deploys remain available on any day.
   ignore = "if [ \"$CONTEXT\" != \"production\" ]; then exit 1; fi; day=$(date -u +%u); msg=$(git log -1 --pretty=%B \"$COMMIT_REF\"); if [ \"$day\" = \"7\" ] && printf '%s' \"$msg\" | grep -q '\\[deploy\\]'; then exit 1; else exit 0; fi"
+
+  # The regulatory watch runs Saturday, roughly 24 hours before release.
+  # Sunday production deploys rely on that reviewed checkpoint rather than
+  # re-querying official sites at publish time.
+  command = "if [ \"$CONTEXT\" = \"production\" ]; then node scripts/verify-regulatory-release-gate.mjs; else true; fi"
+
+[[redirects]]
+  from = "/api/trade-rules"
+  to = "/.netlify/functions/trade-rules"
+  status = 200
+  force = true

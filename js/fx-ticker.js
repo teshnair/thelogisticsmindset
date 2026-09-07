@@ -129,3 +129,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     items.join(" · ") +
     ` <span style="opacity:.6">| updated ${new Date(cachedTime).toLocaleTimeString()}</span>`;
 });
+
+// Preview-only live import / Chapter 99 screening layer.
+// The original duty calculator remains intact for base rates and fees.
+if (/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
+  const screeningScript = document.createElement("script");
+  screeningScript.src = "js/hts-import-screening-v2.js?v=20260907-6";
+  screeningScript.async = false;
+  document.head.appendChild(screeningScript);
+}
