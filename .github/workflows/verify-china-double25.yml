@@ -1,10 +1,13 @@
-name: Verify China Chapter 99 rate separation
+name: Verify Chapter 99 rate separation
 
 on:
   push:
     branches:
       - preview-import-calculator
     paths:
+      - netlify/functions/trade-rules.mts
+      - data/chapter99-index.json
+      - scripts/build-chapter99-index.py
       - .github/workflows/verify-china-double25.yml
   workflow_dispatch:
 
@@ -16,29 +19,38 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Verify deployed China case
+      - name: Verify deployed tariff-row rate separation
         env:
           BASE_URL: https://deploy-preview-43--thelogisticsmindset.netlify.app
         run: |
           python - <<'PY'
           import json, os, time, urllib.parse, urllib.request
-          q=urllib.parse.urlencode({'hts':'6809110010','country':'CN','customsValue':'350000','_verify':time.time_ns()})
-          req=urllib.request.Request(os.environ['BASE_URL']+'/api/trade-rules?'+q,headers={'Cache-Control':'no-cache','User-Agent':'TLM-China-Rate-Verify/2.0'})
-          with urllib.request.urlopen(req,timeout=40) as r:
-              data=json.loads(r.read().decode())
-          by={m.get('hts'):m for m in data.get('measures',[])}
-          print(json.dumps({k:by.get(k) for k in ['9903.01.30','9903.88.03']},indent=2))
-          if '9903.01.30' in by:
-              m=by['9903.01.30']
-              assert m.get('rateMode')=='no-change', m
-              assert m.get('ratePercent')==0, m
-              assert m.get('estimatedDuty') in (None,0), m
-              assert m.get('worstCaseEstimatedDuty') in (None,0), m
-          m=by.get('9903.88.03')
-          assert m, data
-          assert m.get('rateMode')=='additional', m
-          assert abs(float(m.get('ratePercent'))-25)<1e-9, m
-          amount=m.get('estimatedDuty') if m.get('estimatedDuty') is not None else m.get('worstCaseEstimatedDuty')
-          assert abs(float(amount)-87500)<0.01, m
-          print('China double-25 regression passed.')
+
+          last=None
+          for attempt in range(20):
+              q=urllib.parse.urlencode({'hts':'6809110010','country':'CN','customsValue':'350000','_verify':time.time_ns()})
+              try:
+                  req=urllib.request.Request(os.environ['BASE_URL']+'/api/trade-rules?'+q,headers={'Cache-Control':'no-cache','User-Agent':'TLM-Rate-Separation-Verify/3.0'})
+                  with urllib.request.urlopen(req,timeout=40) as r:
+                      data=json.loads(r.read().decode())
+                  by={m.get('hts'):m for m in data.get('measures',[])}
+                  m=by.get('9903.88.03')
+                  if m and m.get('rateMode')=='additional' and m.get('ratePercent')==25:
+                      amount=m.get('estimatedDuty') if m.get('estimatedDuty') is not None else m.get('worstCaseEstimatedDuty')
+                      if amount is not None and abs(float(amount)-87500)<0.01:
+                          if '9903.01.30' in by:
+                              x=by['9903.01.30']
+                              assert x.get('rateMode')=='no-change', x
+                              assert x.get('ratePercent')==0, x
+                              assert x.get('estimatedDuty') in (None,0), x
+                              assert x.get('worstCaseEstimatedDuty') in (None,0), x
+                          print(json.dumps({k:by.get(k) for k in ['9903.01.30','9903.88.03']},indent=2))
+                          print('Chapter 99 tariff-row rate separation regression passed.')
+                          break
+                  last=AssertionError(data)
+              except Exception as exc:
+                  last=exc
+              time.sleep(8)
+          else:
+              raise last or RuntimeError('deployed rate-separation verification failed')
           PY
