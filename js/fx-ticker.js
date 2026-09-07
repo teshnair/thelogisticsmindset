@@ -166,4 +166,12 @@ if (isHtsCalculatorPage) {
     formulaScript.dataset.htsRateFormulaFix = "true";
     document.head.appendChild(formulaScript);
   }
+
+  if (!document.querySelector('script[data-hts-reverse-search="true"]')) {
+    const reverseSearchScript = document.createElement("script");
+    reverseSearchScript.src = "/js/hts-reverse-search.js?v=20260907-1";
+    reverseSearchScript.async = false;
+    reverseSearchScript.dataset.htsReverseSearch = "true";
+    document.head.appendChild(reverseSearchScript);
+  }
 }
