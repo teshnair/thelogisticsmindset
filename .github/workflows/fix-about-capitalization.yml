@@ -1,0 +1,39 @@
+name: Fix About capitalization
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - .github/workflows/fix-about-capitalization.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-import-calculator
+      - name: Capitalize opening word only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('about.html')
+          s = p.read_text()
+          old = "            my work covers day-to-day logistics, regulatory compliance, and commercial decision-making to achieve customer's goals."
+          new = "            My work covers day-to-day logistics, regulatory compliance, and commercial decision-making to achieve customer's goals."
+          if old not in s:
+              raise SystemExit('Expected lowercase opening not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add about.html
+          git commit -m 'Capitalize opening word on About page'
+          git push origin HEAD:preview-import-calculator
