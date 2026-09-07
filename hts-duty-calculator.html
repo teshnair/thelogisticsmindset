@@ -114,7 +114,7 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
       <input id="hts" inputmode="numeric" autocomplete="off" placeholder="e.g. 7309.00.0030" required aria-autocomplete="list" aria-expanded="false">
       <div id="suggestions" class="suggestions hidden" role="listbox"></div>
     </div>
-    <div class="helper">Start with at least 4 digits. Matching HTS lines will narrow automatically as you type.</div>
+    <div class="helper" id="htsUnitHint">Start with at least 4 digits. Matching HTS lines will narrow automatically as you type. The HTS reporting unit will appear here when it can be identified.</div>
   </div>
   <div>
     <label for="country">Country of origin</label>
@@ -137,12 +137,27 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
     <select id="mode"><option value="ocean">Ocean</option><option value="air">Air</option><option value="land">Land / rail</option></select>
   </div>
   <div>
+    <label for="importPurpose">Import purpose</label>
+    <select id="importPurpose">
+      <option value="standard">Standard import / consumption</option>
+      <option value="temporary">Temporary import / re-export</option>
+      <option value="testing">Prototype / testing / research</option>
+      <option value="repair">Repair / alteration / processing</option>
+      <option value="tools">Professional tools / equipment</option>
+      <option value="show">Exhibition / trade show / display</option>
+      <option value="samples">Commercial samples / taking orders</option>
+      <option value="racing">Racing / competition</option>
+    </select>
+    <div class="helper">Used to flag possible Chapter 98, TIB or ATA Carnet alternatives. Eligibility depends on the shipment facts.</div>
+  </div>
+  <div>
     <label for="qty">Quantity <span class="tiny">(optional)</span></label>
     <input id="qty" type="number" min="0" step="any" placeholder="Needed for $/kg, ¢/unit, etc.">
   </div>
   <div>
     <label for="qtyUnit">Quantity unit <span class="tiny">(optional)</span></label>
-    <input id="qtyUnit" placeholder="kg, No., L, m²...">
+    <select id="qtyUnit"><option value="">Select HTS reporting unit</option></select>
+    <div class="helper" id="qtyUnitHelp">The published HTS reporting unit will be offered here when identified.</div>
   </div>
   <div class="full checkbox">
     <input id="fta" type="checkbox">
@@ -375,6 +390,90 @@ function formatInput(value) {
   return d;
 }
 
+function normalizeHtsUnit(value) {
+  return String(value ?? '')
+    .replace(/<\s*sup[^>]*>\s*2\s*<\s*\/\s*sup\s*>/gi, '²')
+    .replace(/<\s*sup[^>]*>\s*3\s*<\s*\/\s*sup\s*>/gi, '³')
+    .replace(/&sup2;|&#178;/gi, '²')
+    .replace(/&sup3;|&#179;/gi, '³')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function suggestionUnits(item) {
+  return Array.isArray(item?.units)
+    ? [...new Set(item.units.map(normalizeHtsUnit).filter(Boolean))]
+    : [];
+}
+
+function setQuantityUnitOptions(units, message = '') {
+  const select = $('qtyUnit');
+  const help = $('qtyUnitHelp');
+  if (!select) return;
+  const normalized = [...new Set((Array.isArray(units) ? units : []).map(normalizeHtsUnit).filter(Boolean))];
+  const previous = normalizeHtsUnit(select.value);
+  select.innerHTML = '';
+  const first = document.createElement('option');
+  first.value = '';
+  first.textContent = normalized.length ? 'Select HTS reporting unit' : 'No reporting unit identified';
+  select.appendChild(first);
+  normalized.forEach(unit => {
+    const option = document.createElement('option');
+    option.value = unit;
+    option.textContent = unit;
+    select.appendChild(option);
+  });
+  if (normalized.length === 1) select.value = normalized[0];
+  else if (previous && normalized.includes(previous)) select.value = previous;
+  if (help) help.textContent = message || (normalized.length
+    ? `Published HTS unit${normalized.length > 1 ? 's' : ''}: ${normalized.join(', ')}.`
+    : 'The published HTS reporting unit will be offered here when identified.');
+}
+
+function updateHtsUnitHint(items, target) {
+  const hint = $('htsUnitHint');
+  if (!hint) return;
+  const d = String(target || '').replace(/\D/g, '');
+  if (d.length < 4) {
+    hint.textContent = 'Start with at least 4 digits. Matching HTS lines will narrow automatically as you type. The HTS reporting unit will appear here when it can be identified.';
+    setQuantityUnitOptions([]);
+    return;
+  }
+  const matches = (Array.isArray(items) ? items : []).filter(item => String(item?.code || '').startsWith(d));
+  const exact = matches.filter(item => String(item?.code || '') === d);
+  const exactWithUnits = exact.filter(item => suggestionUnits(item).length);
+  const descendantsWithUnits = matches.filter(item => String(item?.code || '').length > d.length && suggestionUnits(item).length);
+  const pool = exactWithUnits.length
+    ? exactWithUnits
+    : descendantsWithUnits.length
+      ? descendantsWithUnits
+      : exact.length
+        ? exact
+        : matches;
+  if (!pool.length) {
+    hint.textContent = `HTS reporting unit: not identified yet for ${formatInput(d)}.`;
+    setQuantityUnitOptions([]);
+    return;
+  }
+  const signatures = [...new Set(pool.map(item => suggestionUnits(item).join('|')))];
+  if (signatures.length !== 1) {
+    hint.innerHTML = `<strong>HTS reporting unit:</strong> varies within ${escapeHtml(formatInput(d))}. Select the full HTS line to see the required unit.`;
+    setQuantityUnitOptions([], 'Select the full HTS code first because the reporting unit varies within this classification.');
+    return;
+  }
+  const units = suggestionUnits(pool[0]);
+  if (!units.length) {
+    hint.innerHTML = `<strong>HTS reporting unit:</strong> none listed for the selected HTS line.`;
+    setQuantityUnitOptions([]);
+    return;
+  }
+  hint.innerHTML = `<strong>HTS reporting unit${units.length > 1 ? 's' : ''}:</strong> ${units.map(escapeHtml).join(', ')}. Use the published unit when entering quantity for a specific-duty formula.`;
+  setQuantityUnitOptions(units);
+}
+
 async function readJsonResponse(response) {
   const raw = await response.text();
   if (!raw.trim()) throw new Error('The tariff service returned an empty response. Please try again.');
@@ -393,6 +492,7 @@ $('hts').addEventListener('input', event => {
   const digits = event.target.value.replace(/\D/g,'');
   if (digits.length < 4) {
     closeSuggestions();
+    updateHtsUnitHint([], digits);
     return;
   }
   searchTimer = setTimeout(() => lookupSuggestions(digits), 300);
@@ -444,15 +544,19 @@ function renderSuggestions(items, digits) {
     box.innerHTML = `<div class="no-match">No current HTS lines begin with ${escapeHtml(formatInput(digits))}.</div>`;
     box.classList.remove('hidden');
     $('hts').setAttribute('aria-expanded','true');
+    updateHtsUnitHint([], digits);
     return;
   }
   items.forEach(item => {
     const div = document.createElement('div');
     div.className = 'suggestion';
     div.setAttribute('role','option');
-    div.innerHTML = `<strong>${escapeHtml(item.hts || item.code)}</strong><span>${escapeHtml(item.description || '')}</span>`;
+    const units = suggestionUnits(item);
+    const unitText = units.length ? ` • Unit${units.length > 1 ? 's' : ''}: ${units.join(', ')}` : ' • No reporting unit listed';
+    div.innerHTML = `<strong>${escapeHtml(item.hts || item.code)}</strong><span>${escapeHtml(item.description || '')}${escapeHtml(unitText)}</span>`;
     div.addEventListener('click', () => {
       $('hts').value = item.hts || formatInput(item.code);
+      updateHtsUnitHint([item], item.code);
       closeSuggestions();
       $('country').focus();
     });
@@ -460,6 +564,7 @@ function renderSuggestions(items, digits) {
   });
   box.classList.remove('hidden');
   $('hts').setAttribute('aria-expanded','true');
+  updateHtsUnitHint(items, digits);
 }
 
 function closeSuggestions() {
@@ -480,6 +585,7 @@ $('calcForm').addEventListener('submit', async event => {
       meltPourCountry:$('meltPourCountry').value,
       customsValue:$('value').value, mode:$('mode').value,
       quantity:$('qty').value, quantityUnit:$('qtyUnit').value,
+      importPurpose:$('importPurpose').value,
       ftaQualified:$('fta').checked
     };
     const response = await fetch('/api/hts-duty', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -570,7 +676,9 @@ function render(data) {
     multipleBody.innerHTML = '';
     $('multipleRatesFoot').textContent = '';
   }
-  $('units').textContent = Array.isArray(data.classification.units) && data.classification.units.length ? data.classification.units.join(', ') : '—';
+  const resultUnits = Array.isArray(data.classification.units) ? [...new Set(data.classification.units.map(normalizeHtsUnit).filter(Boolean))] : [];
+  $('units').textContent = resultUnits.length ? resultUnits.join(', ') : '—';
+  setQuantityUnitOptions(resultUnits);
 
   const inherited = data.rates.rateInherited;
   $('rateSourceRow').classList.toggle('hidden', !data.rates.appliedRateSourceHts);
@@ -664,6 +772,13 @@ function render(data) {
     intro.className = 'notice info';
     intro.textContent = `Additional trade measures identified by the current rule set for ${countryName}:`;
     review.appendChild(intro);
+
+    if (section232Amount > 0 && section301Amount > 0) {
+      const stacking = document.createElement('div');
+      stacking.className = 'notice info';
+      stacking.innerHTML = '<strong>Tariff stacking:</strong> Section 232 and Section 301 are separate trade remedies and are cumulative in this estimate. The mutual-exclusivity rule applies only within the Section 232 heading family 9903.82.02–9903.82.26, so no more than one heading from that family is included.';
+      review.appendChild(stacking);
+    }
 
     measures.forEach(measure => {
       const div = document.createElement('div');
@@ -818,7 +933,7 @@ function escapeHtml(value) {
 }
 
 $('resetBtn').addEventListener('click', () => {
-  $('calcForm').reset(); $('result').classList.add('hidden'); $('status').textContent=''; closeSuggestions();
+  $('calcForm').reset(); $('result').classList.add('hidden'); $('status').textContent=''; closeSuggestions(); updateHtsUnitHint([], ''); setQuantityUnitOptions([]);
 });
 
 $('copyBtn').addEventListener('click', async () => {

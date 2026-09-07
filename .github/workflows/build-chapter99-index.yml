@@ -1,0 +1,79 @@
+name: Build current Chapter 99 legal index
+
+on:
+  push:
+    branches:
+      - preview-import-calculator
+    paths:
+      - scripts/build-chapter99-index.py
+      - .github/workflows/build-chapter99-index.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install PDF text utility
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+
+      - name: Download current official Chapter 99
+        run: |
+          curl -fL --retry 3 --max-time 120 \
+            'https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099' \
+            -o /tmp/chapter99.pdf
+          pdftotext -layout /tmp/chapter99.pdf /tmp/chapter99.txt
+
+      - name: Build and validate complete legal applicability index
+        run: |
+          mkdir -p data
+          python scripts/build-chapter99-index.py /tmp/chapter99.txt data/chapter99-index.json
+          python - <<'PY'
+          import json
+          p=json.load(open('data/chapter99-index.json'))
+          assert p.get('htsRevision') == 18, p.get('htsRevision')
+
+          # Universal integrity check: the builder validates every candidate link
+          # before it writes the index. The published count must match the actual
+          # number of HTS-to-Chapter-99 links in the generated JSON.
+          actual_links=sum(len(v) for v in p.get('codes',{}).values())
+          validated=p.get('stats',{}).get('validatedCandidateLinks')
+          assert validated == actual_links and actual_links > 0, {
+              'validatedCandidateLinks':validated,
+              'actualCandidateLinks':actual_links,
+          }
+
+          # Representative regression tripwires remain in addition to the
+          # universal validation; they are not the matching algorithm.
+          assert '9903.88.01' in p.get('codes',{}).get('87032301',[]), p.get('codes',{}).get('87032301')
+          targets=set((p.get('headings',{}).get('9903.82.09') or {}).get('noteTargets',[]))
+          required={'16:c:vi','16:c:vii','16:c:viii','16:c:xi'}
+          assert required.issubset(targets), {'targets':sorted(targets),'missing':sorted(required-targets)}
+          assert '9903.82.09' in p.get('codes',{}).get('73211110',[]), p.get('codes',{}).get('73211110')
+          for code in ('680911','68091100','6809110010'):
+              bad=set(p.get('codes',{}).get(code,[])) & {'9903.74.01','9903.76.01'}
+              assert not bad, {'code':code,'falseChapter99':sorted(bad),'allCandidates':p.get('codes',{}).get(code,[])}
+
+          print(json.dumps(p['stats'],indent=2))
+          print('Validated candidate links:', actual_links)
+          PY
+
+      - name: Commit generated index
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/chapter99-index.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh current Chapter 99 legal index'
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi

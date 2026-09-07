@@ -1,0 +1,277 @@
+const USITC_SEARCH = "https://hts.usitc.gov/reststop/search";
+const USITC_ARCHIVE = "https://www.usitc.gov/harmonized_tariff_information/hts/archive/list";
+const INDEX_PATH = "/data/chapter99-index.json";
+const CACHE_MS = 30 * 60 * 1000;
+const HEADING_CACHE_MS = 6 * 60 * 60 * 1000;
+
+type IndexHeading = {
+  noteTargets?: string[];
+  text?: string;
+  relationContext?: string[];
+  legalContext?: Record<string, string>;
+};
+
+type Chapter99Index = {
+  schemaVersion?: number;
+  htsRevision?: number;
+  generatedAt?: string;
+  sourceUrl?: string;
+  codes?: Record<string, string[]>;
+  headings?: Record<string, IndexHeading>;
+};
+
+type Applicability = "applicable" | "not-applicable" | "needs-facts" | "review-required";
+
+type EvaluatedMeasure = {
+  program: string;
+  hts: string;
+  description: string;
+  rateText: string;
+  ratePercent: number | null;
+  rateMode: "additional" | "replacement" | "no-change" | "unknown";
+  estimatedDuty: number | null;
+  replacementDutyEstimate: number | null;
+  applicability: Applicability;
+  reason: string;
+  requiredFacts: string[];
+  noteTargets: string[];
+  exceptionRefs: string[];
+  source: string;
+  sourceContext: string;
+  liveHeadingVerified: boolean;
+};
+
+let indexCache: { data: Chapter99Index; fetchedAt: number; url: string; marker: string | null } | null = null;
+let revisionCache: { label: string | null; revision: number | null; date: string | null; fetchedAt: number } | null = null;
+const headingCache = new Map<string, { data: any; fetchedAt: number }>();
+
+function digits(value: unknown) { return String(value ?? "").replace(/\D/g, ""); }
+function clean(value: unknown) { return String(value ?? "").replace(/<\/?il>/gi, "").replace(/\s+/g, " ").trim(); }
+function format8(code: string) { const d = digits(code).slice(0, 8); return d.length < 8 ? d : `${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6,8)}`; }
+function stripHtml(html: string) { return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi," ").replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi," ").replace(/<br\s*\/?>/gi,"\n").replace(/<\/p>|<\/li>|<\/div>|<\/tr>|<\/h\d>/gi,"\n").replace(/<[^>]+>/g," ").replace(/&nbsp;|&#160;/gi," ").replace(/&amp;/gi,"&").replace(/&quot;/gi,'"').replace(/&#39;|&apos;/gi,"'").replace(/\r/g,"").replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n").trim(); }
+
+async function fetchWithTimeout(url: string, timeout = 15000) {
+  const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeout);
+  try { return await fetch(url, { signal: controller.signal, headers: { "User-Agent": "TheLogisticsMindset-TradeRules/3.0 (+https://riteshnair.com)", Accept: "text/html,application/json;q=0.9,*/*;q=0.8" } }); }
+  finally { clearTimeout(timer); }
+}
+
+async function fetchRows(keyword: string) {
+  const url = new URL(USITC_SEARCH); url.searchParams.set("keyword", keyword);
+  const res = await fetchWithTimeout(url.toString(), 18000); if (!res.ok) throw new Error(`USITC search returned ${res.status}`);
+  const json = JSON.parse(await res.text()); if (Array.isArray(json)) return json; if (Array.isArray(json?.results)) return json.results; if (Array.isArray(json?.data)) return json.data; return [];
+}
+
+async function getCurrentRevision() {
+  if (revisionCache && Date.now() - revisionCache.fetchedAt < CACHE_MS) return revisionCache;
+  let label: string | null = null, revision: number | null = null, date: string | null = null;
+  try { const res = await fetchWithTimeout(USITC_ARCHIVE,12000); if (res.ok) { const text=stripHtml(await res.text()); const m=text.match(/(2026 HTS Revision\s+(\d+))\s*\(([^)]+)\)/i); if(m){label=m[1];revision=Number(m[2]);date=m[3];} } } catch {}
+  revisionCache={label,revision,date,fetchedAt:Date.now()}; return revisionCache;
+}
+
+async function getIndex(reqUrl: string) {
+  const indexUrl = new URL(INDEX_PATH, reqUrl).toString();
+  let marker: string | null = null;
+
+  // The Chapter 99 index is a static deploy artifact while this function may
+  // be reused across deploys. Validate the artifact marker before reusing a
+  // warm in-memory copy so a weekly HTS refresh becomes effective immediately.
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    try {
+      const head = await fetch(indexUrl, {
+        method: "HEAD",
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "TheLogisticsMindset-TradeRules/3.1 (+https://riteshnair.com)",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+        },
+      });
+      if (head.ok) {
+        marker = head.headers.get("etag") || head.headers.get("last-modified");
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch {}
+
+  if (indexCache && indexCache.url === indexUrl) {
+    if (marker && indexCache.marker === marker) return indexCache.data;
+    // If the host does not expose an ETag/Last-Modified marker, fail over to a
+    // short cache only. Never preserve legal data for the old 30-minute window.
+    if (!marker && Date.now() - indexCache.fetchedAt < 60_000) return indexCache.data;
+  }
+
+  const fetchUrl = new URL(indexUrl);
+  fetchUrl.searchParams.set("_index_refresh", String(Date.now()));
+  const res = await fetchWithTimeout(fetchUrl.toString(), 20000);
+  if(!res.ok) throw new Error(`Chapter 99 index returned ${res.status}`);
+  const data=await res.json() as Chapter99Index;
+  if((data?.schemaVersion||0)<2 || !data?.codes || !data?.headings || !data?.htsRevision) throw new Error("Chapter 99 index is missing required legal metadata");
+  const responseMarker = res.headers.get("etag") || res.headers.get("last-modified") || marker;
+  indexCache={data,fetchedAt:Date.now(),url:indexUrl,marker:responseMarker}; return data;
+}
+
+function candidateKeys(hts:string){const d=digits(hts),keys:string[]=[];if(d.length>=10)keys.push(d.slice(0,10));if(d.length>=8)keys.push(d.slice(0,8));if(d.length>=6)keys.push(d.slice(0,6));return [...new Set(keys)];}
+function candidateRefs(index:Chapter99Index,hts:string){const refs=new Set<string>();for(const key of candidateKeys(hts))for(const ref of index.codes?.[key]||[])refs.add(ref);return [...refs].sort();}
+function headingContext(meta?:IndexHeading,live?:any){return [live?.description,live?.general,live?.additionalDuties,meta?.text,...(meta?.relationContext||[]),...Object.values(meta?.legalContext||{})].map(clean).filter(Boolean).join(" ");}
+
+function programFor(ref:string,meta?:IndexHeading){const targets=meta?.noteTargets||[],context=headingContext(meta);if(targets.some(t=>/^20(?::|$)/.test(t))||/section\s*301/i.test(context))return"Section 301";if(targets.some(t=>/^(16|33)(?::|$)/.test(t))||/section\s*232/i.test(context))return"Section 232";if(/section\s*201|safeguard/i.test(context))return"Section 201 / safeguard";if(/section\s*122/i.test(context))return"Section 122";if(targets.some(t=>/^30(?::|$)/.test(t))&&/russian federation/i.test(context))return"Russia Chapter 99 duty";return"Chapter 99";}
+function boolValue(v:unknown):boolean|null{if(typeof v==="boolean")return v;const s=String(v??"").trim().toLowerCase();if(["true","yes","y","1","qualified","applies"].includes(s))return true;if(["false","no","n","0","not-qualified","does-not-apply"].includes(s))return false;return null;}
+function numberValue(v:unknown):number|null{if(v===null||v===undefined||String(v).trim()==="")return null;const n=Number(v);return Number.isFinite(n)?n:null;}
+function fact(input:any,name:string){if(input?.[name]!==undefined)return input[name];if(input?.facts?.[name]!==undefined)return input.facts[name];return undefined;}
+
+const ISO_COUNTRY_CODES=`AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW`.split(/\s+/);
+const ISO_COUNTRIES=new Set(ISO_COUNTRY_CODES);
+const COUNTRY_ALIASES:Record<string,string[]>={CN:["china","people's republic of china","peoples republic of china","prc"],RU:["russia","russian federation"],GB:["united kingdom","great britain","uk"],US:["united states","united states of america","usa","u.s."],KR:["south korea","republic of korea","korea"],KP:["north korea","democratic people's republic of korea","dprk"],TW:["taiwan"],VN:["vietnam","viet nam"],TR:["turkey","türkiye","turkiye"],CZ:["czech republic","czechia"],CI:["cote d'ivoire","côte d’ivoire","ivory coast"],CV:["cape verde","cabo verde"],SZ:["eswatini","swaziland"],MK:["north macedonia","macedonia"],MM:["myanmar","burma"],BO:["bolivia","bolivia plurinational state of"],VE:["venezuela","venezuela bolivarian republic of"],TZ:["tanzania","united republic of tanzania"],MD:["moldova","republic of moldova"],BN:["brunei","brunei darussalam"],LA:["laos","lao people's democratic republic"],IR:["iran","islamic republic of iran"],SY:["syria","syrian arab republic"],PS:["palestine","state of palestine"],VA:["vatican city","holy see"]};
+const EU_COUNTRIES=new Set(["AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE"]);
+function aliasesForCountry(country:string){const a=new Set<string>((COUNTRY_ALIASES[country]||[]).map(s=>s.toLowerCase()));try{const dn=new Intl.DisplayNames(["en"],{type:"region"});const n=dn.of(country);if(n)a.add(n.toLowerCase());}catch{}return[...a];}
+function normalizeName(v:string){return v.toLowerCase().replace(/\bthe\b/g," ").replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();}
+function explicitOriginPhrases(context:string){const out=new Set<string>();const patterns=[/(?:articles|goods|products?)\s+(?:that are\s+)?(?:the\s+)?products?\s+of\s+(?:the\s+)?([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]{1,70}?)(?=,|;|\.|\s+as\s+provided|\s+that\s+are|\s+classified|\s+in\s+which|\s+under\s+)/gi,/(?:articles|goods|products?)\s+(?:the\s+)?product\s+of\s+(?:the\s+)?([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]{1,70}?)(?=,|;|\.|\s+as\s+provided|\s+that\s+are|\s+classified|\s+in\s+which|\s+under\s+)/gi];for(const re of patterns)for(const m of context.matchAll(re))out.add(normalizeName(m[1]));return[...out].filter(Boolean);}
+
+function originDecision(country:string,ref:string,meta?:IndexHeading,live?:any){const targets=meta?.noteTargets||[],row=clean(`${live?.description||""} ${meta?.text||""}`),context=headingContext(meta,live),rowLow=row.toLowerCase();if(targets.some(t=>/^20(?::|$)/.test(t)))return country==="CN"?{state:"match" as const,reason:"U.S. note 20 applies to products of China."}:{state:"no-match" as const,reason:"U.S. note 20 is a China measure."};if(targets.some(t=>/^30(?::|$)/.test(t))&&/russian federation/i.test(row||context))return country==="RU"?{state:"match" as const,reason:"This U.S. note 30 provision applies to products of the Russian Federation."}:{state:"no-match" as const,reason:"This U.S. note 30 provision is Russia-specific."};if(/from all countries|products? of all countries|all countries|regardless of country/i.test(row))return{state:"match" as const,reason:"The provision applies to all countries."};if(/product of any country identified in general note 3\(b\)/i.test(row||context))return{state:"conditional" as const,reason:"Applicability depends on whether the origin is a general note 3(b) country.",fact:"column2CountryStatus"};if(/products? of (?:the )?european union|member countr(?:y|ies) of (?:the )?european union/i.test(rowLow))return EU_COUNTRIES.has(country)?{state:"match" as const,reason:"The origin is an EU member state."}:{state:"no-match" as const,reason:"The provision is limited to EU member-state origin."};const normalizedRow=` ${normalizeName(row)} `,explicitCodes=new Set<string>();for(const code of ISO_COUNTRY_CODES){for(const name of aliasesForCountry(code)){const n=normalizeName(name);if(!n)continue;if(normalizedRow.includes(` product of ${n} `)||normalizedRow.includes(` products of ${n} `)||normalizedRow.includes(` from ${n} `)){explicitCodes.add(code);break;}}}if(explicitCodes.size)return explicitCodes.has(country)?{state:"match" as const,reason:"The entered origin matches the origin stated in the Chapter 99 tariff row."}:{state:"no-match" as const,reason:`The Chapter 99 tariff row is limited to ${[...explicitCodes].join(", ")} origin.`};const phrases=explicitOriginPhrases(row.slice(0,4000));if(phrases.length){const aliases=aliasesForCountry(country).map(normalizeName),matches=phrases.some(p=>aliases.some(a=>p===a||p.includes(a)||a.includes(p)));return matches?{state:"match" as const,reason:"The entered origin matches the origin stated in the Chapter 99 tariff row."}:{state:"no-match" as const,reason:`The Chapter 99 tariff row is origin-specific (${phrases.slice(0,3).join(", ")}).`};}if(targets.some(t=>/^(16|33)(?::|$)/.test(t)))return{state:"match" as const,reason:"No narrower origin condition is stated in this Section 232 tariff row."};return{state:"unknown" as const,reason:"The origin condition could not be resolved automatically."};}
+
+function parseDate(text:string){const d=new Date(text);return Number.isNaN(d.getTime())?null:d;}
+function effectiveDecision(context:string,liveDescription:string,entryDateValue?:unknown){
+  const text=clean(`${liveDescription} ${context}`);
+  if(/\b(?:heading|provision|exclusion)\b[^.]{0,100}\bexpired\b|\[\s*expired\s*\]/i.test(liveDescription))return{state:"not-applicable" as const,reason:"The current HTS text marks this provision as expired."};
+
+  const supplied=clean(entryDateValue);
+  const parsed=supplied?parseDate(supplied):null;
+  const sourceDate=parsed||new Date();
+  const entryDate=new Date(sourceDate.getFullYear(),sourceDate.getMonth(),sourceDate.getDate());
+  const dayStart=(d:Date)=>new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const dayAfter=(d:Date)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
+  const datePattern='([A-Z][a-z]+\\s+\\d{1,2},\\s+\\d{4})';
+  const match=(re:RegExp)=>text.match(re);
+
+  // Inclusive end-date wording used heavily in Chapter 99, e.g. "through June 14, 2024".
+  for(const re of [new RegExp(`\\bthrough\\s+${datePattern}`,'i'),new RegExp(`\\bon or before\\s+${datePattern}`,'i')]){
+    const m=match(re); if(m){const d=parseDate(m[1]); if(d&&entryDate>=dayAfter(d))return{state:"not-applicable" as const,reason:`The stated effective period ended ${m[1]}.`};}
+  }
+
+  // Exclusive end-date wording, e.g. "before June 15, 2024".
+  const beforeRe=new RegExp(`\\bbefore\\s+${datePattern}`,'ig');
+  for(const m of text.matchAll(beforeRe)){
+    const prefix=text.slice(Math.max(0,(m.index||0)-12),m.index||0).toLowerCase();
+    if(/on or\s*$/.test(prefix))continue;
+    const d=parseDate(m[1]); if(d&&entryDate>=dayStart(d))return{state:"not-applicable" as const,reason:`The stated effective period ended before ${m[1]}.`};
+  }
+
+  // Inclusive start-date wording, e.g. "on or after January 1, 2024".
+  for(const re of [new RegExp(`\\bon or after\\s+${datePattern}`,'i'),new RegExp(`\\bfrom\\s+${datePattern}`,'i')]){
+    const m=match(re); if(m){const d=parseDate(m[1]); if(d&&entryDate<dayStart(d))return{state:"not-applicable" as const,reason:`The provision is not effective until ${m[1]}.`};}
+  }
+
+  return{state:"possible" as const,reason:supplied?`The provision is within its stated effective period for entry date ${supplied}.`:"The provision is within its stated effective period as of the current date."};
+}
+
+function parsePercent(text:string):number|null{const c=clean(text),patterns=[/additional(?:\s+ad\s+valorem)?(?:\s+rate\s+of\s+duty)?[^%]{0,100}?(\d+(?:\.\d+)?)\s*%/i,/additional\s+(\d+(?:\.\d+)?)\s*percent/i,/\+\s*(?:a\s+)?(?:duty\s+of\s+)?(\d+(?:\.\d+)?)\s*%/i,/\bplus\s+(?:a\s+)?(?:duty\s+of\s+)?(\d+(?:\.\d+)?)\s*%/i,/\bplus\s+(\d+(?:\.\d+)?)\s*percent(?:\s+ad\s+valorem)?\b/i,/subject\s+to\s+(?:an?\s+)?(?:additional\s+)?(\d+(?:\.\d+)?)\s*percent/i,/\b(\d+(?:\.\d+)?)\s*%\s+additional/i];for(const re of patterns){const m=c.match(re);if(m)return Number(m[1]);}return null;}
+function rateDecision(meta:IndexHeading|undefined,live:any){
+  const d=clean(live?.description),a=clean(live?.additionalDuties),g=clean(live?.general),m=clean(meta?.text);
+  // Rate treatment must come from the operative tariff row itself. Relation/
+  // legal-note context is used to determine scope and conditions only. Nearby
+  // Chapter 99 provisions often contain unrelated percentages and must never
+  // donate a rate to this heading.
+  const rowText=`${a} ${g} ${d} ${m}`;
+  const rateText=a||g||d||m;
+
+  if(/in lieu of the rates? of duty|in lieu of.*column\s*2/i.test(rowText)){
+    const pct=parsePercent(rowText)??(()=>{const x=rowText.match(/\b(\d+(?:\.\d+)?)\s*(?:percent|%)\s+ad\s+valorem/i);return x?Number(x[1]):null;})();
+    return{rateMode:"replacement" as const,ratePercent:pct,rateText};
+  }
+
+  const pct=parsePercent(a)??parsePercent(g)??parsePercent(d)??parsePercent(m);
+
+  // Explicit no-additional-duty wording always controls. The phrase "the duty
+  // provided in the applicable subheading" by itself is also no-change, but
+  // Chapter 99 frequently writes an actual surcharge as that phrase + 25%.
+  if(/\b0\s*%\s+additional|no\s+additional\s+duty|no change/i.test(rowText))
+    return{rateMode:"no-change" as const,ratePercent:0,rateText};
+  if(/the duty provided in (?:the )?applicable subheading/i.test(rowText) && pct===null)
+    return{rateMode:"no-change" as const,ratePercent:0,rateText};
+
+  if(pct!==null)return{rateMode:"additional" as const,ratePercent:pct,rateText};
+  return{rateMode:"unknown" as const,ratePercent:null,rateText};
+}
+
+async function resolveLiveHeading(ref:string){const cached=headingCache.get(ref);if(cached&&Date.now()-cached.fetchedAt<HEADING_CACHE_MS)return cached.data;try{const rows=await fetchRows(digits(ref));const row=rows.find((r:any)=>clean(r?.htsno)===ref)||rows.find((r:any)=>digits(r?.htsno)===digits(ref));const data=row?{found:true,description:clean(row?.description),general:clean(row?.general),special:clean(row?.special),other:clean(row?.other),additionalDuties:clean(row?.additionalDuties)}:{found:false};headingCache.set(ref,{data,fetchedAt:Date.now()});return data;}catch(error:any){return{found:false,error:error?.message||String(error)};}}
+function expandHeadingRange(start:string,end:string){const a=start.match(/^(9903\.\d{2}\.)(\d{2})$/),b=end.match(/^(9903\.\d{2}\.)(\d{2})$/);if(!a||!b||a[1]!==b[1])return[start,end];const s=Number(a[2]),e=Number(b[2]);if(!Number.isInteger(s)||!Number.isInteger(e)||e<s||e-s>99)return[start,end];return Array.from({length:e-s+1},(_,i)=>`${a[1]}${String(s+i).padStart(2,"0")}`);}function exceptionRefs(text:string){const refs=new Set<string>(),n=clean(text),starter=/\bexcept(?:\s+as\s+provided(?:\s+for)?|\s+for\s+products\s+described)?(?:\s+in)?\s+headings?\s+/gi;for(const m of n.matchAll(starter)){const start=(m.index||0)+m[0].length,tail=n.slice(start,start+1800),stop=tail.search(/(?:;|\.\s|,\s*(?:articles?|passenger\s+vehicles?|automobile\s+parts?|goods?|products?)\b)/i),list=stop>=0?tail.slice(0,stop):tail;for(const r of list.matchAll(/(9903\.\d{2}\.\d{2})(?:\s*[\u2013\u2014-]\s*(9903\.\d{2}\.\d{2}))?/g)){if(r[2])for(const ref of expandHeadingRange(r[1],r[2]))refs.add(ref);else refs.add(r[1]);}}return[...refs];}
+function noteTarget(meta:IndexHeading|undefined,target:string){return(meta?.noteTargets||[]).includes(target);}
+
+function conditionDecision(ref:string,meta:IndexHeading|undefined,input:any,hts:string,country:string){const required=new Set<string>(),context=headingContext(meta),rowText=clean(meta?.text),targets=meta?.noteTargets||[],chapter=Number(hts.slice(0,2));if(hts.startsWith("8703")&&(targets.includes("33:g")||/\b(?:vehicle|automobile)\s+parts\b/i.test(rowText)))return{state:"not-applicable" as const,reason:"U.S. note 33(g) and automobile-parts provisions do not apply to a finished passenger vehicle classified in HTS 8703.",requiredFacts:[]};if(ref==="9903.82.01"){if([72,73,74,76].includes(chapter))return{state:"not-applicable" as const,reason:"The entered HTS is itself in a metal chapter, so the no-metal provision does not apply.",requiredFacts:[]};const hasMetal=boolValue(fact(input,"containsAluminumSteelCopper"));if(hasMetal===null)return{state:"needs-facts" as const,reason:"This 0% provision depends on whether the article contains aluminum, steel, or copper.",requiredFacts:["containsAluminumSteelCopper"]};return hasMetal?{state:"not-applicable" as const,reason:"The article contains subject metal.",requiredFacts:[]}:{state:"applicable" as const,reason:"The article is reported as containing no aluminum, steel, or copper.",requiredFacts:[]};}if(ref==="9903.82.03"){if([72,73,74,76].includes(chapter))return{state:"not-applicable" as const,reason:"The low-metal-weight exception excludes chapters 72, 73, 74, and 76.",requiredFacts:[]};const pct=numberValue(fact(input,"subjectMetalWeightPercent"));if(pct===null)return{state:"needs-facts" as const,reason:"This 0% provision depends on whether the applicable-metal weight is below 15%.",requiredFacts:["subjectMetalWeightPercent"]};return pct<15?{state:"applicable" as const,reason:"Reported applicable-metal weight is below 15%.",requiredFacts:[]}:{state:"not-applicable" as const,reason:"Reported applicable-metal weight is 15% or more.",requiredFacts:[]};}if(noteTarget(meta,"16:j")){if(!["CA","MX"].includes(country))return{state:"not-applicable" as const,reason:"U.S. note 16(j) is limited to qualifying Canada/Mexico USMCA derivative steel articles.",requiredFacts:[]};const fta=boolValue(fact(input,"ftaQualification"));if(fta===false)return{state:"not-applicable" as const,reason:"U.S. note 16(j) requires USMCA eligibility.",requiredFacts:[]};if(fta===null)required.add("ftaQualification");}if(noteTarget(meta,"16:k")){if(![84,85,87].includes(chapter))return{state:"not-applicable" as const,reason:"U.S. note 16(k) is limited to qualifying parts in chapters 84, 85, or 87.",requiredFacts:[]};}if(noteTarget(meta,"16:e")){let q=boolValue(fact(input,"usMetalContentQualification"));const reportedMeltPour=clean(fact(input,"meltPourCountry")),assumedMeltPour=(reportedMeltPour||country).toUpperCase();if(q===null&&[72,73].includes(chapter)&&assumedMeltPour!=="US")q=false;if(q===null)required.add("usMetalContentQualification");else if(!q)return{state:"not-applicable" as const,reason:reportedMeltPour?"The entered melt/pour country does not establish the U.S.-metal-content qualification.":"Using the entered country of origin as the assumed melt/pour country, the U.S.-metal-content qualification is not met.",requiredFacts:[]};}if(noteTarget(meta,"16:d")){if(country!=="GB")return{state:"not-applicable" as const,reason:"This reduced treatment is limited to qualifying U.K.-origin articles.",requiredFacts:[]};const q=boolValue(fact(input,"ukMetalContentQualification"));if(q===null)required.add("ukMetalContentQualification");else if(!q)return{state:"not-applicable" as const,reason:"The article does not meet U.S. note 16(d).",requiredFacts:[]};}if(noteTarget(meta,"33:e")){const year=numberValue(fact(input,"vehicleManufactureYear"));if(year===null)required.add("vehicleManufactureYear");else{const ey=new Date().getUTCFullYear();if(year>ey||year<1880)return{state:"review-required" as const,reason:"The vehicle manufacture year is not plausible.",requiredFacts:[]};if(ey-year<25)return{state:"not-applicable" as const,reason:"The vehicle is less than 25 years old.",requiredFacts:[]};}}if(noteTarget(meta,"33:d")){if(!["CA","MX"].includes(country))return{state:"not-applicable" as const,reason:"This U.S.-content vehicle treatment depends on USMCA eligibility.",requiredFacts:[]};const fta=boolValue(fact(input,"ftaQualification")),approval=boolValue(fact(input,"commerceApproval")),v=numberValue(fact(input,"nonUsVehicleContentValue"));if(fta===false||approval===false)return{state:"not-applicable" as const,reason:"The special U.S.-content vehicle treatment was not established.",requiredFacts:[]};if(fta===null)required.add("ftaQualification");if(approval===null)required.add("commerceApproval");if(v===null)required.add("nonUsVehicleContentValue");}if(noteTarget(meta,"33:c")){if(hts.startsWith("8703"))return{state:"not-applicable" as const,reason:"HTS 8703 is the passenger-vehicle family; this is not its normal duty path.",requiredFacts:[]};if(!clean(fact(input,"vehicleType")))required.add("vehicleType");}if(/general note 3\(b\)/i.test(context)){const c=boolValue(fact(input,"column2CountryStatus"));if(c===null)required.add("column2CountryStatus");else if(!c&&/product of any country identified in general note 3\(b\)/i.test(context))return{state:"not-applicable" as const,reason:"The origin does not meet the general note 3(b) condition.",requiredFacts:[]};}if(/aggregate annual import volume|tariff-rate quota|quota quantity|within-quota/i.test(context)){const q=boolValue(fact(input,"quotaEligibility"));if(q===null)required.add("quotaEligibility");}if(/upon approval from|upon approval by|subject to approval/i.test(context)&&!noteTarget(meta,"33:d")){const a=boolValue(fact(input,"approvalStatus"));if(a===null)required.add("approvalStatus");else if(!a)return{state:"not-applicable" as const,reason:"The required approval has not been established.",requiredFacts:[]};}const note20Targets=targets.filter(t=>/^20:/.test(t)),base301=new Set(["20:b","20:d","20:f","20:g"]),hasBase301Target=note20Targets.some(t=>base301.has(t)),productSpecific=/particular products|product exclusion|covered by an exclusion|exclusion granted by|described in statistical reporting number|the following particular products/i.test(rowText);if(productSpecific||(!hasBase301Target&&note20Targets.length)){const matches=boolValue(fact(input,`productCondition:${ref}`))??boolValue(fact(input,"productSpecificCondition"));if(matches===null)required.add(`productCondition:${ref}`);else if(!matches)return{state:"not-applicable" as const,reason:"The product does not match the product-specific condition.",requiredFacts:[]};}if(!ref.startsWith("9903.82.")&&/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(context)&&numberValue(fact(input,"metalContentValue"))===null)required.add("metalContentValue");if(required.size)return{state:"needs-facts" as const,reason:"Additional shipment facts are required to determine this Chapter 99 treatment.",requiredFacts:[...required]};return{state:"applicable" as const,reason:"The HTS, origin, and entered facts satisfy the indexed conditions.",requiredFacts:[]};}
+
+function structuralTargets(m:EvaluatedMeasure){return m.noteTargets.filter(t=>/^(16:c:|33:b|20:)/.test(t)&&t!=="16:e"&&t!=="16:d");}
+function overlapTarget(a:EvaluatedMeasure,b:EvaluatedMeasure){const s=new Set(structuralTargets(a));return structuralTargets(b).some(t=>s.has(t));}
+function applyCompetingConditionPrecedence(measures:EvaluatedMeasure[],input:any){const us=boolValue(fact(input,"usMetalContentQualification"));for(const p of measures.filter(m=>m.noteTargets.includes("16:e")&&m.applicability!=="not-applicable")){for(const o of measures){if(o===p||o.program!=="Section 232"||o.noteTargets.includes("16:e")||!overlapTarget(p,o))continue;const sameRU=/russian federation/i.test(p.sourceContext)===/russian federation/i.test(o.sourceContext);if(!sameRU)continue;if(us===true&&p.applicability==="applicable"){o.applicability="not-applicable";o.reason=`Superseded by ${p.hts}.`;o.estimatedDuty=null;}else if(us===null&&o.applicability==="applicable"){o.applicability="needs-facts";o.requiredFacts=[...new Set([...o.requiredFacts,"usMetalContentQualification"])];o.reason=`Whether ${o.hts} applies depends on ${p.hts}.`;o.estimatedDuty=null;}}}const uk=boolValue(fact(input,"ukMetalContentQualification"));for(const p of measures.filter(m=>m.noteTargets.includes("16:d")&&m.applicability!=="not-applicable")){for(const o of measures){if(o===p||o.program!=="Section 232"||o.noteTargets.includes("16:d")||!overlapTarget(p,o))continue;if(uk===true&&p.applicability==="applicable"){o.applicability="not-applicable";o.reason=`Superseded by ${p.hts}.`;o.estimatedDuty=null;}else if(uk===null&&o.applicability==="applicable"){o.applicability="needs-facts";o.requiredFacts=[...new Set([...o.requiredFacts,"ukMetalContentQualification"])];o.reason=`Whether ${o.hts} applies depends on ${p.hts}.`;o.estimatedDuty=null;}}}}
+function applyExplicitExceptions(measures:EvaluatedMeasure[]){const by=new Map(measures.map(m=>[m.hts,m]));for(const m of measures){if(m.applicability==="not-applicable")continue;const rel=m.exceptionRefs.map(r=>by.get(r)).filter(Boolean) as EvaluatedMeasure[];const applied=rel.find(x=>x.applicability==="applicable");if(applied){m.applicability="not-applicable";m.reason=`Superseded by ${applied.hts}.`;m.estimatedDuty=null;continue;}const unresolved=rel.filter(x=>x.applicability==="needs-facts"||x.applicability==="review-required");if(unresolved.length&&m.applicability==="applicable"){m.applicability="needs-facts";m.requiredFacts=[...new Set([...m.requiredFacts,...unresolved.flatMap(x=>x.requiredFacts)])];m.reason=`An enumerated exception (${unresolved.map(x=>x.hts).join(", ")}) must be resolved first.`;m.estimatedDuty=null;}}}
+function isMutuallyExclusiveMetalHeading(ref:string){const m=String(ref||"").match(/^9903\.82\.(\d{2})$/);if(!m)return false;const n=Number(m[1]);return n>=2&&n<=26;}
+function enforceMetalMutualExclusivity(measures:EvaluatedMeasure[]){
+  const candidates=measures.filter(m=>isMutuallyExclusiveMetalHeading(m.hts)&&m.applicability!=="not-applicable");
+  if(candidates.length<=1)return;
+  const reason="U.S. note 16(a) makes headings 9903.82.02 through 9903.82.26 mutually exclusive. More than one candidate was identified, but only one of these headings may apply; the rates must not be added together.";
+  for(const m of candidates){
+    (m as any).mutuallyExclusiveGroup="9903.82.02-9903.82.26";
+    m.applicability="needs-facts";
+    m.estimatedDuty=null;
+    m.replacementDutyEstimate=null;
+    m.reason=reason;
+  }
+}
+function applyWorstCaseEstimates(measures:EvaluatedMeasure[],input:any,customsValue:number,country:string){
+  const enteredMeltPour=clean(fact(input,"meltPourCountry")).toUpperCase();
+  for(const m of measures){
+    const a=m as any;
+    a.worstCaseEstimatedDuty=m.estimatedDuty;
+    a.assumptions=[] as string[];
+    if(m.applicability==="not-applicable"||m.ratePercent===null||m.ratePercent===0||m.rateMode!=="additional")continue;
+    if(m.estimatedDuty===null&&customsValue>0){
+      let base=customsValue;
+      const contentSpecific=/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(m.sourceContext);
+      if(contentSpecific){
+        const enteredContent=numberValue(fact(input,"metalContentValue"))??numberValue(fact(input,"nonUsContentValue"));
+        base=enteredContent??customsValue;
+        if(enteredContent===null)a.assumptions.push("Covered metal content value was not entered, so the full entered customs value was used for the quick estimate.");
+      }
+      a.worstCaseEstimatedDuty=base*m.ratePercent/100;
+    }
+    if(m.program==="Section 232"&&!enteredMeltPour)a.assumptions.push(`First melt/pour country was not entered, so the entered country of origin (${country}) was assumed to be the melt/pour country.`);
+    if(m.applicability!=="applicable")a.assumptions.push("Any unresolved exclusion, exception, special program, or product-specific condition was assumed not to reduce the identified duty.");
+  }
+
+  // U.S. note 16(a): headings 9903.82.02 through 9903.82.26 are mutually
+  // exclusive. If facts do not identify a single heading, retain exactly one
+  // dollar estimate: the highest potentially applicable quick-estimate amount.
+  // Other headings remain visible only as legal alternatives and must never be
+  // presented or totaled as additional duties.
+  const metalCandidates=measures.filter(m=>isMutuallyExclusiveMetalHeading(m.hts)&&m.applicability!=="not-applicable");
+  if(metalCandidates.length>1){
+    const ranked=[...metalCandidates].sort((a,b)=>{
+      const av=Number((a as any).worstCaseEstimatedDuty ?? a.estimatedDuty ?? -1);
+      const bv=Number((b as any).worstCaseEstimatedDuty ?? b.estimatedDuty ?? -1);
+      if(bv!==av)return bv-av;
+      return Number(b.ratePercent??-1)-Number(a.ratePercent??-1);
+    });
+    const selected=ranked[0];
+    for(const m of metalCandidates){
+      const a=m as any;
+      a.mutuallyExclusiveGroup="9903.82.02-9903.82.26";
+      a.mutuallyExclusiveSelected=(m===selected);
+      if(m===selected){
+        a.assumptions=[...new Set([...(a.assumptions||[]),`Only one heading in 9903.82.02 through 9903.82.26 may apply. ${m.hts} was used for the worst-case quick estimate because it produced the highest potentially applicable duty; alternative headings were not added.`])];
+      }else{
+        a.worstCaseEstimatedDuty=null;
+        a.assumptions=[...new Set([...(a.assumptions||[]),`Alternative mutually exclusive Section 232 heading. Not added to the estimate because U.S. note 16(a) permits no more than one heading in 9903.82.02 through 9903.82.26.`])];
+      }
+    }
+  }
+}
+function calculationBase(ref:string,input:any,context:string,customsValue:number){if(ref==="9903.82.20")return numberValue(fact(input,"nonUsContentValue"));if(ref==="9903.82.21")return numberValue(fact(input,"usContentValue"))??customsValue;if(ref.startsWith("9903.82."))return customsValue>0?customsValue:null;if(/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(context))return numberValue(fact(input,"metalContentValue"));return customsValue>0?customsValue:null;}
+
+async function evaluateCandidate(ref:string,index:Chapter99Index,input:any,hts:string,country:string,customsValue:number):Promise<EvaluatedMeasure|null>{const meta=index.headings?.[ref];if(!meta)return null;const live=await resolveLiveHeading(ref),context=headingContext(meta,live),sourceContext=clean(`${meta?.text||""} ${(meta?.relationContext||[]).join(" ")} ${Object.values(meta?.legalContext||{}).join(" ")}`).slice(0,7000),program=programFor(ref,meta),origin=originDecision(country,ref,meta,live),empty=(applicability:Applicability,reason:string):EvaluatedMeasure=>({program,hts:ref,description:clean(live?.description)||clean(meta?.text),rateText:"",ratePercent:null,rateMode:"unknown",estimatedDuty:null,replacementDutyEstimate:null,applicability,reason,requiredFacts:[],noteTargets:meta?.noteTargets||[],exceptionRefs:[],source:"Current USITC Chapter 99 index",sourceContext,liveHeadingVerified:!!live?.found});if(origin.state==="no-match")return empty("not-applicable",origin.reason);const effective=effectiveDecision(context,clean(live?.description),fact(input,"entryDate"));if(effective.state==="not-applicable")return empty("not-applicable",effective.reason);let condition=conditionDecision(ref,meta,input,hts,country);if(origin.state==="unknown"&&condition.state==="applicable")condition={state:"review-required",reason:origin.reason,requiredFacts:[]};else if(origin.state==="conditional"){const f=(origin as any).fact,v=boolValue(fact(input,f));if(v===false)condition={state:"not-applicable",reason:"The origin does not meet the stated country-group condition.",requiredFacts:[]};else if(v===null&&condition.state!=="not-applicable")condition={state:"needs-facts",reason:origin.reason,requiredFacts:[...new Set([...(condition.requiredFacts||[]),f])]};}const rate=rateDecision(meta,live),exceptions=exceptionRefs(`${clean(live?.description)} ${clean(meta?.text)}`),base=calculationBase(ref,input,context,customsValue);let applicability=condition.state as Applicability,reason=condition.reason,estimatedDuty:number|null=null,replacementDutyEstimate:number|null=null;const requiredFacts=[...new Set(condition.requiredFacts||[])];if(applicability==="applicable"){if(rate.rateMode==="unknown"){applicability="review-required";reason="The provision matched, but its current rate treatment could not be resolved safely.";}else if(rate.rateMode==="replacement"){if(rate.ratePercent!==null&&customsValue>0)replacementDutyEstimate=customsValue*rate.ratePercent/100;}else if(rate.ratePercent!==null&&base!==null)estimatedDuty=base*rate.ratePercent/100;else if(rate.ratePercent!==null&&base===null&&rate.ratePercent!==0){if(!requiredFacts.includes("metalContentValue")&&customsValue<=0)requiredFacts.push("customsValue");applicability="needs-facts";reason="A value needed to calculate this duty is missing.";}}return{program,hts:ref,description:clean(live?.description)||clean(meta?.text),rateText:rate.rateText,ratePercent:rate.ratePercent,rateMode:rate.rateMode,estimatedDuty:applicability==="applicable"?estimatedDuty:null,replacementDutyEstimate:applicability==="applicable"?replacementDutyEstimate:null,applicability,reason,requiredFacts,noteTargets:meta?.noteTargets||[],exceptionRefs:exceptions,source:"Current USITC HTS / generated Chapter 99 legal index",sourceContext,liveHeadingVerified:!!live?.found};}
+
+async function handler(req:Request){try{let input:any={};if(req.method==="GET")input=Object.fromEntries(new URL(req.url).searchParams.entries());else if(req.method==="POST")input=await req.json();else return Response.json({error:"Method not allowed"},{status:405});const hts=digits(input?.hts),country=String(input?.country||"").toUpperCase().trim(),customsValue=numberValue(input?.customsValue)||0;if(hts.length<4||hts.length>10)return Response.json({error:"Enter a 4- to 10-digit HTS number."},{status:400});if(!/^[A-Z]{2}$/.test(country)||!ISO_COUNTRIES.has(country))return Response.json({error:"Enter a valid 2-letter ISO country code."},{status:400});const revision=await getCurrentRevision();if(hts.length<8)return Response.json({query:{hts,country},currentHts:revision,status:"needs-full-hts",needsFullHts:true,message:"Chapter 99 provisions are commonly written at the 8- or 10-digit level. Enter the full HTS before a definitive additional-duty result.",measures:[],requiredFacts:[]});let index:Chapter99Index;try{index=await getIndex(req.url);}catch(error:any){return Response.json({query:{hts,country},currentHts:revision,status:"source-unavailable",measures:[],requiredFacts:[],message:"The current Chapter 99 legal index could not be loaded, so no definitive no-additional-duty result will be returned.",error:error?.message||String(error)},{headers:{"Cache-Control":"no-store"}});}if(revision.revision===null&&index.htsRevision){revision.label=revision.label||`2026 HTS Revision ${index.htsRevision}`;revision.revision=index.htsRevision;}const revisionVerified=index.htsRevision===revision.revision;if(!revisionVerified)return Response.json({query:{hts,country},currentHts:revision,indexHts:{revision:index.htsRevision,generatedAt:index.generatedAt},status:"source-stale",measures:[],requiredFacts:[],message:"The live USITC HTS revision and the Chapter 99 index do not match. Regulatory results are blocked until refresh."},{headers:{"Cache-Control":"no-store"}});const refs=candidateRefs(index,hts),evaluated=(await Promise.all(refs.map(ref=>evaluateCandidate(ref,index,input,hts,country,customsValue)))).filter(Boolean) as EvaluatedMeasure[];applyCompetingConditionPrecedence(evaluated,input);applyExplicitExceptions(evaluated);enforceMetalMutualExclusivity(evaluated);applyWorstCaseEstimates(evaluated,input,customsValue,country);const visible=evaluated.filter(m=>m.applicability!=="not-applicable"),applicable=visible.filter(m=>m.applicability==="applicable"),needs=visible.filter(m=>m.applicability==="needs-facts"),review=visible.filter(m=>m.applicability==="review-required"),requiredFacts=[...new Set(visible.flatMap(m=>m.requiredFacts))],assumptions=[...new Set(visible.flatMap(m=>(m as any).assumptions||[]))];let status="resolved";if(review.length)status="review-required";else if(needs.length)status="needs-facts";return Response.json({query:{hts,code8:format8(hts),country,customsValue:customsValue||null},currentHts:revision,indexHts:{revision:index.htsRevision,generatedAt:index.generatedAt,schemaVersion:index.schemaVersion},status,revisionVerified,candidateCount:refs.length,applicableCount:applicable.length,measures:visible,requiredFacts,assumptions,screenedOut:evaluated.filter(m=>m.applicability==="not-applicable").map(m=>({hts:m.hts,program:m.program,reason:m.reason})),message:refs.length===0?"No Chapter 99 candidate was found for this HTS in the current legal index.":status==="resolved"?"Current Chapter 99 candidates were resolved against the entered origin and shipment facts.":"A worst-case quick estimate is provided where a current rate can be identified. One or more Chapter 99 candidates still require additional facts or review before filing.",safety:{candidateIsNotApplicability:true,falseNegativePolicy:"A missing hardcoded list entry is never treated as proof that a trade measure does not apply.",unresolvedRulePolicy:"Unresolved origin, condition, exception, or rate logic remains flagged for review. When a current rate is identifiable, a worst-case quick estimate is also returned using stated assumptions.",replacementRatePolicy:"In-lieu/replacement Chapter 99 rates are returned separately and are not added on top of ordinary duty."},sources:{htsSearch:"https://hts.usitc.gov/",chapter99:index.sourceUrl||"https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099",archive:USITC_ARCHIVE}},{headers:{"Cache-Control":"public, max-age=0, s-maxage=1800"}});}catch(error:any){console.error("trade-rules lookup failed",error);return Response.json({error:"Unable to complete the current Chapter 99 screening.",detail:error?.message||String(error)},{status:500});}}
+
+export default handler;

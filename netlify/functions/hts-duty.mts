@@ -53,6 +53,20 @@ function cleanText(value: unknown): string | null {
   return text || null;
 }
 
+function cleanUnit(value: unknown): string | null {
+  const text = String(value ?? "")
+    .replace(/<\s*sup[^>]*>\s*2\s*<\s*\/\s*sup\s*>/gi, "²")
+    .replace(/<\s*sup[^>]*>\s*3\s*<\s*\/\s*sup\s*>/gi, "³")
+    .replace(/&sup2;|&#178;/gi, "²")
+    .replace(/&sup3;|&#179;/gi, "³")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text || null;
+}
+
 
 function htmlToPlainText(value: string): string {
   return value
@@ -440,6 +454,9 @@ function searchSuggestions(rows: any[], query: string) {
       code: fullCode(row) || rowCode(row),
       description: cleanText(row?.description),
       indent: Number(row?.indent ?? 0),
+      units: Array.isArray(row?.units)
+        ? row.units.map((unit: any) => cleanUnit(unit)).filter(Boolean)
+        : [],
     }))
     .filter(
       (item) =>
@@ -462,12 +479,13 @@ function searchSuggestions(rows: any[], query: string) {
       hts: formatHts(item.code),
       code: item.code,
       description: item.description,
+      units: item.units,
     }));
 }
 
 function unitMatches(rateUnit: string, userUnit: string): boolean {
   const normalize = (value: string) =>
-    value.toLowerCase().replace(/[.\s]/g, "");
+    value.toLowerCase().replace(/²/g, "2").replace(/³/g, "3").replace(/[.\s]/g, "");
 
   const aliases: Record<string, string[]> = {
     kg: ["kg", "kilogram", "kilograms"],
@@ -1574,7 +1592,9 @@ export default async (req: Request) => {
           hts: broadLookup ? hts : selectedCode,
           displayHts: formatHts(broadLookup ? hts : selectedCode),
           description: cleanText(selected?.description),
-          units: Array.isArray(selected?.units) ? selected.units : [],
+          units: Array.isArray(selected?.units)
+            ? selected.units.map((unit: any) => cleanUnit(unit)).filter(Boolean)
+            : [],
           heading: hierarchy.heading,
           subheading: hierarchy.subheading,
           path: hierarchy.path,

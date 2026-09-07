@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  // Keep HTS calculator navigation rooted at the site root so the same link
+  // works from root pages and nested/dynamic pages.
+  document.querySelectorAll('a[href$="hts-duty-calculator.html"]').forEach(link => {
+    link.setAttribute('href', '/hts-duty-calculator.html');
+  });
+
   const ticker = document.getElementById("fxTicker");
   if (!ticker) return;
 
@@ -129,3 +135,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     items.join(" · ") +
     ` <span style="opacity:.6">| updated ${new Date(cachedTime).toLocaleTimeString()}</span>`;
 });
+
+// PR43 import / Chapter 99 / PGA screening layer.
+// Detect the actual calculator DOM instead of relying on the browser pathname.
+// This keeps the original PR43 screening logic intact while allowing Netlify
+// pretty URLs and navigation from any page on the site.
+const isHtsCalculatorPage = Boolean(
+  document.getElementById("calcForm") &&
+  document.getElementById("hts") &&
+  document.getElementById("result")
+);
+
+if (isHtsCalculatorPage) {
+  if (!/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) {
+    history.replaceState(null, "", `/hts-duty-calculator.html${window.location.search}${window.location.hash}`);
+  }
+
+  if (!document.querySelector('script[data-pr43-hts-screening="true"]')) {
+    const screeningScript = document.createElement("script");
+    screeningScript.src = "/js/hts-import-screening-v2.js?v=20260907-8";
+    screeningScript.async = false;
+    screeningScript.dataset.pr43HtsScreening = "true";
+    document.head.appendChild(screeningScript);
+  }
+
+  if (!document.querySelector('script[data-hts-rate-formula-fix="true"]')) {
+    const formulaScript = document.createElement("script");
+    formulaScript.src = "/js/hts-rate-formula-fix.js?v=20260907-1";
+    formulaScript.async = false;
+    formulaScript.dataset.htsRateFormulaFix = "true";
+    document.head.appendChild(formulaScript);
+  }
+
+  if (!document.querySelector('script[data-hts-reverse-search="true"]')) {
+    const reverseSearchScript = document.createElement("script");
+    reverseSearchScript.src = "/js/hts-reverse-search.js?v=20260907-1";
+    reverseSearchScript.async = false;
+    reverseSearchScript.dataset.htsReverseSearch = "true";
+    document.head.appendChild(reverseSearchScript);
+  }
+
+  if (!document.querySelector('script[data-hts-copy-print-fix="true"]')) {
+    const copyPrintScript = document.createElement("script");
+    copyPrintScript.src = "/js/hts-copy-print-fix.js?v=20260907-1";
+    copyPrintScript.async = false;
+    copyPrintScript.dataset.htsCopyPrintFix = "true";
+    document.head.appendChild(copyPrintScript);
+  }
+}
