@@ -169,7 +169,29 @@ function effectiveDecision(context:string,liveDescription:string,entryDateValue?
 }
 
 function parsePercent(text:string):number|null{const c=clean(text),patterns=[/additional(?:\s+ad\s+valorem)?(?:\s+rate\s+of\s+duty)?[^%]{0,100}?(\d+(?:\.\d+)?)\s*%/i,/additional\s+(\d+(?:\.\d+)?)\s*percent/i,/\+\s*(?:a\s+)?(?:duty\s+of\s+)?(\d+(?:\.\d+)?)\s*%/i,/subject\s+to\s+(?:an?\s+)?(?:additional\s+)?(\d+(?:\.\d+)?)\s*percent/i,/\b(\d+(?:\.\d+)?)\s*%\s+additional/i];for(const re of patterns){const m=c.match(re);if(m)return Number(m[1]);}return null;}
-function rateDecision(meta:IndexHeading|undefined,live:any){const d=clean(live?.description),a=clean(live?.additionalDuties),g=clean(live?.general),context=headingContext(meta,live),combined=`${a} ${g} ${d} ${context}`;if(/in lieu of the rates? of duty|in lieu of.*column\s*2/i.test(combined)){const pct=parsePercent(combined)??(()=>{const m=combined.match(/\b(\d+(?:\.\d+)?)\s*(?:percent|%)\s+ad\s+valorem/i);return m?Number(m[1]):null;})();return{rateMode:"replacement" as const,ratePercent:pct,rateText:a||g||d||clean(meta?.text)};}const pct=parsePercent(a)??parsePercent(g)??parsePercent(d)??parsePercent(context);if(pct!==null)return{rateMode:"additional" as const,ratePercent:pct,rateText:a||g||d||clean(meta?.text)};if(/\b0\s*%\s+additional|no\s+additional\s+duty|no change|the duty provided in (?:the )?applicable subheading/i.test(combined))return{rateMode:"no-change" as const,ratePercent:0,rateText:a||g||d||clean(meta?.text)};return{rateMode:"unknown" as const,ratePercent:null,rateText:a||g||d||clean(meta?.text)};}
+function rateDecision(meta:IndexHeading|undefined,live:any){
+  const d=clean(live?.description),a=clean(live?.additionalDuties),g=clean(live?.general),m=clean(meta?.text);
+  // Rate treatment must come from the operative tariff row itself. Relation/
+  // legal-note context is used to determine scope and conditions only. Nearby
+  // Chapter 99 provisions often contain unrelated percentages and must never
+  // donate a rate to this heading.
+  const rowText=`${a} ${g} ${d} ${m}`;
+  const rateText=a||g||d||m;
+
+  if(/in lieu of the rates? of duty|in lieu of.*column\s*2/i.test(rowText)){
+    const pct=parsePercent(rowText)??(()=>{const x=rowText.match(/\b(\d+(?:\.\d+)?)\s*(?:percent|%)\s+ad\s+valorem/i);return x?Number(x[1]):null;})();
+    return{rateMode:"replacement" as const,ratePercent:pct,rateText};
+  }
+
+  // A row that says to use the duty in the applicable HTS subheading is not an
+  // additional percentage duty. Check this before looking for percentages.
+  if(/\b0\s*%\s+additional|no\s+additional\s+duty|no change|the duty provided in (?:the )?applicable subheading/i.test(rowText))
+    return{rateMode:"no-change" as const,ratePercent:0,rateText};
+
+  const pct=parsePercent(a)??parsePercent(g)??parsePercent(d)??parsePercent(m);
+  if(pct!==null)return{rateMode:"additional" as const,ratePercent:pct,rateText};
+  return{rateMode:"unknown" as const,ratePercent:null,rateText};
+}
 
 async function resolveLiveHeading(ref:string){const cached=headingCache.get(ref);if(cached&&Date.now()-cached.fetchedAt<HEADING_CACHE_MS)return cached.data;try{const rows=await fetchRows(digits(ref));const row=rows.find((r:any)=>clean(r?.htsno)===ref)||rows.find((r:any)=>digits(r?.htsno)===digits(ref));const data=row?{found:true,description:clean(row?.description),general:clean(row?.general),special:clean(row?.special),other:clean(row?.other),additionalDuties:clean(row?.additionalDuties)}:{found:false};headingCache.set(ref,{data,fetchedAt:Date.now()});return data;}catch(error:any){return{found:false,error:error?.message||String(error)};}}
 function expandHeadingRange(start:string,end:string){const a=start.match(/^(9903\.\d{2}\.)(\d{2})$/),b=end.match(/^(9903\.\d{2}\.)(\d{2})$/);if(!a||!b||a[1]!==b[1])return[start,end];const s=Number(a[2]),e=Number(b[2]);if(!Number.isInteger(s)||!Number.isInteger(e)||e<s||e-s>99)return[start,end];return Array.from({length:e-s+1},(_,i)=>`${a[1]}${String(s+i).padStart(2,"0")}`);}function exceptionRefs(text:string){const refs=new Set<string>(),n=clean(text),starter=/\bexcept(?:\s+as\s+provided(?:\s+for)?|\s+for\s+products\s+described)?(?:\s+in)?\s+headings?\s+/gi;for(const m of n.matchAll(starter)){const start=(m.index||0)+m[0].length,tail=n.slice(start,start+1800),stop=tail.search(/(?:;|\.\s|,\s*(?:articles?|passenger\s+vehicles?|automobile\s+parts?|goods?|products?)\b)/i),list=stop>=0?tail.slice(0,stop):tail;for(const r of list.matchAll(/(9903\.\d{2}\.\d{2})(?:\s*[\u2013\u2014-]\s*(9903\.\d{2}\.\d{2}))?/g)){if(r[2])for(const ref of expandHeadingRange(r[1],r[2]))refs.add(ref);else refs.add(r[1]);}}return[...refs];}
