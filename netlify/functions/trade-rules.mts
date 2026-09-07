@@ -182,8 +182,66 @@ function overlapTarget(a:EvaluatedMeasure,b:EvaluatedMeasure){const s=new Set(st
 function applyCompetingConditionPrecedence(measures:EvaluatedMeasure[],input:any){const us=boolValue(fact(input,"usMetalContentQualification"));for(const p of measures.filter(m=>m.noteTargets.includes("16:e")&&m.applicability!=="not-applicable")){for(const o of measures){if(o===p||o.program!=="Section 232"||o.noteTargets.includes("16:e")||!overlapTarget(p,o))continue;const sameRU=/russian federation/i.test(p.sourceContext)===/russian federation/i.test(o.sourceContext);if(!sameRU)continue;if(us===true&&p.applicability==="applicable"){o.applicability="not-applicable";o.reason=`Superseded by ${p.hts}.`;o.estimatedDuty=null;}else if(us===null&&o.applicability==="applicable"){o.applicability="needs-facts";o.requiredFacts=[...new Set([...o.requiredFacts,"usMetalContentQualification"])];o.reason=`Whether ${o.hts} applies depends on ${p.hts}.`;o.estimatedDuty=null;}}}const uk=boolValue(fact(input,"ukMetalContentQualification"));for(const p of measures.filter(m=>m.noteTargets.includes("16:d")&&m.applicability!=="not-applicable")){for(const o of measures){if(o===p||o.program!=="Section 232"||o.noteTargets.includes("16:d")||!overlapTarget(p,o))continue;if(uk===true&&p.applicability==="applicable"){o.applicability="not-applicable";o.reason=`Superseded by ${p.hts}.`;o.estimatedDuty=null;}else if(uk===null&&o.applicability==="applicable"){o.applicability="needs-facts";o.requiredFacts=[...new Set([...o.requiredFacts,"ukMetalContentQualification"])];o.reason=`Whether ${o.hts} applies depends on ${p.hts}.`;o.estimatedDuty=null;}}}}
 function applyExplicitExceptions(measures:EvaluatedMeasure[]){const by=new Map(measures.map(m=>[m.hts,m]));for(const m of measures){if(m.applicability==="not-applicable")continue;const rel=m.exceptionRefs.map(r=>by.get(r)).filter(Boolean) as EvaluatedMeasure[];const applied=rel.find(x=>x.applicability==="applicable");if(applied){m.applicability="not-applicable";m.reason=`Superseded by ${applied.hts}.`;m.estimatedDuty=null;continue;}const unresolved=rel.filter(x=>x.applicability==="needs-facts"||x.applicability==="review-required");if(unresolved.length&&m.applicability==="applicable"){m.applicability="needs-facts";m.requiredFacts=[...new Set([...m.requiredFacts,...unresolved.flatMap(x=>x.requiredFacts)])];m.reason=`An enumerated exception (${unresolved.map(x=>x.hts).join(", ")}) must be resolved first.`;m.estimatedDuty=null;}}}
 function isMutuallyExclusiveMetalHeading(ref:string){const m=String(ref||"").match(/^9903\.82\.(\d{2})$/);if(!m)return false;const n=Number(m[1]);return n>=2&&n<=26;}
-function enforceMetalMutualExclusivity(measures:EvaluatedMeasure[]){const candidates=measures.filter(m=>isMutuallyExclusiveMetalHeading(m.hts)&&m.applicability!=="not-applicable");if(candidates.length<=1)return;const reason="U.S. note 16(a) makes headings 9903.82.02 through 9903.82.26 mutually exclusive. More than one candidate was identified, but only one of these headings may apply; the rates must not be added together.";for(const m of candidates){m.applicability="needs-facts";m.estimatedDuty=null;m.replacementDutyEstimate=null;m.reason=reason;}}
-function applyWorstCaseEstimates(measures:EvaluatedMeasure[],input:any,customsValue:number,country:string){const enteredMeltPour=clean(fact(input,"meltPourCountry")).toUpperCase();for(const m of measures){const a=m as any;a.worstCaseEstimatedDuty=m.estimatedDuty;a.assumptions=[] as string[];if(m.applicability==="not-applicable"||m.ratePercent===null||m.ratePercent===0||m.rateMode!=="additional")continue;if(m.estimatedDuty===null&&customsValue>0){let base=customsValue;const contentSpecific=/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(m.sourceContext);if(contentSpecific){const enteredContent=numberValue(fact(input,"metalContentValue"))??numberValue(fact(input,"nonUsContentValue"));base=enteredContent??customsValue;if(enteredContent===null)a.assumptions.push("Covered metal content value was not entered, so the full entered customs value was used for the quick estimate.");}a.worstCaseEstimatedDuty=base*m.ratePercent/100;}if(m.program==="Section 232"&&!enteredMeltPour)a.assumptions.push(`First melt/pour country was not entered, so the entered country of origin (${country}) was assumed to be the melt/pour country.`);if(m.applicability!=="applicable")a.assumptions.push("Any unresolved exclusion, exception, special program, or product-specific condition was assumed not to reduce the identified duty.");}}
+function enforceMetalMutualExclusivity(measures:EvaluatedMeasure[]){
+  const candidates=measures.filter(m=>isMutuallyExclusiveMetalHeading(m.hts)&&m.applicability!=="not-applicable");
+  if(candidates.length<=1)return;
+  const reason="U.S. note 16(a) makes headings 9903.82.02 through 9903.82.26 mutually exclusive. More than one candidate was identified, but only one of these headings may apply; the rates must not be added together.";
+  for(const m of candidates){
+    (m as any).mutuallyExclusiveGroup="9903.82.02-9903.82.26";
+    m.applicability="needs-facts";
+    m.estimatedDuty=null;
+    m.replacementDutyEstimate=null;
+    m.reason=reason;
+  }
+}
+function applyWorstCaseEstimates(measures:EvaluatedMeasure[],input:any,customsValue:number,country:string){
+  const enteredMeltPour=clean(fact(input,"meltPourCountry")).toUpperCase();
+  for(const m of measures){
+    const a=m as any;
+    a.worstCaseEstimatedDuty=m.estimatedDuty;
+    a.assumptions=[] as string[];
+    if(m.applicability==="not-applicable"||m.ratePercent===null||m.ratePercent===0||m.rateMode!=="additional")continue;
+    if(m.estimatedDuty===null&&customsValue>0){
+      let base=customsValue;
+      const contentSpecific=/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(m.sourceContext);
+      if(contentSpecific){
+        const enteredContent=numberValue(fact(input,"metalContentValue"))??numberValue(fact(input,"nonUsContentValue"));
+        base=enteredContent??customsValue;
+        if(enteredContent===null)a.assumptions.push("Covered metal content value was not entered, so the full entered customs value was used for the quick estimate.");
+      }
+      a.worstCaseEstimatedDuty=base*m.ratePercent/100;
+    }
+    if(m.program==="Section 232"&&!enteredMeltPour)a.assumptions.push(`First melt/pour country was not entered, so the entered country of origin (${country}) was assumed to be the melt/pour country.`);
+    if(m.applicability!=="applicable")a.assumptions.push("Any unresolved exclusion, exception, special program, or product-specific condition was assumed not to reduce the identified duty.");
+  }
+
+  // U.S. note 16(a): headings 9903.82.02 through 9903.82.26 are mutually
+  // exclusive. If facts do not identify a single heading, retain exactly one
+  // dollar estimate: the highest potentially applicable quick-estimate amount.
+  // Other headings remain visible only as legal alternatives and must never be
+  // presented or totaled as additional duties.
+  const metalCandidates=measures.filter(m=>isMutuallyExclusiveMetalHeading(m.hts)&&m.applicability!=="not-applicable");
+  if(metalCandidates.length>1){
+    const ranked=[...metalCandidates].sort((a,b)=>{
+      const av=Number((a as any).worstCaseEstimatedDuty ?? a.estimatedDuty ?? -1);
+      const bv=Number((b as any).worstCaseEstimatedDuty ?? b.estimatedDuty ?? -1);
+      if(bv!==av)return bv-av;
+      return Number(b.ratePercent??-1)-Number(a.ratePercent??-1);
+    });
+    const selected=ranked[0];
+    for(const m of metalCandidates){
+      const a=m as any;
+      a.mutuallyExclusiveGroup="9903.82.02-9903.82.26";
+      a.mutuallyExclusiveSelected=(m===selected);
+      if(m===selected){
+        a.assumptions=[...new Set([...(a.assumptions||[]),`Only one heading in 9903.82.02 through 9903.82.26 may apply. ${m.hts} was used for the worst-case quick estimate because it produced the highest potentially applicable duty; alternative headings were not added.`])];
+      }else{
+        a.worstCaseEstimatedDuty=null;
+        a.assumptions=[...new Set([...(a.assumptions||[]),`Alternative mutually exclusive Section 232 heading. Not added to the estimate because U.S. note 16(a) permits no more than one heading in 9903.82.02 through 9903.82.26.`])];
+      }
+    }
+  }
+}
 function calculationBase(ref:string,input:any,context:string,customsValue:number){if(ref==="9903.82.20")return numberValue(fact(input,"nonUsContentValue"));if(ref==="9903.82.21")return numberValue(fact(input,"usContentValue"))??customsValue;if(ref.startsWith("9903.82."))return customsValue>0?customsValue:null;if(/only apply to the declared value of the (?:aluminum|steel|copper) content|duty.*value of the (?:aluminum|steel|copper) content/i.test(context))return numberValue(fact(input,"metalContentValue"));return customsValue>0?customsValue:null;}
 
 async function evaluateCandidate(ref:string,index:Chapter99Index,input:any,hts:string,country:string,customsValue:number):Promise<EvaluatedMeasure|null>{const meta=index.headings?.[ref];if(!meta)return null;const live=await resolveLiveHeading(ref),context=headingContext(meta,live),sourceContext=clean(`${meta?.text||""} ${(meta?.relationContext||[]).join(" ")} ${Object.values(meta?.legalContext||{}).join(" ")}`).slice(0,7000),program=programFor(ref,meta),origin=originDecision(country,ref,meta,live),empty=(applicability:Applicability,reason:string):EvaluatedMeasure=>({program,hts:ref,description:clean(live?.description)||clean(meta?.text),rateText:"",ratePercent:null,rateMode:"unknown",estimatedDuty:null,replacementDutyEstimate:null,applicability,reason,requiredFacts:[],noteTargets:meta?.noteTargets||[],exceptionRefs:[],source:"Current USITC Chapter 99 index",sourceContext,liveHeadingVerified:!!live?.found});if(origin.state==="no-match")return empty("not-applicable",origin.reason);const effective=effectiveDecision(context,clean(live?.description),fact(input,"entryDate"));if(effective.state==="not-applicable")return empty("not-applicable",effective.reason);let condition=conditionDecision(ref,meta,input,hts,country);if(origin.state==="unknown"&&condition.state==="applicable")condition={state:"review-required",reason:origin.reason,requiredFacts:[]};else if(origin.state==="conditional"){const f=(origin as any).fact,v=boolValue(fact(input,f));if(v===false)condition={state:"not-applicable",reason:"The origin does not meet the stated country-group condition.",requiredFacts:[]};else if(v===null&&condition.state!=="not-applicable")condition={state:"needs-facts",reason:origin.reason,requiredFacts:[...new Set([...(condition.requiredFacts||[]),f])]};}const rate=rateDecision(meta,live),exceptions=exceptionRefs(`${clean(live?.description)} ${clean(meta?.text)}`),base=calculationBase(ref,input,context,customsValue);let applicability=condition.state as Applicability,reason=condition.reason,estimatedDuty:number|null=null,replacementDutyEstimate:number|null=null;const requiredFacts=[...new Set(condition.requiredFacts||[])];if(applicability==="applicable"){if(rate.rateMode==="unknown"){applicability="review-required";reason="The provision matched, but its current rate treatment could not be resolved safely.";}else if(rate.rateMode==="replacement"){if(rate.ratePercent!==null&&customsValue>0)replacementDutyEstimate=customsValue*rate.ratePercent/100;}else if(rate.ratePercent!==null&&base!==null)estimatedDuty=base*rate.ratePercent/100;else if(rate.ratePercent!==null&&base===null&&rate.ratePercent!==0){if(!requiredFacts.includes("metalContentValue")&&customsValue<=0)requiredFacts.push("customsValue");applicability="needs-facts";reason="A value needed to calculate this duty is missing.";}}return{program,hts:ref,description:clean(live?.description)||clean(meta?.text),rateText:rate.rateText,ratePercent:rate.ratePercent,rateMode:rate.rateMode,estimatedDuty:applicability==="applicable"?estimatedDuty:null,replacementDutyEstimate:applicability==="applicable"?replacementDutyEstimate:null,applicability,reason,requiredFacts,noteTargets:meta?.noteTargets||[],exceptionRefs:exceptions,source:"Current USITC HTS / generated Chapter 99 legal index",sourceContext,liveHeadingVerified:!!live?.found};}
