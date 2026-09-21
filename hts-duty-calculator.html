@@ -61,6 +61,20 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 
 @media(max-width:800px){.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.container{margin:24px auto;padding:0 14px}h1{font-size:1.8rem}.grid,.summary-grid{grid-template-columns:1fr}.full{grid-column:auto}.result-header{display:block}.hts-pill{display:inline-block;margin-top:10px}.rate-table th,.class-table th{width:37%}}
 @media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{background:#fff}.tool-card,.actions{display:none!important}}
+
+.screening-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:26px}
+.screening-level{font-size:.78rem;font-weight:800;background:#eef5ff;color:#285b91;padding:6px 9px;border-radius:999px}
+.screening-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.screening-card{border:1px solid #e1e6eb;border-radius:5px;padding:14px;background:#fff}
+.screening-card h4{margin:3px 0 7px;color:var(--primary-color)}
+.screening-card p{margin:5px 0;font-size:.87rem}
+.screening-card ul{margin:8px 0 0;padding-left:19px;font-size:.84rem}
+.badge.included{background:#e8f6ee;color:#22633e}.badge.may{background:#fff3d6;color:#765000}.badge.notindicated{background:#f0f2f4;color:#59636e}
+.improve-box{margin-top:14px;padding:14px;border:1px solid #cdd9e5;background:#f8fbff;border-radius:5px}
+.detail-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.potential-total{background:#fff7e6!important;border-color:#e4c36a!important}.potential-total span,.potential-total strong{color:#6b4b00!important}
+@media(max-width:700px){.screening-grid,.detail-fields{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -208,6 +222,21 @@ label{display:block;font-size:.9rem;font-weight:700;color:var(--primary-color);m
 <div class="helper">* Section 232 amount is illustrative when melt/pour information is relevant. See the review section below.</div>
 <div id="calcNotice" class="notice info"></div>
 <div id="preferenceNotice" class="notice ok hidden"></div>
+
+
+<h3 class="section-title">Import requirements screening</h3>
+<div class="screening-head">
+  <div class="tiny">Likely U.S. agency requirements and special import considerations based on the information entered.</div>
+  <span class="screening-level" id="screeningLevel">Basic screening · HTS only</span>
+</div>
+<div id="pgaScreening" class="screening-grid"></div>
+<div id="section338Notice" class="notice warn hidden"></div>
+<div class="improve-box">
+  <strong>Want a more accurate screening?</strong>
+  <div class="tiny">Optional. Add only the product details relevant to this HTS. Your basic results remain available without them.</div>
+  <div class="actions"><button class="secondary" type="button" id="improveEstimateBtn">Improve this estimate</button></div>
+  <div id="detailFields" class="detail-fields hidden"></div>
+</div>
 
 <h3 class="section-title" id="additionalTitle">Identified additional duties</h3>
 <div id="additionalReview"></div>
@@ -841,6 +870,57 @@ $('copyBtn').addEventListener('click', async () => {
   await navigator.clipboard.writeText(out);
   $('copyBtn').textContent='Copied'; setTimeout(() => $('copyBtn').textContent='Copy results',1200);
 });
+
+function htsDigits(v){return String(v||'').replace(/\D/g,'');}
+function productFamily(code){
+  const d=htsDigits(code), ch=Number(d.slice(0,2));
+  if(ch===87) return 'vehicle';
+  if((ch>=2&&ch<=24)) return 'food';
+  if((ch>=28&&ch<=40)) return 'chemical';
+  return 'general';
+}
+function renderImportScreening(data){
+  const code=data?.classification?.hts||data?.query?.hts||'';
+  const family=productFamily(code);
+  const country=data?.query?.country||'';
+  const value=Number(data?.query?.customsValue||0);
+  const cards=[];
+  const card=(status,agency,title,items)=>cards.push('<div class="screening-card"><span class="badge '+status.cls+'">'+status.label+'</span><h4>'+agency+'</h4><p>'+title+'</p>'+(items?.length?'<ul>'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'')+'</div>');
+  const may={cls:'may',label:'May apply'}, included={cls:'included',label:'Included'}, no={cls:'notindicated',label:'not indicated'};
+  card(included,'CBP','Standard U.S. Customs entry requirements apply.',['Classification, valuation and country of origin','Review applicable Chapter 99 measures, fees, quotas and AD/CVD signals']);
+  if(family==='vehicle'){
+    card(may,'EPA','Vehicle/engine emissions requirements may apply.',['EPA declaration requirements','Age, configuration, temporary use, prototype, racing or other exemptions may change treatment']);
+    card(may,'DOT / NHTSA','Motor vehicle safety requirements may apply.',['HS-7 declaration','Vehicles 25 years old or older may qualify for an FMVSS exemption based on manufacture date','Prototype, research, temporary import, racing and Show or Display provisions may be relevant']);
+  } else if(family==='food'){
+    card(may,'FDA','Food import requirements may apply.',['Prior Notice and FDA entry data where required','Facility registration / FSVP may apply depending on product and importer']);
+    card(may,'USDA / APHIS / FSIS','Agricultural or meat/poultry requirements may apply depending on ingredients, processing and origin.',['Permits, certificates or admissibility restrictions may apply','Plant, animal and wildlife content can change the requirements']);
+  } else if(family==='chemical'){
+    card(may,'EPA / TSCA','Chemical import requirements may apply.',['TSCA certification or an applicable exclusion may be required','CAS number, composition and intended use improve screening accuracy']);
+    card(may,'Other agencies','Additional controls can depend on composition and intended use.',['Provide product identity and use for a more useful screening']);
+  } else {
+    card(may,'Partner Government Agencies','Other federal agency requirements may apply depending on the exact product and use.',['Add product details for a more accurate screening','Possible agencies include FDA, USDA, EPA, CPSC, FCC, FWS and others']);
+  }
+  document.getElementById('pgaScreening').innerHTML=cards.join('');
+  const n=document.getElementById('section338Notice');
+  if(country==='CA'){
+    const max=value*.50;
+    n.classList.remove('hidden');
+    n.innerHTML='<strong>Section 338 · May Apply</strong><br>Certain products of Canada may be subject to Section 338 measures depending on the HTS and effective date. This basic screening does not treat Section 338 as confirmed. <strong>Potential rate: up to 50% · Maximum potential amount on the entered value: '+money(max)+'</strong>. Verify current applicability before entry.';
+  } else n.classList.add('hidden');
+  renderDetailFields(family);
+}
+function renderDetailFields(family){
+  const box=document.getElementById('detailFields'); if(!box)return;
+  const fields={
+    vehicle:[['Manufacture date','date','vehicleDate'],['Import purpose','select','vehiclePurpose',['Permanent import','Temporary import','Prototype / research','Racing','Show or Display']],['U.S.-spec / certified?','select','vehicleSpec',['Unknown','Yes','No']],['Original engine?','select','vehicleEngine',['Unknown','Yes','No']]],
+    food:[['Exact product / ingredients','text','foodIngredients'],['Processed or raw?','select','foodProcessed',['Unknown','Processed','Raw']],['Animal or plant content','text','foodContent'],['Intended use','text','foodUse']],
+    chemical:[['Chemical / product name','text','chemName'],['CAS number','text','chemCas'],['Intended use','text','chemUse'],['Commercial or R&D','select','chemPurpose',['Commercial','Research / development','Sample']]],
+    general:[['Product description','text','productDetail'],['Intended use','text','productUse']]
+  };
+  box.innerHTML=(fields[family]||fields.general).map(f=>'<div><label for="'+f[2]+'">'+f[0]+' <span class="tiny">(optional)</span></label>'+(f[1]==='select'?'<select id="'+f[2]+'">'+f[3].map(x=>'<option>'+x+'</option>').join('')+'</select>':'<input id="'+f[2]+'" type="'+f[1]+'"></div>')).join('');
+}
+
+document.addEventListener('click',function(e){if(e.target&&e.target.id==='improveEstimateBtn'){const b=document.getElementById('detailFields');b.classList.toggle('hidden');document.getElementById('screeningLevel').textContent=b.classList.contains('hidden')?'Basic screening · HTS only':'Enhanced screening · add optional details';e.target.textContent=b.classList.contains('hidden')?'Improve this estimate':'Hide optional details';}});
 </script>
 
 <script>
