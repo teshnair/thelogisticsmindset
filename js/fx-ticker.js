@@ -153,7 +153,7 @@ if (isHtsCalculatorPage) {
 
   if (!document.querySelector('script[data-pr43-hts-screening="true"]')) {
     const screeningScript = document.createElement("script");
-    screeningScript.src = "/js/hts-import-screening-v2.js?v=20260923-9";
+    screeningScript.src = "/js/hts-import-screening-v2.js?v=20260923-10";
     screeningScript.async = false;
     screeningScript.dataset.pr43HtsScreening = "true";
     document.head.appendChild(screeningScript);
