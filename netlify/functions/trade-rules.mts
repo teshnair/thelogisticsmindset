@@ -131,7 +131,31 @@ function note51HeadingForHts(index:Chapter99Index,hts:string):string|null{
     const em=part.end?.exec(tail);
     const segment=em?tail.slice(0,em.index):tail;
     const listed=[...segment.matchAll(/\b\d{4}\.\d{2}(?:\.\d{2,4})?\b/g)].map(m=>digits(m[0]));
-    if(listed.some(code=>d.startsWith(code)))return part.ref;
+    let matched=listed.some(code=>d.startsWith(code));
+    // September 15, 2026 modification to the motor-vehicle Section 338 scope.
+    // Annex II removes eight broad subheadings from Note 51(b)(3) and inserts
+    // the following replacement/new lines. Apply the amendment on top of the
+    // loaded HTS legal index so the screening remains current even when the
+    // published revision still contains the pre-amendment list.
+    if(part.ref==="9903.03.14"){
+      const added=new Set([
+        "04069099","48026110","48026120","48026160","48026210","48026220","48026230","48026261",
+        "48026910","48026920","48026930","4818900020","73089030","73089060","73089095","76041010",
+        "76041030","76041050","76042100","76042910","76042930","76042950","76081000","76082000",
+        "83071030","83079030","83081000","83082030","83082060","83089030","83089060","83089090",
+        "83091000","83100000","83111000","83112000","83113030","83113060","8537109130","8537109150",
+        "8537109160","8537109170","87031050","87032101","89039921","94014100","94014900","94015200",
+        "94015300","94015900","94016120","94016920","94016940","94016980","94018020","94018040",
+        "94018060","94019115","94019120","94019925","94019935","94019990","94033040","94034040",
+        "94034060","94036040","94037040","94038200","94038300","94038930","94038960","94041000",
+        "94042100","94042910","94042990","94052140","94052160","94052180","94052940","94052960",
+        "94052980","9507100040"
+      ]);
+      const removed=["25010000","25232900","29400060","48030040","48189000","78011000","85371091","95071000"];
+      if([...added].some(code=>d.startsWith(code)))matched=true;
+      else if(removed.some(code=>d.startsWith(code)))matched=false;
+    }
+    if(matched)return part.ref;
   }
   return null;
 }
