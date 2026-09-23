@@ -1,7 +1,7 @@
 (() => {
   if (!/\/hts-duty-calculator\.html$/i.test(window.location.pathname)) return;
 
-  const BUILD = "2026-09-07-pga-screening-v6";
+  const BUILD = "2026-09-23-trade-screening-v7";
   const digits = value => String(value ?? "").replace(/\D/g, "");
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = value => value == null ? "Review required" : new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(Number(value || 0));
@@ -114,6 +114,9 @@
       vehicleManufactureYear: "Vehicle manufacture year",
       vehicleEngineStatus: "Vehicle engine configuration",
       vehicleType: "Vehicle type",
+      mhdVehiclePartUse: "Is this article actually being imported as a part for a medium- or heavy-duty vehicle?",
+      mhdProductionRepairCertification: "Will the importer certify that this part is for medium- or heavy-duty vehicle production or repair in the United States?",
+      passengerLightVehiclePartUse: "Is this article actually being imported as a part for a passenger vehicle or light truck?",
       importPurpose: "Import purpose",
       ftaQualification: "FTA / special-program qualification",
       commerceApproval: "Commerce approval for the special vehicle treatment",
@@ -144,7 +147,7 @@
     const factId = `ruleFact_${String(key).replace(/[^A-Za-z0-9_-]/g, '_')}`;
     const numericFacts = new Set(["subjectMetalWeightPercent", "nonUsVehicleContentValue", "nonUsContentValue", "usContentValue"]);
     if (numericFacts.has(key)) return `<div><label for="${factId}">${esc(questionLabel(key))}</label><input id="${factId}" data-rule-fact="${esc(key)}" type="number" min="0" step="any" placeholder="Enter value if known"></div>`;
-    const booleanFact = key.startsWith("productCondition:") || new Set(["containsAluminumSteelCopper","ukMetalContentQualification","column2CountryStatus","quotaEligibility","approvalStatus","commerceApproval","productSpecificCondition"]).has(key);
+    const booleanFact = key.startsWith("productCondition:") || new Set(["containsAluminumSteelCopper","ukMetalContentQualification","column2CountryStatus","quotaEligibility","approvalStatus","commerceApproval","productSpecificCondition","mhdVehiclePartUse","mhdProductionRepairCertification","passengerLightVehiclePartUse"]).has(key);
     if (booleanFact) return `<div><label for="${factId}">${esc(questionLabel(key))}</label><select id="${factId}" data-rule-fact="${esc(key)}"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
     return `<div><label for="${factId}">${esc(questionLabel(key))}</label><input id="${factId}" data-rule-fact="${esc(key)}" placeholder="Enter if known"><small>Leave blank to use the higher-duty quick-estimate assumption.</small></div>`;
   }
@@ -534,10 +537,10 @@
     else el.textContent = money(value || 0);
   }
 
-  function recalcTotal(baseData, sec232, sec301, liveOther) {
+  function recalcTotal(baseData, sec232, sec301, sec338, liveOther) {
     const totalEl = document.getElementById("total");
     if (!totalEl) return;
-    if (sec232 == null || sec301 == null || liveOther == null || baseData?.estimate?.baseDuty == null) {
+    if (sec232 == null || sec301 == null || sec338 == null || liveOther == null || baseData?.estimate?.baseDuty == null) {
       totalEl.textContent = "Review required";
       return;
     }
@@ -547,7 +550,7 @@
     const hmf = Number(baseData.estimate.hmf || 0);
     const otherEl = document.getElementById("otherAdditionalDuty");
     if (otherEl) otherEl.textContent = money(legacyOther + liveOther);
-    totalEl.textContent = money(base + legacyOther + liveOther + mpf + hmf + sec232 + sec301);
+    totalEl.textContent = money(base + legacyOther + liveOther + mpf + hmf + sec232 + sec301 + sec338);
   }
 
   function setEstimateReviewFlag(ruleData) {
@@ -564,7 +567,7 @@
       card.appendChild(flag);
     }
     flag.textContent = ["needs-facts", "review-required"].includes(ruleData?.status)
-      ? "Review required • worst-case assumptions used"
+      ? "Review required • answer the shipment-specific questions above"
       : "Estimate uses assumptions • broker confirmation recommended";
   }
 
@@ -589,13 +592,17 @@
     const reviewWarning = ["needs-facts", "review-required"].includes(ruleData?.status) ? `<div class="rule-warning"><strong>Review required.</strong> The dollar estimate below uses the higher-duty path where shipment facts are missing or a potential exception/exclusion has not been established.</div>` : "";
     const unresolvedWarning = unresolved.length ? `<div class="rule-warning">The current Chapter 99 text references this HTS in a rule that could not be resolved automatically. Manual review is required before filing.</div>` : "";
     const assumptionWarning = assumptions.length ? `<div class="rule-warning"><strong>Quick-estimate assumptions:</strong><br>${assumptions.map(a => `• ${esc(a)}`).join("<br>")}</div>` : "";
-    const lines = measures.length ? measures.map(m => {
+    const section338Measures = measures.filter(m => String(m?.program || "").toLowerCase() === "section 338");
+    const section338Checked = ruleData?.query?.country === "CA" && !section338Measures.length
+      ? `<div class="live-rule-line"><strong>Section 338 — Canadian discrimination duties</strong><span class="rule-badge checked">Checked</span><p>No current U.S. note 51 Section 338 duty candidate was identified for this HTS in the loaded legal index.</p></div>`
+      : "";
+    const lines = (measures.length ? measures.map(m => {
       const badge = exclusiveMetal.length > 1 && isExclusiveMetalMeasure(m) ? `<span class="rule-badge">Alternative</span>` : (m.applicability === "applicable" && m.estimatedDuty != null ? `<span class="rule-badge checked">Applied</span>` : `<span class="rule-badge">Review</span>`);
       const facts = m.requiredFacts?.length ? ` Facts that could change the estimate: ${m.requiredFacts.map(questionLabel).join(", ")}.` : (m.reason ? ` Review reason: ${m.reason}` : "");
       const estimate = m.estimatedDuty ?? m.worstCaseEstimatedDuty;
       const estimateText = estimate != null ? ` Quick estimate: ${money(estimate)}${m.estimatedDuty == null ? " using worst-case assumptions." : "."}` : "";
       return `<div class="live-rule-line"><strong>${esc(m.program)} — ${esc(m.hts)}</strong>${badge}<p>${esc(m.description || m.rateText || "Current Chapter 99 provision identified.")}${esc(estimateText)}${esc(facts)}</p></div>`;
-    }).join("") : `<div class="live-rule-line"><strong>Chapter 99 / trade remedies</strong><span class="rule-badge checked">Checked</span><p>No Chapter 99 provision was identified by the current live-source scan for the entered HTS and origin. This is not presented as a legal guarantee.</p></div>`;
+    }).join("") : `<div class="live-rule-line"><strong>Chapter 99 / trade remedies</strong><span class="rule-badge checked">Checked</span><p>No Chapter 99 provision was identified by the current live-source scan for the entered HTS and origin. This is not presented as a legal guarantee.</p></div>`) + section338Checked;
     panel.innerHTML = `<h3>Import / regulatory screening</h3><div class="rule-source-note">Checked against ${esc(rev)} and current Chapter 99 source. Screening build ${BUILD}.</div>${sourceWarning}${reviewWarning}${unresolvedWarning}${assumptionWarning}${exclusiveMetalWarning}${lines}<div class="rule-source-note"><strong>Quick-read reminder:</strong> This site provides a quick estimate of duties, not a filing determination. Confirm shipment facts, classification, exclusions and final rates with your customs broker before entry.</div>`;
   }
 
@@ -616,12 +623,14 @@
 
       removeLegacyProgramCards("Section 232");
       removeLegacyProgramCards("Section 301");
+      removeLegacyProgramCards("Section 338");
       const measures = Array.isArray(ruleData.measures) ? ruleData.measures : [];
       measures.forEach(addMeasureCard);
 
       const sec232Measures = measures.filter(m => String(m.program).toLowerCase() === "section 232");
       const sec301Measures = measures.filter(m => String(m.program).toLowerCase() === "section 301");
-      const otherLiveMeasures = measures.filter(m => !["section 232", "section 301"].includes(String(m.program).toLowerCase()));
+      const sec338Measures = measures.filter(m => String(m.program).toLowerCase() === "section 338");
+      const otherLiveMeasures = measures.filter(m => !["section 232", "section 301", "section 338"].includes(String(m.program).toLowerCase()));
       const groupWorstCase = list => {
         if (!list.length) return 0;
         const exclusive = list.filter(isExclusiveMetalMeasure);
@@ -635,6 +644,7 @@
       };
       const sec232 = groupWorstCase(sec232Measures);
       const sec301 = groupWorstCase(sec301Measures);
+      const sec338 = groupWorstCase(sec338Measures);
       const otherGroups = new Map();
       otherLiveMeasures.forEach(m => {
         const noteFamily = Array.isArray(m.noteTargets) && m.noteTargets.length ? String(m.noteTargets[0]).split(':')[0] : String(m.hts || '').slice(0,7);
@@ -649,7 +659,8 @@
       const status = ruleData.status;
       setMetric("section232Duty", sec232, status);
       setMetric("section301Duty", sec301, status);
-      recalcTotal(baseData, sec232, sec301, liveOther);
+      setMetric("section338Duty", sec338, status);
+      recalcTotal(baseData, sec232, sec301, sec338, liveOther);
       setEstimateReviewFlag(ruleData);
       renderLiveRulePanel(ruleData);
       renderPgaPanel(baseData);
@@ -657,6 +668,7 @@
     } catch (error) {
       setMetric("section232Duty", null, "source-unavailable");
       setMetric("section301Duty", null, "source-unavailable");
+      setMetric("section338Duty", null, "source-unavailable");
       const total = document.getElementById("total");
       if (total) total.textContent = "Review required";
       renderLiveRulePanel({status:"source-unavailable",chapter99SourceAvailable:false,measures:[],unresolvedMatches:[],currentHts:lastRulePreview?.currentHts});
