@@ -89,7 +89,7 @@
 
     function itemSearchText(item) {
         return [
-            item.title, item.summary, item.logisticsImpact, item.source, item.sourceDomain,
+            item.title, item.summary, item.source, item.sourceDomain,
             item.sourceCountry, item.region, item.category, ...(Array.isArray(item.tags) ? item.tags : [])
         ].join(" ");
     }
@@ -166,7 +166,6 @@
                 </div>
                 <h3>${highlight(item.title)}</h3>
                 <p class="summary">${highlight(item.summary)}</p>
-                <div class="impact"><strong>Logistics impact:</strong> ${highlight(item.logisticsImpact)}</div>
                 ${tags ? `<div class="tags">${tags}</div>` : ""}
                 <a class="source-link" href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Original source: ${sourceBits || "Open article"} →</a>
             </article>`;
