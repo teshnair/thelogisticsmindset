@@ -114,9 +114,8 @@
       vehicleManufactureYear: "Vehicle manufacture year",
       vehicleEngineStatus: "Vehicle engine configuration",
       vehicleType: "Vehicle type",
-      mhdVehiclePartUse: "Is this article actually being imported as a part for a medium- or heavy-duty vehicle?",
+      vehiclePartCategory: "What type of vehicle is this article actually being imported for?",
       mhdProductionRepairCertification: "Will the importer certify that this part is for medium- or heavy-duty vehicle production or repair in the United States?",
-      passengerLightVehiclePartUse: "Is this article actually being imported as a part for a passenger vehicle or light truck?",
       importPurpose: "Import purpose",
       ftaQualification: "FTA / special-program qualification",
       commerceApproval: "Commerce approval for the special vehicle treatment",
@@ -144,10 +143,11 @@
     if (key === "rfCapability") return `<div><label for="rfCapability">${questionLabel(key)}</label><select id="rfCapability"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
     if (key === "plantMaterial") return `<div><label for="plantMaterial">${questionLabel(key)}</label><select id="plantMaterial"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
     if (key === "foodUse") return `<div><label for="foodUse">${questionLabel(key)}</label><select id="foodUse"><option value="unknown">Not sure</option><option value="human">Human food / beverage</option><option value="animal">Animal food / feed</option><option value="plant">Plant / seed / agricultural use</option><option value="drug">Drug / pharmaceutical</option><option value="cosmetic">Cosmetic / personal care</option><option value="other">Other</option></select></div>`;
+    if (key === "vehiclePartCategory") return `<div><label for="ruleFact_vehiclePartCategory">${questionLabel(key)}</label><select id="ruleFact_vehiclePartCategory" data-rule-fact="vehiclePartCategory"><option value="unknown">Not sure</option><option value="passenger-light">Passenger vehicle / light truck</option><option value="mhd">Medium- or heavy-duty vehicle</option><option value="not-vehicle">Not being imported as a vehicle part</option></select></div>`;
     const factId = `ruleFact_${String(key).replace(/[^A-Za-z0-9_-]/g, '_')}`;
     const numericFacts = new Set(["subjectMetalWeightPercent", "nonUsVehicleContentValue", "nonUsContentValue", "usContentValue"]);
     if (numericFacts.has(key)) return `<div><label for="${factId}">${esc(questionLabel(key))}</label><input id="${factId}" data-rule-fact="${esc(key)}" type="number" min="0" step="any" placeholder="Enter value if known"></div>`;
-    const booleanFact = key.startsWith("productCondition:") || new Set(["containsAluminumSteelCopper","ukMetalContentQualification","column2CountryStatus","quotaEligibility","approvalStatus","commerceApproval","productSpecificCondition","mhdVehiclePartUse","mhdProductionRepairCertification","passengerLightVehiclePartUse"]).has(key);
+    const booleanFact = key.startsWith("productCondition:") || new Set(["containsAluminumSteelCopper","ukMetalContentQualification","column2CountryStatus","quotaEligibility","approvalStatus","commerceApproval","productSpecificCondition","mhdProductionRepairCertification"]).has(key);
     if (booleanFact) return `<div><label for="${factId}">${esc(questionLabel(key))}</label><select id="${factId}" data-rule-fact="${esc(key)}"><option value="unknown">Not sure</option><option value="yes">Yes</option><option value="no">No</option></select></div>`;
     return `<div><label for="${factId}">${esc(questionLabel(key))}</label><input id="${factId}" data-rule-fact="${esc(key)}" placeholder="Enter if known"><small>Leave blank to use the higher-duty quick-estimate assumption.</small></div>`;
   }
