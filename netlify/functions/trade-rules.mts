@@ -229,6 +229,12 @@ function rateDecision(meta:IndexHeading|undefined,live:any){
 
   const pct=parsePercent(a)??parsePercent(g)??parsePercent(d)??parsePercent(m);
 
+  // Section 338 / U.S. note 51(b) rows publish the Column 1 surcharge and also
+  // contain "No change" for another tariff column. Do not let that unrelated
+  // column zero out the operative Canadian additional duty.
+  if((meta?.noteTargets||[]).includes("51:b") && /\+\s*50\s*%/.test(rowText))
+    return{rateMode:"additional" as const,ratePercent:50,rateText};
+
   // Explicit no-additional-duty wording always controls. The phrase "the duty
   // provided in the applicable subheading" by itself is also no-change, but
   // Chapter 99 frequently writes an actual surcharge as that phrase + 25%.
