@@ -4,5 +4,32 @@
   "model": "global-curator",
   "editionDate": "2026-10-04",
   "editorial": null,
-  "items": []
+  "items": [
+    {
+      "id": "aramco-oman-sts-freight-20260928",
+      "publishedAt": "2026-09-28T00:00:00Z",
+      "date": "2026-09-28",
+      "title": "Aramco considers Oman-loaded crude discounts as tanker freight hits record levels",
+      "source": "Reuters",
+      "sourceDomain": "reuters.com",
+      "sourceCountry": "International / Saudi Arabia / Oman",
+      "sourceUrl": "https://www.reuters.com/business/energy/saudi-aramco-considering-discounts-oman-sts-crude-counter-high-freight-rates-2026-09-28/",
+      "discovery": "Middle East tanker and alternate-export-route scan",
+      "risk": "high",
+      "score": 97,
+      "category": "Ocean",
+      "region": "Saudi Arabia / Oman / Strait of Hormuz / Asia",
+      "tags": [
+        "Saudi Aramco",
+        "Oman",
+        "ship-to-ship",
+        "tankers",
+        "crude oil",
+        "freight rates",
+        "Hormuz"
+      ],
+      "summary": "Saudi Aramco is considering discounts on official selling prices for crude loaded off Oman to offset record tanker freight costs, Reuters reported. The offshore loading option is part of efforts to keep Saudi barrels competitive while Strait of Hormuz disruption distorts Gulf shipping economics.",
+      "logisticsImpact": "Pricing crude to compensate for freight shows transport cost directly influencing commodity allocation. Wider Oman ship-to-ship loading adds handling steps and tanker demand while shifting where buyers take delivery."
+    }
+  ]
 }
