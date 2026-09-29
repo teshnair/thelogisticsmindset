@@ -1,4 +1,14 @@
 [build]
-  # Production deploys are allowed only for explicit Sunday release commits.
-  # Deploy Previews and branch deploys remain available on any day.
-  ignore = "if [ \"$CONTEXT\" != \"production\" ]; then exit 1; fi; day=$(date -u +%u); msg=$(git log -1 --pretty=%B \"$COMMIT_REF\"); if [ \"$day\" = \"7\" ] && printf '%s' \"$msg\" | grep -q '\\[deploy\\]'; then exit 1; else exit 0; fi"
+  # Weekly releases stay Sunday-only. This exact dated marker authorizes the
+  # owner's requested September 29 release; the regulatory gate still runs.
+  ignore = "node scripts/netlify-ignore.cjs"
+  command = "node scripts/verify-regulatory-release-gate.mjs && node scripts/test-regulatory-release.mjs"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[[redirects]]
+  from = "/api/trade-rules"
+  to = "/.netlify/functions/trade-rules"
+  status = 200
+  force = true
