@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29T07:47:00Z",
+  "generatedAt": "2026-09-30T07:24:39Z",
   "scanWindowHours": 36,
   "model": "global-curator",
   "editionDate": "2026-10-04",
@@ -30,6 +30,83 @@
       ],
       "summary": "Saudi Aramco is considering discounts on official selling prices for crude loaded off Oman to offset record tanker freight costs, Reuters reported. The offshore loading option is part of efforts to keep Saudi barrels competitive while Strait of Hormuz disruption distorts Gulf shipping economics.",
       "logisticsImpact": "Pricing crude to compensate for freight shows transport cost directly influencing commodity allocation. Wider Oman ship-to-ship loading adds handling steps and tanker demand while shifting where buyers take delivery."
+    },
+    {
+      "id": "thailand-floods-toyota-thai-cargo-20260930",
+      "publishedAt": "2026-09-30T00:00:00Z",
+      "date": "2026-09-30",
+      "title": "Thailand floods shut four Toyota plants and suspend Thai Airways cargo operations",
+      "source": "Reuters",
+      "sourceDomain": "reuters.com",
+      "sourceCountry": "International / Thailand",
+      "sourceUrl": "https://www.reuters.com/business/environment/toyota-car-plants-thai-airways-cargo-hit-by-thailand-floods-2026-09-30/",
+      "discovery": "Asia-Pacific weather and supply-chain disruption scan",
+      "risk": "high",
+      "score": 96,
+      "category": "Supply Chain",
+      "region": "Thailand / Southeast Asia",
+      "tags": [
+        "Thailand",
+        "flooding",
+        "Toyota",
+        "Thai Airways",
+        "air cargo",
+        "automotive",
+        "supply chain"
+      ],
+      "summary": "Severe flooding in Thailand temporarily closed four Toyota manufacturing plants and suspended Thai Airways cargo operations on September 30, disrupting industrial production and air freight in a major Southeast Asian manufacturing hub.",
+      "logisticsImpact": "Automotive shippers face production and inbound-component disruption while air-cargo users lose handling capacity. Routing, uplift and supplier schedules through Thailand need immediate rechecking."
+    },
+    {
+      "id": "italy-national-port-strike-20260928",
+      "publishedAt": "2026-09-28T00:00:00Z",
+      "date": "2026-09-28",
+      "title": "Italian port workers stage 24-hour nationwide strike",
+      "source": "WorldCargo News",
+      "sourceDomain": "worldcargonews.com",
+      "sourceCountry": "United Kingdom / Italy",
+      "sourceUrl": "https://www.worldcargonews.com/news/2026/09/italian-port-workers-begin-24-hour-national-strike/",
+      "discovery": "European port and labor disruption scan",
+      "risk": "high",
+      "score": 90,
+      "category": "Ports",
+      "region": "Italy / Europe",
+      "tags": [
+        "Italy",
+        "ports",
+        "strike",
+        "dockworkers",
+        "terminals",
+        "labor"
+      ],
+      "summary": "Italian port workers represented by USB Mare e Porti staged a 24-hour nationwide strike on September 28. The action covered port companies, terminal operators and related port-sector employers, with operational disruption reported at major gateways.",
+      "logisticsImpact": "The stoppage can create vessel, gate and terminal backlogs beyond the strike window. Importers and exporters should verify terminal recovery and cut-off changes before moving time-sensitive cargo."
+    },
+    {
+      "id": "swissport-unex-indonesia-20260928",
+      "publishedAt": "2026-09-28T00:00:00Z",
+      "date": "2026-09-28",
+      "title": "Swissport enters Indonesia air-cargo market through UNEX joint venture",
+      "source": "Swissport",
+      "sourceDomain": "swissport.com",
+      "sourceCountry": "Switzerland / Indonesia",
+      "sourceUrl": "https://www.swissport.com/en/news/current-news/2026/swissport-enters-indonesia%E2%80%99s-high-growth-aviation-market-through-joint-venture-with-unex-aviation-services",
+      "discovery": "Asia-Pacific air-cargo infrastructure scan",
+      "risk": "watch",
+      "score": 82,
+      "category": "Air Cargo",
+      "region": "Indonesia / Southeast Asia",
+      "tags": [
+        "Swissport",
+        "UNEX Aviation Services",
+        "Indonesia",
+        "Jakarta",
+        "Soekarno-Hatta",
+        "air cargo",
+        "ground handling"
+      ],
+      "summary": "Swissport signed binding agreements to form a joint venture with UNEX Aviation Services, entering Indonesia's air-cargo handling market. UNEX operates cargo warehousing at Jakarta Soekarno-Hatta and holds nationwide ground-handling licences.",
+      "logisticsImpact": "The deal adds a global handler to Indonesia's cargo ecosystem and creates a platform for expanded handling capacity and service coverage beyond Jakarta."
     }
   ]
 }
