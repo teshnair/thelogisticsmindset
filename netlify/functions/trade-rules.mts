@@ -64,9 +64,17 @@ async function fetchRows(keyword: string) {
 }
 
 async function getCurrentRevision() {
-  if (revisionCache && Date.now() - revisionCache.fetchedAt < CACHE_MS) return revisionCache;
+  if (revisionCache?.revision && Date.now() - revisionCache.fetchedAt < CACHE_MS) return revisionCache;
   let label: string | null = null, revision: number | null = null, date: string | null = null;
-  try { const res = await fetchWithTimeout(USITC_ARCHIVE,12000); if (res.ok) { const text=stripHtml(await res.text()); const m=text.match(/(2026 HTS Revision\s+(\d+))\s*\(([^)]+)\)/i); if(m){label=m[1];revision=Number(m[2]);date=m[3];} } } catch {}
+  for (const url of [USITC_ARCHIVE,'https://www.usitc.gov/harmonized_tariff_information/announcement_archive']) {
+    try {
+      const res=await fetchWithTimeout(url,8000);
+      if(!res.ok) continue;
+      const text=stripHtml(await res.text());
+      const matches=[...text.matchAll(/2026\s+HTS\s+Revision\s+(\d+)/gi)];
+      if(matches.length){revision=Math.max(...matches.map(m=>Number(m[1])));label=`2026 HTS Revision ${revision}`;break;}
+    } catch {}
+  }
   revisionCache={label,revision,date,fetchedAt:Date.now()}; return revisionCache;
 }
 
