@@ -1,4 +1,5 @@
 import { supplementalScreening } from "../../lib/trade-screening.mts";
+import bundledIndex from "../../data/chapter99-index.json" with { type: "json" };
 const USITC_SEARCH = "https://hts.usitc.gov/reststop/search";
 const USITC_ARCHIVE = "https://www.usitc.gov/harmonized_tariff_information/hts/archive/list";
 const INDEX_PATH = "/data/chapter99-index.json";
@@ -66,6 +67,12 @@ async function fetchRows(keyword: string) {
 async function getCurrentRevision() {
   if (revisionCache?.revision && Date.now() - revisionCache.fetchedAt < CACHE_MS) return revisionCache;
   let label: string | null = null, revision: number | null = null, date: string | null = null;
+  // Same release metadata API used by the official HTS web application.
+  try {
+    const res=await fetchWithTimeout('https://hts.usitc.gov/reststop/currentRelease',8000);
+    if(res.ok){const release=await res.json();const match=String(release.description||'').match(/2026\s+HTS\s+Revision\s+(\d+)/i);
+      if(match){revisionCache={label:release.description,revision:Number(match[1]),date:release.date||null,fetchedAt:Date.now()};return revisionCache;}}
+  } catch {}
   for (const url of [USITC_ARCHIVE,'https://www.usitc.gov/harmonized_tariff_information/announcement_archive']) {
     try {
       const res=await fetchWithTimeout(url,8000);
@@ -78,49 +85,14 @@ async function getCurrentRevision() {
   revisionCache={label,revision,date,fetchedAt:Date.now()}; return revisionCache;
 }
 
-async function getIndex(reqUrl: string) {
-  const indexUrl = new URL(INDEX_PATH, reqUrl).toString();
-  let marker: string | null = null;
-
-  // The Chapter 99 index is a static deploy artifact while this function may
-  // be reused across deploys. Validate the artifact marker before reusing a
-  // warm in-memory copy so a weekly HTS refresh becomes effective immediately.
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    try {
-      const head = await fetch(indexUrl, {
-        method: "HEAD",
-        signal: controller.signal,
-        headers: {
-          "User-Agent": "TheLogisticsMindset-TradeRules/3.1 (+https://riteshnair.com)",
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-      });
-      if (head.ok) {
-        marker = head.headers.get("etag") || head.headers.get("last-modified");
-      }
-    } finally {
-      clearTimeout(timer);
-    }
-  } catch {}
-
-  if (indexCache && indexCache.url === indexUrl) {
-    if (marker && indexCache.marker === marker) return indexCache.data;
-    // If the host does not expose an ETag/Last-Modified marker, fail over to a
-    // short cache only. Never preserve legal data for the old 30-minute window.
-    if (!marker && Date.now() - indexCache.fetchedAt < 60_000) return indexCache.data;
-  }
-
-  const fetchUrl = new URL(indexUrl);
-  fetchUrl.searchParams.set("_index_refresh", String(Date.now()));
-  const res = await fetchWithTimeout(fetchUrl.toString(), 20000);
-  if(!res.ok) throw new Error(`Chapter 99 index returned ${res.status}`);
-  const data=await res.json() as Chapter99Index;
-  if((data?.schemaVersion||0)<2 || !data?.codes || !data?.headings || !data?.htsRevision) throw new Error("Chapter 99 index is missing required legal metadata");
-  const responseMarker = res.headers.get("etag") || res.headers.get("last-modified") || marker;
-  indexCache={data,fetchedAt:Date.now(),url:indexUrl,marker:responseMarker}; return data;
+async function getIndex(_reqUrl: string) {
+  // Bundle the immutable reviewed index with this function. A deploy changes the
+  // function artifact whenever its index changes; no CDN/self-fetch can return
+  // an older release, and each request still verifies the live USITC revision.
+  const data=bundledIndex as Chapter99Index;
+  if((data.schemaVersion||0)<2 || !data.codes || !data.headings || !data.htsRevision)
+    throw new Error("Chapter 99 index is missing required legal metadata");
+  return data;
 }
 
 function candidateKeys(hts:string){const d=digits(hts),keys:string[]=[];if(d.length>=10)keys.push(d.slice(0,10));if(d.length>=8)keys.push(d.slice(0,8));if(d.length>=6)keys.push(d.slice(0,6));return [...new Set(keys)];}
