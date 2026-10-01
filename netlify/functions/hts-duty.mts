@@ -1601,6 +1601,8 @@ export default async (req: Request) => {
           statistical: hierarchy.statistical,
         },
         rates: {
+          mfnRate: generalSource.value,
+          column2Rate: column2Source.value,
           appliedRate,
           appliedBasis,
           appliedRateSourceHts: formatHts(appliedRateSource),

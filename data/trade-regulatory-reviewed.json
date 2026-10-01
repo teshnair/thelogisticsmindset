@@ -1,6 +1,6 @@
 {
-  "reviewedThrough": "2026-09-29",
+  "reviewedThrough": "2026-09-30",
   "htsRevision": 20,
-  "reviewRecord": "data/trade-regulatory-review-20260929.json",
-  "note": "Manual review of official sources, Revision 20 dated September 28, Canadian September 29 prohibitions and September 23/24 pharmaceutical/polysilicon measures; see review record for scope and source limitations."
+  "reviewRecord": "data/trade-regulatory-review-20261001.json",
+  "note": "Draft multi-line source review: Revision 20 unchanged; September 30 Federal Register changes triaged, sanctions and case-specific AD/CVD remain review-only. FY2027 MPF verified. Exact ACE PGA flags unavailable; see review limitations."
 }
