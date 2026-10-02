@@ -1,0 +1,1047 @@
+{
+  "generatedAt": "2026-10-01T14:54:22.320Z",
+  "reviewedThrough": "2026-09-30",
+  "strict": false,
+  "hts": {
+    "reviewedRevision": 20,
+    "current": {
+      "year": 2026,
+      "revision": 20,
+      "label": "2026 HTS Revision 20",
+      "publishedDateText": "September 28, 2026",
+      "source": "https://www.usitc.gov/harmonized_tariff_information/hts/archive/list"
+    },
+    "revisionChanged": false,
+    "error": null
+  },
+  "summary": {
+    "officialSourcesChecked": 6,
+    "sourceFailures": 1,
+    "newFederalRegisterDocuments": 47,
+    "searchFailures": 0,
+    "htsRevisionChanged": false,
+    "htsRevisionCheckFailed": false
+  },
+  "sourceHealth": [
+    {
+      "name": "USITC HTS",
+      "url": "https://hts.usitc.gov/",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "USITC HTS archive",
+      "url": "https://www.usitc.gov/harmonized_tariff_information/hts/archive/list",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "USTR Section 301 search",
+      "url": "https://ustr.gov/issue-areas/enforcement/section-301-investigations/search",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "USTR tariff actions",
+      "url": "https://ustr.gov/issue-areas/enforcement/section-301-investigations/tariff-actions",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "CBP trade remedies",
+      "url": "https://www.cbp.gov/trade/programs-administration/trade-remedies",
+      "ok": false,
+      "status": 403
+    },
+    {
+      "name": "Federal Register",
+      "url": "https://www.federalregister.gov/",
+      "ok": true,
+      "status": 200
+    }
+  ],
+  "findings": [
+    {
+      "documentNumber": "2026-20178",
+      "title": "Unleashing American Energy and Economic Prosperity; Rural Energy for America Program (REAP)",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Agriculture Department",
+        "Rural Business-Cooperative Service"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20178/unleashing-american-energy-and-economic-prosperity-rural-energy-for-america-program-reap",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20178.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20158",
+      "title": "Information Collections Being Reviewed by the Federal Communications Commission",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Federal Communications Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20158/information-collections-being-reviewed-by-the-federal-communications-commission",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20158.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20157",
+      "title": "Information Collection Being Submitted for Review and Approval to Office of Management and Budget",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Federal Communications Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20157/information-collection-being-submitted-for-review-and-approval-to-office-of-management-and-budget",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20157.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20152",
+      "title": "National Institute of Neurological Disorders and Stroke; Notice of Closed Meeting",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "National Institutes of Health"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20152/national-institute-of-neurological-disorders-and-stroke-notice-of-closed-meeting",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20152.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20142",
+      "title": "Advisory Committee; Antimicrobial Drugs Advisory Committee; Renewal",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Food and Drug Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20142/advisory-committee-antimicrobial-drugs-advisory-committee-renewal",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20142.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20141",
+      "title": "Advisory Committee; Dermatologic and Ophthalmic Drugs Advisory Committee; Renewal",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Food and Drug Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20141/advisory-committee-dermatologic-and-ophthalmic-drugs-advisory-committee-renewal",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20141.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20094",
+      "title": "SMR, LLC; Palisades SMR, LLC; Pioneer Units 1 and 2; Phased Construction Permit Application-Limited Work Authorization",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Nuclear Regulatory Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20094/smr-llc-palisades-smr-llc-pioneer-units-1-and-2-phased-construction-permit-application-limited-work",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20094.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20065",
+      "title": "Request for Nominations for Individuals and Consumer Organizations for Advisory Committees",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Food and Drug Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20065/request-for-nominations-for-individuals-and-consumer-organizations-for-advisory-committees",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20065.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20063",
+      "title": "Request for Nominations for Voting Members of Food and Drug Administration Advisory Committees",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Food and Drug Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20063/request-for-nominations-for-voting-members-of-food-and-drug-administration-advisory-committees",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20063.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20075",
+      "title": "Medical Devices; Gastroenterology-Urology Devices; Classification of the Flushing and Storage Solution for Vascular Autografts at Room Temperature",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Food and Drug Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20075/medical-devices-gastroenterology-urology-devices-classification-of-the-flushing-and-storage-solution",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20075.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20059",
+      "title": "National Institute of Neurological Disorders and Stroke; Notice of Closed Meeting",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "National Institutes of Health"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20059/national-institute-of-neurological-disorders-and-stroke-notice-of-closed-meeting",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20059.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20049",
+      "title": "National Institute of Neurological Disorders and Stroke; Notice of Closed Meeting",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "National Institutes of Health"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20049/national-institute-of-neurological-disorders-and-stroke-notice-of-closed-meeting",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20049.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20045",
+      "title": "Center for Scientific Review; Notice of Closed Meetings",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "National Institutes of Health"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20045/center-for-scientific-review-notice-of-closed-meetings",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20045.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20034",
+      "title": "Fall Meeting of the Advisory Committee to the U.S. Section to the International Commission for the Conservation of Atlantic Tunas",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Commerce Department",
+        "National Oceanic and Atmospheric Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20034/fall-meeting-of-the-advisory-committee-to-the-us-section-to-the-international-commission-for-the",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20034.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20023",
+      "title": "Request for Information (RFI) Regarding the Digitization and Modernization of the National Technical Reports Library (NTRL) and the Leveraging of Scientific, Technical and Engineering Information (STEI) Stored in the NTRL",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Commerce Department",
+        "National Technical Information Service"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20023/request-for-information-rfi-regarding-the-digitization-and-modernization-of-the-national-technical",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20023.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20007",
+      "title": "Removing Duplicative Penalties Information and Reorganizing Certain Parts",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Treasury Department",
+        "Foreign Assets Control Office"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20007/removing-duplicative-penalties-information-and-reorganizing-certain-parts",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20007.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "Section 232",
+        "Chapter 99"
+      ]
+    },
+    {
+      "documentNumber": "2026-20004",
+      "title": "Current List of HHS-Certified Laboratories and Instrumented Initial Testing Facilities Which Meet Minimum Standards To Engage in Urine and Oral Fluid Drug Testing for Federal Agencies",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Substance Abuse and Mental Health Services Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20004/current-list-of-hhs-certified-laboratories-and-instrumented-initial-testing-facilities-which-meet",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20004.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-19978",
+      "title": "Iranian Transactions and Sanctions Regulations",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Treasury Department",
+        "Foreign Assets Control Office"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19978/iranian-transactions-and-sanctions-regulations",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19978.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-19977",
+      "title": "Cuba Sanctions Regulations",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Treasury Department",
+        "Foreign Assets Control Office"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19977/cuba-sanctions-regulations",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19977.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-19968",
+      "title": "Determination That ISTURISA (Osilodrostat) Tablets, 10 Milligrams, Was Not Withdrawn From Sale for Reasons of Safety or Effectiveness",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Food and Drug Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19968/determination-that-isturisa-osilodrostat-tablets-10-milligrams-was-not-withdrawn-from-sale-for",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19968.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-19964",
+      "title": "The Safer Affordable Fuel-Efficient (SAFE) Vehicles Rule III for Model Years 2022 to 2031 Passenger Cars and Light Trucks",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Transportation Department",
+        "National Highway Traffic Safety Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19964/the-safer-affordable-fuel-efficient-safe-vehicles-rule-iii-for-model-years-2022-to-2031-passenger",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19964.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "Section 232",
+        "Chapter 99",
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "reciprocal tariff"
+      ]
+    },
+    {
+      "documentNumber": "2026-19963",
+      "title": "NRC Modernization: Rulemaking Procedure, Federal Advisory Committee Act Alignment, Access, and Security; Correction and Confirmation of Effective Date",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Nuclear Regulatory Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19963/nrc-modernization-rulemaking-procedure-federal-advisory-committee-act-alignment-access-and-security",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19963.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-19960",
+      "title": "Airworthiness Directives; Airbus SAS Airplanes",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Transportation Department",
+        "Federal Aviation Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19960/airworthiness-directives-airbus-sas-airplanes",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19960.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-19944",
+      "title": "Center for Scientific Review; Notice of Closed Meeting",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "National Institutes of Health"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19944/center-for-scientific-review-notice-of-closed-meeting",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19944.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20068",
+      "title": "Availability of Two Draft Toxicological Profiles",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Agency for Toxic Substances and Disease Registry"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20068/availability-of-two-draft-toxicological-profiles",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20068.pdf",
+      "matchedTerms": [
+        "Section 232"
+      ]
+    },
+    {
+      "documentNumber": "2026-20171",
+      "title": "Agency Information Collection Activities; Revision; Entry Summary",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Homeland Security Department",
+        "U.S. Customs and Border Protection"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20171/agency-information-collection-activities-revision-entry-summary",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20171.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20170",
+      "title": "Agency Information Collection Activities; Revision; Entry",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Homeland Security Department",
+        "U.S. Customs and Border Protection"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20170/agency-information-collection-activities-revision-entry",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20170.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20166",
+      "title": "Stationary and Portable Air Compressors From Malaysia: Preliminary Affirmative Countervailing Duty Determination and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20166/stationary-and-portable-air-compressors-from-malaysia-preliminary-affirmative-countervailing-duty",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20166.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20165",
+      "title": "Stationary and Portable Air Compressors From the People's Republic of China: Preliminary Affirmative Countervailing Duty Determination and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20165/stationary-and-portable-air-compressors-from-the-peoples-republic-of-china-preliminary-affirmative",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20165.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20164",
+      "title": "Stationary and Portable Air Compressors From the Socialist Republic of Vietnam: Preliminary Affirmative Countervailing Duty Determination, and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20164/stationary-and-portable-air-compressors-from-the-socialist-republic-of-vietnam-preliminary",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20164.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20163",
+      "title": "Truck Bed Covers From the People's Republic of China: Preliminary Affirmative Determination of Sales at Less Than Fair Value, Postponement of Final Determination, and Extension of Provisional Measures",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20163/truck-bed-covers-from-the-peoples-republic-of-china-preliminary-affirmative-determination-of-sales",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20163.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20041",
+      "title": "Certain Cut-to-Length Carbon Steel Plate From Ukraine: Final Results of the Expedited Fifth Sunset Review of the Agreement Suspending the Antidumping Investigation",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20041/certain-cut-to-length-carbon-steel-plate-from-ukraine-final-results-of-the-expedited-fifth-sunset",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20041.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20031",
+      "title": "Large Diameter Graphite Electrodes From India: Preliminary Affirmative Determination of Sales at Less-Than-Fair-Value, Preliminary Affirmative Determination of Critical Circumstances, Postponement of Final Determination, and Extension of Provisional Measures",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20031/large-diameter-graphite-electrodes-from-india-preliminary-affirmative-determination-of-sales-at",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20031.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20030",
+      "title": "Large Diameter Graphite Electrodes From the People's Republic of China: Preliminary Affirmative Determination of Sales at Less Than Fair Value and Preliminary Affirmative Determination of Critical Circumstances",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20030/large-diameter-graphite-electrodes-from-the-peoples-republic-of-china-preliminary-affirmative",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20030.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20192",
+      "title": "[WC Docket Nos. 25-208, 25-209; FCC 26-19; FR ID 370342] Reducing Barriers to Network Improvements and Service Changes, Accelerating Network Modernization",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Federal Communications Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20192/wc-docket-nos-25-208-25-209-fcc-26-19-fr-id-370342-reducing-barriers-to-network-improvements-and",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20192.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20143",
+      "title": "Rule on Impersonation of Government and Businesses",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Federal Trade Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20143/rule-on-impersonation-of-government-and-businesses",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20143.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20087",
+      "title": "Clarification of Certain Mariner Training Requirements",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Homeland Security Department",
+        "Coast Guard"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20087/clarification-of-certain-mariner-training-requirements",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20087.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20048",
+      "title": "Hours of Service of Drivers; Parts and Accessories Necessary for Safe Operation; Exemption Renewal for Cleveland-Cliffs Steel LLC",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Transportation Department",
+        "Federal Motor Carrier Safety Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20048/hours-of-service-of-drivers-parts-and-accessories-necessary-for-safe-operation-exemption-renewal-for",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20048.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20042",
+      "title": "Privacy Act of 1974; System of Records",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Housing and Urban Development Department"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20042/privacy-act-of-1974-system-of-records",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20042.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20024",
+      "title": "Utility Scale Wind Towers From the Republic of Korea: Preliminary Results and Rescission, in Part of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20024/utility-scale-wind-towers-from-the-republic-of-korea-preliminary-results-and-rescission-in-part-of",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20024.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20018",
+      "title": "Recharter for the Council on Graduate Medical Education",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Health Resources and Services Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-20018/recharter-for-the-council-on-graduate-medical-education",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-20018.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-19961",
+      "title": "Agency Information Collection Activities; Submission to the Office of Management and Budget for Review and Approval; Request for Comment; Consolidated Labeling Requirements and Procedures for Selecting Lines To Be Covered by the Theft Prevention Standard",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Transportation Department",
+        "National Highway Traffic Safety Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19961/agency-information-collection-activities-submission-to-the-office-of-management-and-budget-for",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19961.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-19950",
+      "title": "Self-Regulatory Organizations; Long-Term Stock Exchange, Inc.; Notice of Filing and Immediate Effectiveness of a Proposed Rule Change To Amend Rule 14.350 Regarding Information Circular Requirements",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Securities and Exchange Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19950/self-regulatory-organizations-long-term-stock-exchange-inc-notice-of-filing-and-immediate",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19950.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-19930",
+      "title": "Light-Walled Rectangular Pipe and Tube From Mexico: Notice of Court Decision Not in Harmony With the Results of Antidumping Duty Administrative Review; Notice of Amended Final Results",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19930/light-walled-rectangular-pipe-and-tube-from-mexico-notice-of-court-decision-not-in-harmony-with-the",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19930.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20162",
+      "title": "Large Diameter Graphite Electrodes From India: Preliminary Affirmative Critical Circumstances Determination in Countervailing Duty Investigation",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20162/large-diameter-graphite-electrodes-from-india-preliminary-affirmative-critical-circumstances",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20162.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20160",
+      "title": "Initiation of Antidumping and Countervailing Duty Administrative Reviews",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20160/initiation-of-antidumping-and-countervailing-duty-administrative-reviews",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20160.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-19932",
+      "title": "Welded Line Pipe From the Republic of Korea: Notice of Court Decision Not in Harmony With the Less-Than-Fair-Value Amended Final Determination; Notice of Amended Final Determination and Notice of Amended Antidumping Duty Order",
+      "publicationDate": "2026-09-30",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/09/30/2026-19932/welded-line-pipe-from-the-republic-of-korea-notice-of-court-decision-not-in-harmony-with-the",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-09-30/pdf/2026-19932.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    }
+  ],
+  "reviewType": "Draft multi-line calculator source review",
+  "previousReview": "data/trade-regulatory-review-20260929.json",
+  "decisions": [
+    {
+      "documentNumber": "2026-20178",
+      "title": "Unleashing American Energy and Economic Prosperity; Rural Energy for America Program (REAP)",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20178/unleashing-american-energy-and-economic-prosperity-rural-energy-for-america-program-reap",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20158",
+      "title": "Information Collections Being Reviewed by the Federal Communications Commission",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20158/information-collections-being-reviewed-by-the-federal-communications-commission",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20157",
+      "title": "Information Collection Being Submitted for Review and Approval to Office of Management and Budget",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20157/information-collection-being-submitted-for-review-and-approval-to-office-of-management-and-budget",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20152",
+      "title": "National Institute of Neurological Disorders and Stroke; Notice of Closed Meeting",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20152/national-institute-of-neurological-disorders-and-stroke-notice-of-closed-meeting",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20142",
+      "title": "Advisory Committee; Antimicrobial Drugs Advisory Committee; Renewal",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20142/advisory-committee-antimicrobial-drugs-advisory-committee-renewal",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20141",
+      "title": "Advisory Committee; Dermatologic and Ophthalmic Drugs Advisory Committee; Renewal",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20141/advisory-committee-dermatologic-and-ophthalmic-drugs-advisory-committee-renewal",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20094",
+      "title": "SMR, LLC; Palisades SMR, LLC; Pioneer Units 1 and 2; Phased Construction Permit Application-Limited Work Authorization",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20094/smr-llc-palisades-smr-llc-pioneer-units-1-and-2-phased-construction-permit-application-limited-work",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20065",
+      "title": "Request for Nominations for Individuals and Consumer Organizations for Advisory Committees",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20065/request-for-nominations-for-individuals-and-consumer-organizations-for-advisory-committees",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20063",
+      "title": "Request for Nominations for Voting Members of Food and Drug Administration Advisory Committees",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20063/request-for-nominations-for-voting-members-of-food-and-drug-administration-advisory-committees",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20075",
+      "title": "Medical Devices; Gastroenterology-Urology Devices; Classification of the Flushing and Storage Solution for Vascular Autografts at Room Temperature",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20075/medical-devices-gastroenterology-urology-devices-classification-of-the-flushing-and-storage-solution",
+      "disposition": "Agency/product compliance review, not an automatic customs tariff rate. FDA/NHTSA prompts retained."
+    },
+    {
+      "documentNumber": "2026-20059",
+      "title": "National Institute of Neurological Disorders and Stroke; Notice of Closed Meeting",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20059/national-institute-of-neurological-disorders-and-stroke-notice-of-closed-meeting",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20049",
+      "title": "National Institute of Neurological Disorders and Stroke; Notice of Closed Meeting",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20049/national-institute-of-neurological-disorders-and-stroke-notice-of-closed-meeting",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20045",
+      "title": "Center for Scientific Review; Notice of Closed Meetings",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20045/center-for-scientific-review-notice-of-closed-meetings",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20034",
+      "title": "Fall Meeting of the Advisory Committee to the U.S. Section to the International Commission for the Conservation of Atlantic Tunas",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20034/fall-meeting-of-the-advisory-committee-to-the-us-section-to-the-international-commission-for-the",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20023",
+      "title": "Request for Information (RFI) Regarding the Digitization and Modernization of the National Technical Reports Library (NTRL) and the Leveraging of Scientific, Technical and Engineering Information (STEI) Stored in the NTRL",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20023/request-for-information-rfi-regarding-the-digitization-and-modernization-of-the-national-technical",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20007",
+      "title": "Removing Duplicative Penalties Information and Reorganizing Certain Parts",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20007/removing-duplicative-penalties-information-and-reorganizing-certain-parts",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20004",
+      "title": "Current List of HHS-Certified Laboratories and Instrumented Initial Testing Facilities Which Meet Minimum Standards To Engage in Urine and Oral Fluid Drug Testing for Federal Agencies",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20004/current-list-of-hhs-certified-laboratories-and-instrumented-initial-testing-facilities-which-meet",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-19978",
+      "title": "Iranian Transactions and Sanctions Regulations",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19978/iranian-transactions-and-sanctions-regulations",
+      "disposition": "Sanctions scope requires separate party/transaction review. CU/IR results blocked from complete total; no license inferred."
+    },
+    {
+      "documentNumber": "2026-19977",
+      "title": "Cuba Sanctions Regulations",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19977/cuba-sanctions-regulations",
+      "disposition": "Sanctions scope requires separate party/transaction review. CU/IR results blocked from complete total; no license inferred."
+    },
+    {
+      "documentNumber": "2026-19968",
+      "title": "Determination That ISTURISA (Osilodrostat) Tablets, 10 Milligrams, Was Not Withdrawn From Sale for Reasons of Safety or Effectiveness",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19968/determination-that-isturisa-osilodrostat-tablets-10-milligrams-was-not-withdrawn-from-sale-for",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-19964",
+      "title": "The Safer Affordable Fuel-Efficient (SAFE) Vehicles Rule III for Model Years 2022 to 2031 Passenger Cars and Light Trucks",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19964/the-safer-affordable-fuel-efficient-safe-vehicles-rule-iii-for-model-years-2022-to-2031-passenger",
+      "disposition": "Agency/product compliance review, not an automatic customs tariff rate. FDA/NHTSA prompts retained."
+    },
+    {
+      "documentNumber": "2026-19963",
+      "title": "NRC Modernization: Rulemaking Procedure, Federal Advisory Committee Act Alignment, Access, and Security; Correction and Confirmation of Effective Date",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19963/nrc-modernization-rulemaking-procedure-federal-advisory-committee-act-alignment-access-and-security",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-19960",
+      "title": "Airworthiness Directives; Airbus SAS Airplanes",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19960/airworthiness-directives-airbus-sas-airplanes",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-19944",
+      "title": "Center for Scientific Review; Notice of Closed Meeting",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19944/center-for-scientific-review-notice-of-closed-meeting",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20068",
+      "title": "Availability of Two Draft Toxicological Profiles",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20068/availability-of-two-draft-toxicological-profiles",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20171",
+      "title": "Agency Information Collection Activities; Revision; Entry Summary",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20171/agency-information-collection-activities-revision-entry-summary",
+      "disposition": "Information collection/comment notice, not a new duty rate."
+    },
+    {
+      "documentNumber": "2026-20170",
+      "title": "Agency Information Collection Activities; Revision; Entry",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20170/agency-information-collection-activities-revision-entry",
+      "disposition": "Information collection/comment notice, not a new duty rate."
+    },
+    {
+      "documentNumber": "2026-20166",
+      "title": "Stationary and Portable Air Compressors From Malaysia: Preliminary Affirmative Countervailing Duty Determination and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20166/stationary-and-portable-air-compressors-from-malaysia-preliminary-affirmative-countervailing-duty",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20165",
+      "title": "Stationary and Portable Air Compressors From the People's Republic of China: Preliminary Affirmative Countervailing Duty Determination and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20165/stationary-and-portable-air-compressors-from-the-peoples-republic-of-china-preliminary-affirmative",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20164",
+      "title": "Stationary and Portable Air Compressors From the Socialist Republic of Vietnam: Preliminary Affirmative Countervailing Duty Determination, and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20164/stationary-and-portable-air-compressors-from-the-socialist-republic-of-vietnam-preliminary",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20163",
+      "title": "Truck Bed Covers From the People's Republic of China: Preliminary Affirmative Determination of Sales at Less Than Fair Value, Postponement of Final Determination, and Extension of Provisional Measures",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20163/truck-bed-covers-from-the-peoples-republic-of-china-preliminary-affirmative-determination-of-sales",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20041",
+      "title": "Certain Cut-to-Length Carbon Steel Plate From Ukraine: Final Results of the Expedited Fifth Sunset Review of the Agreement Suspending the Antidumping Investigation",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20041/certain-cut-to-length-carbon-steel-plate-from-ukraine-final-results-of-the-expedited-fifth-sunset",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20031",
+      "title": "Large Diameter Graphite Electrodes From India: Preliminary Affirmative Determination of Sales at Less-Than-Fair-Value, Preliminary Affirmative Determination of Critical Circumstances, Postponement of Final Determination, and Extension of Provisional Measures",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20031/large-diameter-graphite-electrodes-from-india-preliminary-affirmative-determination-of-sales-at",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20030",
+      "title": "Large Diameter Graphite Electrodes From the People's Republic of China: Preliminary Affirmative Determination of Sales at Less Than Fair Value and Preliminary Affirmative Determination of Critical Circumstances",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20030/large-diameter-graphite-electrodes-from-the-peoples-republic-of-china-preliminary-affirmative",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20192",
+      "title": "[WC Docket Nos. 25-208, 25-209; FCC 26-19; FR ID 370342] Reducing Barriers to Network Improvements and Service Changes, Accelerating Network Modernization",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20192/wc-docket-nos-25-208-25-209-fcc-26-19-fr-id-370342-reducing-barriers-to-network-improvements-and",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20143",
+      "title": "Rule on Impersonation of Government and Businesses",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20143/rule-on-impersonation-of-government-and-businesses",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20087",
+      "title": "Clarification of Certain Mariner Training Requirements",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20087/clarification-of-certain-mariner-training-requirements",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20048",
+      "title": "Hours of Service of Drivers; Parts and Accessories Necessary for Safe Operation; Exemption Renewal for Cleveland-Cliffs Steel LLC",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20048/hours-of-service-of-drivers-parts-and-accessories-necessary-for-safe-operation-exemption-renewal-for",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20042",
+      "title": "Privacy Act of 1974; System of Records",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20042/privacy-act-of-1974-system-of-records",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-20024",
+      "title": "Utility Scale Wind Towers From the Republic of Korea: Preliminary Results and Rescission, in Part of Antidumping Duty Administrative Review; 2024-2025",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20024/utility-scale-wind-towers-from-the-republic-of-korea-preliminary-results-and-rescission-in-part-of",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20018",
+      "title": "Recharter for the Council on Graduate Medical Education",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-20018/recharter-for-the-council-on-graduate-medical-education",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-19961",
+      "title": "Agency Information Collection Activities; Submission to the Office of Management and Budget for Review and Approval; Request for Comment; Consolidated Labeling Requirements and Procedures for Selecting Lines To Be Covered by the Theft Prevention Standard",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19961/agency-information-collection-activities-submission-to-the-office-of-management-and-budget-for",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-19950",
+      "title": "Self-Regulatory Organizations; Long-Term Stock Exchange, Inc.; Notice of Filing and Immediate Effectiveness of a Proposed Rule Change To Amend Rule 14.350 Regarding Information Circular Requirements",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19950/self-regulatory-organizations-long-term-stock-exchange-inc-notice-of-filing-and-immediate",
+      "disposition": "No direct HTS duty/fee rate change identified in title triage; administrative, meeting, information-collection or non-customs subject."
+    },
+    {
+      "documentNumber": "2026-19930",
+      "title": "Light-Walled Rectangular Pipe and Tube From Mexico: Notice of Court Decision Not in Harmony With the Results of Antidumping Duty Administrative Review; Notice of Amended Final Results",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19930/light-walled-rectangular-pipe-and-tube-from-mexico-notice-of-court-decision-not-in-harmony-with-the",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20162",
+      "title": "Large Diameter Graphite Electrodes From India: Preliminary Affirmative Critical Circumstances Determination in Countervailing Duty Investigation",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20162/large-diameter-graphite-electrodes-from-india-preliminary-affirmative-critical-circumstances",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-20160",
+      "title": "Initiation of Antidumping and Countervailing Duty Administrative Reviews",
+      "source": "https://www.federalregister.gov/documents/2026/10/01/2026-20160/initiation-of-antidumping-and-countervailing-duty-administrative-reviews",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    },
+    {
+      "documentNumber": "2026-19932",
+      "title": "Welded Line Pipe From the Republic of Korea: Notice of Court Decision Not in Harmony With the Less-Than-Fair-Value Amended Final Determination; Notice of Amended Final Determination and Notice of Amended Antidumping Duty Order",
+      "source": "https://www.federalregister.gov/documents/2026/09/30/2026-19932/welded-line-pipe-from-the-republic-of-korea-notice-of-court-decision-not-in-harmony-with-the",
+      "disposition": "Case-specific AD/CVD review required. Rates not inferred from HTS; excluded explicitly from identified-cost totals."
+    }
+  ],
+  "additionalSources": [
+    {
+      "url": "https://www.federalregister.gov/documents/2026/07/31/2026-15530/customs-user-fees-to-be-adjusted-for-inflation-in-fiscal-year-2027",
+      "decision": "FY2027 MPF 0.3464%, minimum 34.58 maximum 670.86 effective October 1; one formal entry."
+    },
+    {
+      "url": "https://www.fda.gov/industry/import-basics/harmonized-tariff-schedule-and-fd-flags",
+      "decision": "Exact ACE flags cannot be inferred from chapter. No live ACE REF-001/ABI feed; UI explicitly marks flags unverified."
+    }
+  ],
+  "limitations": [
+    "CBP trade-remedies landing page returned 403; USITC revision and Federal Register searches succeeded.",
+    "PGA scope prompts are not exact ACE tariff-flag lookup.",
+    "HTS-linked Chapter 99 screening is not exhaustive global applicability; unindexed measures, AD/CVD, excise, quota and exemptions require review.",
+    "Preview only; not authorization for a production release."
+  ]
+}
