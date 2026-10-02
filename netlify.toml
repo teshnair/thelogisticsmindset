@@ -2,7 +2,7 @@
   # Weekly releases stay Sunday-only. This exact dated marker authorizes the
   # owner's requested October 1 UTC release; the regulatory gate still runs.
   ignore = "node scripts/netlify-ignore.cjs"
-  command = "node scripts/verify-regulatory-release-gate.mjs && node scripts/test-regulatory-release.mjs && node scripts/test-hts-shipment.mjs"
+  command = "node scripts/verify-regulatory-release-gate.mjs && node scripts/test-regulatory-release.mjs && node scripts/test-hts-shipment.mjs && node scripts/test-chapter99-note31.mjs"
 
 [build.environment]
   NODE_VERSION = "24"

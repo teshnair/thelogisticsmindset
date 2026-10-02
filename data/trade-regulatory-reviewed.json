@@ -1,6 +1,6 @@
 {
-  "reviewedThrough": "2026-09-30",
+  "reviewedThrough": "2026-10-01",
   "htsRevision": 20,
-  "reviewRecord": "data/trade-regulatory-review-20261001.json",
-  "note": "Draft multi-line source review: Revision 20 unchanged; September 30 Federal Register changes triaged, sanctions and case-specific AD/CVD remain review-only. FY2027 MPF verified. Exact ACE PGA flags unavailable; see review limitations."
+  "reviewRecord": "data/trade-regulatory-review-20261002.json",
+  "note": "Incremental October 1 review and Note 31 correction; Revision 20 unchanged. CBP source access and broader screening limitations documented in review record."
 }

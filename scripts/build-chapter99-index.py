@@ -19,6 +19,9 @@ if rev_match:
 
 note_membership = defaultdict(set)
 subdivision_text = defaultdict(list)
+subdivision_direct_text = defaultdict(list)
+letter_indent = None
+roman_indent = None
 current_note = None
 current_letter = None
 current_roman = None
@@ -26,9 +29,10 @@ current_subchapter = None
 in_notes = False
 
 code_re = re.compile(r'\b(\d{4}(?:\.\d{2}){1,3})\b')
+note31_code_re = re.compile(r'\b(\d{4}\.\d{2}\.(?:\d{4}|\d{2}))\b')
 heading_re = re.compile(r'^\s*(99\d{2}\.\d{2}\.\d{2})\b')
 note_start_re = re.compile(r'^\s*(\d{1,3})\.\s*(?:\(([a-z])\))?(?:\s+|$)')
-sub_re = re.compile(r'^\s*\(([a-z]|[ivxlcdm]+)\)\s+')
+sub_re = re.compile(r'^(\s*)\(([a-z]|[ivxlcdm]+)\)(?:\s+|$)')
 roman_tokens = {"i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv","xvi","xvii","xviii","xix","xx"}
 subchapter_page_re = re.compile(r'\b99\s*-\s*([IVXLCDM]+)\s*-\s*\d+\b', re.I)
 subchapter_title_re = re.compile(r'\bSUBCHAPTER\s+([IVXLCDM]+)\b', re.I)
@@ -56,14 +60,15 @@ def key_scope(key):
     return str(key).split('|', 1)[0] if '|' in str(key) else None
 
 def add_codes(line, keys):
-    for code in code_re.findall(line):
+    pattern = note31_code_re if current_subchapter == "3" and current_note == 31 else code_re
+    for code in pattern.findall(line):
         d = re.sub(r'\D', '', code)
         if d.startswith('99') or len(d) not in (6,8,10):
             continue
         for key in keys:
             if key:
                 note_membership[d].add(key)
-                if len(d) == 10:
+                if len(d) == 10 and not (current_subchapter == "3" and current_note == 31):
                     note_membership[d[:8]].add(key)
 
 def keys_for_state():
@@ -97,19 +102,43 @@ for raw in lines:
         current_note = int(m.group(1))
         current_letter = m.group(2)
         current_roman = None
+        letter_indent = line.index('(') if current_letter else None
+        roman_indent = None
     elif in_notes and current_note is not None:
         sm = sub_re.match(line)
         if sm:
-            token = sm.group(1)
-            if token in roman_tokens and current_letter is not None:
-                current_roman = token
-            elif len(token) == 1 and token.isalpha():
-                current_letter = token
-                current_roman = None
+            token = sm.group(2)
+            indent = len(sm.group(1))
+            if current_subchapter == "3" and current_note == 31:
+                # The layout export shifts by two spaces on facing pages. Preserve
+                # hierarchy: (i)/(l) at letter depth are letters, while (a)-(d)
+                # inside a roman paragraph must not replace the parent letter.
+                if len(token) == 1 and (letter_indent is None or indent <= letter_indent + 2):
+                    current_letter = token
+                    current_roman = None
+                    if letter_indent is None:
+                        letter_indent = indent
+                    roman_indent = None
+                elif token in roman_tokens and current_letter is not None:
+                    if roman_indent is None or indent <= roman_indent + 2:
+                        current_roman = token
+                        if roman_indent is None:
+                            roman_indent = indent
+            else:
+                # Preserve other notes pending their independent hierarchy review.
+                if not re.search(r'\)\s+\S', line):
+                    pass
+                elif token in roman_tokens and current_letter is not None:
+                    current_roman = token
+                elif len(token) == 1 and token.isalpha():
+                    current_letter = token
+                    current_roman = None
     if in_notes and current_note is not None:
         keys = keys_for_state()
         for key in keys:
             subdivision_text[key].append(line.strip())
+        if keys:
+            subdivision_direct_text[keys[-1]].append(line.strip())
         add_codes(line, keys)
 
 # A heading can appear many times in Chapter 99: once as the operative tariff
@@ -173,7 +202,8 @@ def add_relation(heading, key, context):
 
 # Legal-note statements can directly declare that a heading applies to a
 # subdivision. These are stronger than adjacency or chapter-level inference.
-for key, parts in subdivision_text.items():
+for key, all_parts in subdivision_text.items():
+    parts = subdivision_direct_text[key] if key.startswith("3|31:") else all_parts
     block = ' '.join(p for p in parts if p).strip()
     if not block:
         continue
