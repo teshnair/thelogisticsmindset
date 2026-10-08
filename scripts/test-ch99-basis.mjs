@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {buildChapter99Basis,formatUsNote} from '../lib/ch99-basis.mjs';
 
 assert.equal(formatUsNote('16:e'),'U.S. note 16(e)');
@@ -58,3 +59,18 @@ const alt=buildChapter99Basis({
 assert.equal(alt.mutuallyExclusiveGroup,'9903.82.02-9903.82.26');
 
 console.log('Chapter 99 status/basis tests passed: legal notes, U.S. and U.K. thresholds, Japan exclusions, Russia, mutually exclusive headings and missing facts.');
+
+const legalIndex=JSON.parse(fs.readFileSync('data/chapter99-index.json','utf8'));
+assert.equal(legalIndex.htsRevision,20,'Tests must use the currently reviewed Chapter 99 revision');
+for (const [hts,noteRef,condition] of [
+  ['9903.82.06','U.S. note 16(e)','85%'],
+  ['9903.82.04','U.S. note 16(d)','95%'],
+  ['9903.03.14','U.S. note 51(b)',null]
+]) {
+  const meta=legalIndex.headings[hts];
+  assert.ok(meta,`Indexed heading ${hts} must exist`);
+  const data=buildChapter99Basis({hts,description:meta.text,applicability:'needs-facts',requiredFacts:[]},meta,'CA');
+  assert.ok(data.noteRefs.includes(noteRef),`${hts} must cite ${noteRef}`);
+  if(condition)assert.ok(data.eligibility.some(v=>v.includes(condition)),`${hts} must summarize the legal threshold ${condition} from the current source`);
+}
+console.log('Live Chapter 99 index legal-note linkage checks passed.');
