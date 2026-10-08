@@ -64,7 +64,7 @@ function chapter99Basis(m){
     +(missing?'<div class="basis-required"><strong>Information needed:</strong><ul>'+missing+'</ul></div>':'')
     +(b.mutuallyExclusiveGroup?'<small><strong>Alternative provision:</strong> Only one heading in '+esc(b.mutuallyExclusiveGroup)+' can apply; the displayed choices must not be added together.</small>':'')
     +(reason&&!generic.test(reason)?'<small><strong>Decision:</strong> '+esc(reason)+'</small>':'')
-    +(notes.length?'<details><summary>Read linked legal-note excerpts</summary>'+notes.map(n=>'<p><strong>'+esc(n.reference)+':</strong> '+esc(n.excerpt)+'</p>').join('')+'<small>Excerpts only. Read the full official U.S. notes before filing.</small></details>':'')
+    +(notes.length?'<details><summary>Read linked legal-note excerpts</summary>'+notes.map(n=>'<p><strong>'+esc(n.reference)+':</strong> '+esc(n.excerpt)+'</p>').join('')+'<small>Excerpts only. <a href="https://hts.usitc.gov/reststop/file?release=currentRelease&amp;filename=Chapter%2099" target="_blank" rel="noopener">Read the full official Chapter 99 and U.S. notes</a> before filing.</small></details>':'')
     +'</div>';
 }
 function renderLine(r,i){if(r.error)return `<div class="card result-line error"><strong>Line ${i+1} · ${esc(r.input.hts)}</strong><p>${esc(r.error)}</p><p>No amount has been assumed. Correct this line or retry.</p></div>`;
