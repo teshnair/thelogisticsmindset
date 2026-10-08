@@ -47,6 +47,22 @@ function render(results){const mode=$('shipmentMode').value,date=$('entryDate').
     ${results.map((r,i)=>renderLine(r,i)).join('')}`;
   $('shipmentResults').hidden=false;$('printResults').addEventListener('click',()=>{document.querySelectorAll('.result-line').forEach(d=>d.open=true);window.print();});
 }
+function chapter99Basis(m){
+  // Keep the official provision language visible. Never invent a country, threshold or exemption.
+  const status={applicable:'Applicable', 'not-applicable':'Not applicable',inapplicable:'Not applicable','needs-facts':'Undetermined',unknown:'Undetermined'}[String(m.applicability||'').toLowerCase()]||'Undetermined';
+  const description=String(m.description||m.chapter99Description||m.provisionText||'').trim();
+  const notes=[...new Set([...(m.noteTargets||[]),...(m.noteReferences||[])].map(x=>String(x).trim()).filter(Boolean))];
+  const noteLabel=notes.map(x=>/^(?:u\\.?s\\.?\\s+)?note\\s/i.test(x)?x:'Chapter 99 U.S. note '+x).join('; ');
+  const reason=String(m.reason||'').trim();
+  const facts=Array.isArray(m.requiredFacts)?m.requiredFacts.filter(Boolean):[];
+  const generic=/^(additional shipment facts are required|needs.facts|review required)\\.?$/i;
+  return '<strong>'+esc(status)+'</strong>'
+    +(description?'<small><strong>Provision:</strong> '+esc(description)+'</small>':'<small>Official provision description not supplied by the screening service; verify the linked HTS entry.</small>')
+    +(noteLabel?'<small><strong>Applicable notes:</strong> '+esc(noteLabel)+'</small>':'')
+    +(reason&&!generic.test(reason)?'<small><strong>Determination:</strong> '+esc(reason)+'</small>':'')
+    +(facts.length?'<small><strong>Information needed:</strong> '+esc(facts.join(', '))+'</small>':'')
+    +(status==='Undetermined'&&!facts.length?'<small>Eligibility cannot be determined from the available shipment facts. Review the provision and cited notes before applying a rate.</small>':'');
+}
 function renderLine(r,i){if(r.error)return `<div class="card result-line error"><strong>Line ${i+1} · ${esc(r.input.hts)}</strong><p>${esc(r.error)}</p><p>No amount has been assumed. Correct this line or retry.</p></div>`;
   const e=r.estimate,c=r.classification,ms=e.measures;
   return `<details class="card result-line" ${i===0?'open':''}><summary><span>Line ${i+1} · ${esc(c.displayHts)} · ${esc(names.of(r.input.country))}<small>${esc(c.description)}</small></span><span class="badge ${e.complete?'ok':''}">${e.complete?'Calculated amounts':'Rate only / review'}</span></summary><div class="result-body">
@@ -54,7 +70,7 @@ function renderLine(r,i){if(r.error)return `<div class="card result-line error">
   <div class="tablescroll"><table><thead><tr><th>Ordinary duty</th><th>Rate</th><th>Amount</th></tr></thead><tbody><tr><td>MFN / Column 1 General</td><td>${esc(r.rates.mfnRate||r.rates.appliedRate||'Not returned')}</td><td class="amount">${r.rates.appliedBasis==='Column 2'?'Reference only':money(e.ordinary.amount)}</td></tr>${r.rates.appliedBasis==='Column 2'?`<tr><td>Applicable Column 2 treatment</td><td>${esc(r.rates.appliedRate)}</td><td class="amount">${money(e.ordinary.amount)}</td></tr>`:''}</tbody></table></div>
   ${e.ordinary.reason?`<p class="hint">${esc(e.ordinary.reason)}</p>`:''}
   ${r.rates.broadDutySummary?.multipleRates?`<div class="notice">Multiple rates exist below this heading. Select a full 10-digit code to determine the applicable rate and amounts.</div>`:''}
-  <h3 class="subheading">Tariff sections &amp; Chapter 99</h3><div class="tablescroll"><table><thead><tr><th>Section / Chapter 99</th><th>Rate</th><th>Status / basis</th><th>Tariff amount</th></tr></thead><tbody>${ms.map(m=>`<tr><td><strong>${esc(m.program)}</strong><br><a href="https://hts.usitc.gov/search?query=${encodeURIComponent(m.hts)}" target="_blank" rel="noopener">${esc(m.hts)}</a></td><td>${m.ratePercent!=null?`${m.ratePercent}%`:'See published formula'}<small>${esc(m.rateMode)} ${m.rateMode==='replacement'?'— replaces duty, not additive':''}</small><details><summary>Published rate</summary>${esc(m.rateText)}</details></td><td>${esc(m.applicability)}<small>${esc(m.reason)}</small></td><td class="amount">${money(m.amount)}</td></tr>`).join('')||'<tr><td colspan="4">No matching Chapter 99 candidate returned. This does not clear global, product-specific or unindexed measures.</td></tr>'}</tbody></table></div>
+  <h3 class="subheading">Tariff sections &amp; Chapter 99</h3><div class="tablescroll"><table><thead><tr><th>Section / Chapter 99</th><th>Rate</th><th>Status / basis</th><th>Tariff amount</th></tr></thead><tbody>${ms.map(m=>`<tr><td><strong>${esc(m.program)}</strong><br><a href="https://hts.usitc.gov/search?query=${encodeURIComponent(m.hts)}" target="_blank" rel="noopener">${esc(m.hts)}</a></td><td>${m.ratePercent!=null?`${m.ratePercent}%`:'See published formula'}<small>${esc(m.rateMode)} ${m.rateMode==='replacement'?'— replaces duty, not additive':''}</small><details><summary>Published rate</summary>${esc(m.rateText)}</details></td><td>${chapter99Basis(m)}</td><td class="amount">${money(m.amount)}</td></tr>`).join('')||'<tr><td colspan="4">No matching Chapter 99 candidate returned. This does not clear global, product-specific or unindexed measures.</td></tr>'}</tbody></table></div>
   <p><strong>Calculated tariffs: ${money(e.knownTariffs)}</strong>${e.tariffTotal==null?' · Partial — unresolved tariffs excluded':''}</p>
   ${(r.rules.supplementalNotices||[]).map(n=>`<div class="notice"><strong>${esc(n.title)}</strong><p>${esc(n.message)}</p><a href="${esc(n.source)}" target="_blank" rel="noopener">Official source</a></div>`).join('')}
   ${e.warnings.map(w=>`<div class="notice">${esc(w)}</div>`).join('')}
