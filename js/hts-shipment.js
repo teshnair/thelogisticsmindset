@@ -48,20 +48,24 @@ function render(results){const mode=$('shipmentMode').value,date=$('entryDate').
   $('shipmentResults').hidden=false;$('printResults').addEventListener('click',()=>{document.querySelectorAll('.result-line').forEach(d=>d.open=true);window.print();});
 }
 function chapter99Basis(m){
-  // Keep the official provision language visible. Never invent a country, threshold or exemption.
-  const status={applicable:'Applicable', 'not-applicable':'Not applicable',inapplicable:'Not applicable','needs-facts':'Undetermined',unknown:'Undetermined'}[String(m.applicability||'').toLowerCase()]||'Undetermined';
-  const description=String(m.description||m.chapter99Description||m.provisionText||'').trim();
-  const notes=[...new Set([...(m.noteTargets||[]),...(m.noteReferences||[])].map(x=>String(x).trim()).filter(Boolean))];
-  const noteLabel=notes.map(x=>/^(?:u\\.?s\\.?\\s+)?note\\s/i.test(x)?x:'Chapter 99 U.S. note '+x).join('; ');
-  const reason=String(m.reason||'').trim();
-  const facts=Array.isArray(m.requiredFacts)?m.requiredFacts.filter(Boolean):[];
-  const generic=/^(additional shipment facts are required|needs.facts|review required)\\.?$/i;
-  return '<strong>'+esc(status)+'</strong>'
-    +(description?'<small><strong>Provision:</strong> '+esc(description)+'</small>':'<small>Official provision description not supplied by the screening service; verify the linked HTS entry.</small>')
-    +(noteLabel?'<small><strong>Applicable notes:</strong> '+esc(noteLabel)+'</small>':'')
-    +(reason&&!generic.test(reason)?'<small><strong>Determination:</strong> '+esc(reason)+'</small>':'')
-    +(facts.length?'<small><strong>Information needed:</strong> '+esc(facts.join(', '))+'</small>':'')
-    +(status==='Undetermined'&&!facts.length?'<small>Eligibility cannot be determined from the available shipment facts. Review the provision and cited notes before applying a rate.</small>':'');
+  const b=m.basis||{}, status=b.status||
+    ({applicable:'Applicable','not-applicable':'Not applicable','needs-facts':'Undetermined','review-required':'Review required'}[m.applicability]||'Undetermined');
+  const summary=b.headingSummary||m.description||'Official Chapter 99 description unavailable.';
+  const conditions=(b.eligibility||[]).map(v=>'<li>'+esc(v)+'</li>').join('');
+  const refs=(b.noteRefs||m.noteTargets||[]).map(String);
+  const notes=(b.legalNotes||[]).filter(n=>n.excerpt);
+  const missing=(b.missingFacts||m.requiredFacts||[]).map(v=>'<li>'+esc(v)+'</li>').join('');
+  const reason=b.reason||m.reason||'';
+  const generic=/^Additional shipment facts are required to determine this Chapter 99 treatment\.?$/i;
+  return '<div class="ch99-basis"><strong>'+esc(status)+'</strong>'
+    +'<small><strong>Heading:</strong> '+esc(summary)+'</small>'
+    +(conditions?'<div class="basis-conditions"><strong>Eligibility:</strong><ul>'+conditions+'</ul></div>':'')
+    +(refs.length?'<small><strong>Linked U.S. notes:</strong> '+esc(refs.join('; '))+'</small>':'<small>No specific U.S. note reference returned. Verify the heading text.</small>')
+    +(missing?'<div class="basis-required"><strong>Information needed:</strong><ul>'+missing+'</ul></div>':'')
+    +(b.mutuallyExclusiveGroup?'<small><strong>Alternative provision:</strong> Only one heading in '+esc(b.mutuallyExclusiveGroup)+' can apply; the displayed choices must not be added together.</small>':'')
+    +(reason&&!generic.test(reason)?'<small><strong>Decision:</strong> '+esc(reason)+'</small>':'')
+    +(notes.length?'<details><summary>Read linked legal-note excerpts</summary>'+notes.map(n=>'<p><strong>'+esc(n.reference)+':</strong> '+esc(n.excerpt)+'</p>').join('')+'<small>Excerpts only. Read the full official U.S. notes before filing.</small></details>':'')
+    +'</div>';
 }
 function renderLine(r,i){if(r.error)return `<div class="card result-line error"><strong>Line ${i+1} · ${esc(r.input.hts)}</strong><p>${esc(r.error)}</p><p>No amount has been assumed. Correct this line or retry.</p></div>`;
   const e=r.estimate,c=r.classification,ms=e.measures;
