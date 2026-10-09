@@ -1,4 +1,5 @@
 name: Refresh Chapter 99 legal index for preview
+# Revision-independent regression tests now accept current verified USITC releases.
 on:
   push:
     branches: [fix/chapter99-legal-basis-20261008]
