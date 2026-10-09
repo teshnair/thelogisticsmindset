@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { supplementalScreening } from '../lib/trade-screening.mts';
 const index=JSON.parse(fs.readFileSync('data/chapter99-index.json','utf8'));
 assert.ok(index.htsRevision>=20,'Chapter 99 legal index must be revision 20 or newer');
+assert.ok((index.codes['7206']||[]).includes('9903.82.02'), 'All articles under enumerated four-digit heading 7206 must be screened for Section 232 under U.S. note 16(c)(iii)');
 assert.match(index.headings['9903.03.14'].legalContext['51:b'], /7308\.90\.30/);
 assert.match(index.headings['9903.03.14'].legalContext['51:b'], /9507\.10\.0040/);
 assert.equal(index.stats.validatedCandidateLinks,Object.values(index.codes).reduce((n,a)=>n+a.length,0));
