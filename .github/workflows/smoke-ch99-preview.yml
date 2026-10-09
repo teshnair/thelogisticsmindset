@@ -49,6 +49,15 @@ jobs:
                     'candidates',len(rows),'programs',sorted(programs))
               assert data.get('revisionVerified'), ('stale/not verified',code,country,data.get('message'))
               assert data.get('status')!='source-stale', (code,country)
+              if not rows and code=='7206100000':
+                  index_url='https://raw.githubusercontent.com/teshnair/thelogisticsmindset/fix/chapter99-legal-basis-20261008/data/chapter99-index.json'
+                  with urllib.request.urlopen(index_url,timeout=25) as resp:
+                      idx=json.load(resp)
+                  print('DIAGNOSTIC 720610 index codes:',{k:v for k,v in idx['codes'].items() if k.startswith('7206')})
+                  for ref in ('9903.82.02','9903.82.05','9903.82.06'):
+                      m=idx['headings'].get(ref,{})
+                      print('DIAGNOSTIC',ref,'targets',m.get('noteTargets'),
+                            'note16c fields',[(k,len(v),v.find('7206.10')) for k,v in m.get('legalContext',{}).items() if k.startswith('16:c')])
               assert rows, ('Missing all Chapter 99 candidates',code,country)
               assert all(r.get('basis',{}).get('noteRefs') is not None for r in rows), ('Missing legal notes',code,country)
               if expected:
