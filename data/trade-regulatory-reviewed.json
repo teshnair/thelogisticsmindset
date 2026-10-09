@@ -1,6 +1,6 @@
 {
-  "reviewedThrough": "2026-09-30",
-  "htsRevision": 20,
-  "reviewRecord": "data/trade-regulatory-review-20261001.json",
-  "note": "Draft multi-line source review: Revision 20 unchanged; September 30 Federal Register changes triaged, sanctions and case-specific AD/CVD remain review-only. FY2027 MPF verified. Exact ACE PGA flags unavailable; see review limitations."
+  "reviewedThrough": "2026-10-08",
+  "htsRevision": 21,
+  "reviewRecord": "data/trade-regulatory-review-20261009.json",
+  "note": "Limited production release screening. USITC Revision 21 validated against direct official release and Chapter 99; Oct 7 China Section 301 product-exclusion amendment flagged for individual verification; AD/CVD case review and unresolved exemptions remain outside automatic calculation. See review record and warnings."
 }
