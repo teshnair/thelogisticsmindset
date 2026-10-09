@@ -63,5 +63,24 @@ jobs:
               assert all(r.get('basis',{}).get('noteRefs') is not None for r in rows), ('Missing legal notes',code,country)
               if expected:
                   assert expected in programs, ('Required program missing',expected,code,country,sorted(programs))
+          # Exercise the actual POST route called by the website, not just the trade data API.
+          for code,country in [('8302413000','CN'),('7206100000','CA'),('7308903000','CA')]:
+              payload=json.dumps({
+                  'hts':code,'country':country,'customsValue':100000,
+                  'entryDate':'2026-10-09','mode':'ocean',
+                  'quantity1':10,'unit1':'kg','quantity2':'','unit2':'',
+                  'meltPourCountry':'CA' if country=='CA' else 'CN'
+              }).encode()
+              request=urllib.request.Request(base+'/api/hts-line',data=payload,
+                    headers={'Content-Type':'application/json'},method='POST')
+              with urllib.request.urlopen(request,timeout=110) as response:
+                  data=json.load(response)
+              rows=data.get('estimate',{}).get('measures') or []
+              assert rows, ('Full calculator failed to return Chapter 99 candidates',code,country)
+              assert data.get('rules',{}).get('revisionVerified'), ('Full calculator index stale',code,country)
+              assert any((r.get('basis') or {}).get('noteRefs') for r in rows), ('Full calculator omitted legal note context',code,country)
+              print('CALCULATOR POST',code,country,'candidates',len(rows),
+                    'programs',sorted({x['program'] for x in rows}))
+          print('PASS: Full calculator POST responses include verified Chapter 99 candidates and note context.');
           print('PASS: Multiple HTS families and origins return verified Chapter 99 candidates.')
           PY
