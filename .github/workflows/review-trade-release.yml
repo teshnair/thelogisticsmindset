@@ -1,0 +1,42 @@
+name: Review October tariff updates for release
+on:
+  push:
+    branches: [fix/chapter99-legal-basis-20261008]
+    paths:
+      - '.github/workflows/review-trade-release.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/chapter99-legal-basis-20261008
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Collect official regulator watch findings
+        run: node scripts/check-trade-regulations.mjs
+      - name: Summarize possibly tariff-relevant changes
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const all=JSON.parse(fs.readFileSync('trade-regulatory-watch-report.json','utf8'));
+          const relevant=/tariff|duties|duty |hts|customs|import|trade|section 301|section 232|exclusion|harmonized|steel|aluminum|copper|vehicle|pharmaceutical|proclamation|safeguard|reciprocal/i;
+          const agencies=/trade representative|international trade commission|customs and border protection|commerce department|homeland security|executive office|president|treasury department/i;
+          const potentiallyRelevant=all.findings.filter(x=>!x.error&&(relevant.test(x.title)||((x.agencyNames||[]).some(a=>agencies.test(a))&&/investigation|notice of action|determination/i.test(x.title))));
+          const unresolved=all.findings.filter(x=>x.error);
+          const summary={asOf:'2026-10-09',from:all.reviewedThrough,sourceHealth:all.sourceHealth,hts:all.hts,found:all.findings.length,potentialCount:potentiallyRelevant.length,searchFailures:unresolved,potentiallyRelevant};
+          fs.writeFileSync('data/trade-regulatory-review-candidates-20261009.json',JSON.stringify(summary,null,2));
+          console.log('Potentially relevant:',potentiallyRelevant.length,'Total:',all.findings.length);
+          for(const x of potentiallyRelevant)console.log(x.publicationDate,x.documentNumber,x.title);
+          JS
+      - name: Commit report to review branch
+        run: |
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add data/trade-regulatory-review-candidates-20261009.json
+          git diff --cached --quiet || (git commit -m 'Collect October regulatory release review candidates [skip ci]' && git push origin HEAD:fix/chapter99-legal-basis-20261008)
