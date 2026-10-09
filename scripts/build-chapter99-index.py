@@ -26,6 +26,9 @@ current_subchapter = None
 in_notes = False
 
 code_re = re.compile(r'\b(\d{4}(?:\.\d{2}){1,3})\b')
+# U.S. legal notes also enumerate four-digit headings (e.g. steel 7206)
+# as valid HTS scope. Keep heading-level keys instead of dropping all descendants.
+bare_heading_re = re.compile(r'(?<![\\d.])(\\d{4})(?![\\d.])')
 heading_re = re.compile(r'^\s*(99\d{2}\.\d{2}\.\d{2})\b')
 note_start_re = re.compile(r'^\s*(\d{1,3})\.\s*(?:\(([a-z])\))?(?:\s+|$)')
 sub_re = re.compile(r'^\s*\(([a-z]|[ivxlcdm]+)\)\s+')
@@ -65,6 +68,19 @@ def add_codes(line, keys):
                 note_membership[d].add(key)
                 if len(d) == 10:
                     note_membership[d[:8]].add(key)
+    # Only treat a bare four-digit number as a heading when it starts a
+    # tabular enumeration line, not in prose with years, duty dates, or notes.
+    # No material-specific hardcoding: this fixes every relevant 4-digit
+    # heading enumerated in Chapter 99 U.S. legal notes.
+    stripped = line.strip()
+    if re.match(r'^\\d{4}(?:\\s|$)', stripped):
+        for code in bare_heading_re.findall(stripped):
+            chapter = int(code[:2])
+            if not (1 <= chapter <= 97) or 1900 <= int(code) <= 2099:
+                continue
+            for key in keys:
+                if key:
+                    note_membership[code].add(key)
 
 def keys_for_state():
     if current_note is None or not current_subchapter:
