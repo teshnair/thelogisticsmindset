@@ -1,4 +1,5 @@
 name: Smoke-test Chapter 99 preview across HTS families
+# Includes enumerated four-digit steel heading regression probes.
 on:
   push:
     branches: [fix/chapter99-legal-basis-20261008]
