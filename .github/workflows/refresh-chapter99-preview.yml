@@ -29,6 +29,7 @@ jobs:
           test "$(head -c4 /tmp/chapter99.pdf)" = '%PDF'
           pdftotext -layout /tmp/chapter99.pdf /tmp/chapter99.txt
           grep -q 'Harmonized Tariff Schedule' /tmp/chapter99.txt
+          grep -n -m 6 -C 2 '7206' /tmp/chapter99.txt || true
       - name: Regenerate Chapter 99 mapping and verify official release
         shell: bash
         run: |
