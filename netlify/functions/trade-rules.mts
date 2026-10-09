@@ -96,7 +96,7 @@ async function getIndex(_reqUrl: string) {
   return data;
 }
 
-function candidateKeys(hts:string){const d=digits(hts),keys:string[]=[];if(d.length>=10)keys.push(d.slice(0,10));if(d.length>=8)keys.push(d.slice(0,8));if(d.length>=6)keys.push(d.slice(0,6));return [...new Set(keys)];}
+function candidateKeys(hts:string){const d=digits(hts),keys:string[]=[];if(d.length>=10)keys.push(d.slice(0,10));if(d.length>=8)keys.push(d.slice(0,8));if(d.length>=6)keys.push(d.slice(0,6));if(d.length>=4)keys.push(d.slice(0,4));return [...new Set(keys)];}
 const SECTION338_HEADINGS=new Set(["9903.03.12","9903.03.13","9903.03.14"]);
 function note51HeadingForHts(index:Chapter99Index,hts:string):string|null{
   const note=clean(index.headings?.["9903.03.14"]?.legalContext?.["51:b"]||index.headings?.["9903.03.13"]?.legalContext?.["51:b"]||index.headings?.["9903.03.12"]?.legalContext?.["51:b"]);
