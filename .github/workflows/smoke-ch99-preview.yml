@@ -1,0 +1,57 @@
+name: Smoke-test Chapter 99 preview across HTS families
+on:
+  push:
+    branches: [fix/chapter99-legal-basis-20261008]
+    paths:
+      - '.github/workflows/smoke-ch99-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - name: Screen different HTS codes through the deployed preview API
+        env:
+          BASE: https://deploy-preview-51--thelogisticsmindset.netlify.app
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.parse,urllib.request,time
+          base=os.environ['BASE']
+          probes=[
+            ('8302413000','CN','Section 232'),
+            ('8302413000','JP','Section 232'),
+            ('7308903000','CA','Section 232'),
+            ('7206100000','CA','Section 232'),
+            ('8716905060','CN',None),
+          ]
+          for code,country,expected in probes:
+              url=base+'/api/trade-rules?'+urllib.parse.urlencode({
+                  'hts':code,'country':country,'customsValue':'100000','entryDate':'2026-10-09','strictFacts':'true'})
+              last=None
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(url,timeout=110) as resp:
+                          data=json.load(resp)
+                      break
+                  except Exception as exc:
+                      last=exc
+                      print('Transient lookup error',code,country,attempt,repr(exc))
+                      time.sleep(5)
+              else:
+                  raise RuntimeError('Failed to screen '+code+': '+repr(last))
+              rows=data.get('measures') or []
+              programs={r['program'] for r in rows}
+              print('HTS',code,'origin',country,'status',data.get('status'),
+                    'index',data.get('indexHts',{}).get('revision'),
+                    'live',data.get('currentHts',{}).get('revision'),
+                    'candidates',len(rows),'programs',sorted(programs))
+              assert data.get('revisionVerified'), ('stale/not verified',code,country,data.get('message'))
+              assert data.get('status')!='source-stale', (code,country)
+              assert rows, ('Missing all Chapter 99 candidates',code,country)
+              assert all(r.get('basis',{}).get('noteRefs') is not None for r in rows), ('Missing legal notes',code,country)
+              if expected:
+                  assert expected in programs, ('Required program missing',expected,code,country,sorted(programs))
+          print('PASS: Multiple HTS families and origins return verified Chapter 99 candidates.')
+          PY
