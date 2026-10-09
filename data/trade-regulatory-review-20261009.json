@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-10-09",
+  "reviewedThrough": "2026-10-08",
+  "htsRevision": 21,
+  "reviewType": "Limited production release screening / change triage, not a comprehensive tariff compliance certification",
+  "primarySource": "https://hts.usitc.gov/reststop/currentRelease",
+  "chapter99Source": "https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099",
+  "evidence": {
+    "usitc": "2026 HTS Revision 21 confirmed by currentRelease and parsed official Chapter 99 PDF in successful 2026-10-09 GitHub workflow #37960554340. Parser tests passed, including 8302 and 7206 mappings.",
+    "sourceWatch": "data/trade-regulatory-review-candidates-20261009.json",
+    "sourceHealth": "Federal Register, USTR and CBP available. USITC archive blocked watch runner (HTTP 403); alternate direct USITC currentRelease and Chapter 99 PDF independently verified and used.",
+    "watchResults": "166 search matches across general tariff terms; 49 potentially relevant items flagged, many AD/CVD case-specific or administrative. Material new Chapter 99-related notice flagged below.",
+    "confirmedNewNotice": {
+      "federalRegister": "2026-20511",
+      "date": "2026-10-07",
+      "subject": "Section 301 China exclusion conforming amendment, U.S. note 20(vvv)(i)(20)",
+      "hts": "8479.90.9591",
+      "effective": "2026-07-01",
+      "source": "https://www.govinfo.gov/content/pkg/FR-2026-10-07/html/2026-20511.htm",
+      "disposition": "Product exclusion must be manually verified for exact merchandise and entry date; calculator treats product-specific exclusions as review-required and does not automatically grant them."
+    },
+    "otherNotices": "October 1-9 Federal Register screening includes AD/CVD initiation, order, scope and review notices. These are not used to calculate universal Chapter 99 tariffs; website explicitly flags AD/CVD as case- and exporter-specific manual reviews.",
+    "testResults": "GitHub workflow #37960554340 current HTS index checks passed; end-to-end preview #37960766616 checked 8302.41.3000 CN/JP, 7308.90.3000 CA, 7206.10.0000 CA, 8716.90.5060 CN and POST /api/hts-line for three product families."
+  },
+  "limitations": [
+    "Screening indicators only; not legal customs entry determination or guarantee of completeness.",
+    "Not all Section 301 product-specific exclusions or Chapter 99 special conditions are automatically resolved.",
+    "AD/CVD, quotas, sanctions and agency admissibility require manual reviews; exact ACE PGA flags unavailable.",
+    "Source-side update can arrive after review; live revision mismatch forces review instead of silently clearing measures."
+  ],
+  "releaseDecision": "Permit owner-authorized publication of the current HTS Revision 21 Chapter 99 screening improvements with unresolved conditions visibly marked and existing regulatory warnings preserved. Future production releases need fresh review."
+}

@@ -1,0 +1,67 @@
+name: Refresh Chapter 99 legal index for preview
+# Rebuild verifies enumerated 4-digit, 6-digit, 8-digit and 10-digit heading coverage.
+on:
+  push:
+    branches: [fix/chapter99-legal-basis-20261008]
+    paths:
+      - '.github/workflows/refresh-chapter99-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/chapter99-legal-basis-20261008
+          persist-credentials: true
+      - name: Retrieve current HTS PDF from USITC
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+          curl --retry 3 --retry-delay 3 --fail --location --connect-timeout 20 --max-time 150 \
+            'https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099' \
+            --output /tmp/chapter99.pdf
+          test "$(head -c4 /tmp/chapter99.pdf)" = '%PDF'
+          pdftotext -layout /tmp/chapter99.pdf /tmp/chapter99.txt
+          grep -q 'Harmonized Tariff Schedule' /tmp/chapter99.txt
+          grep -n -m 6 -C 2 '7206' /tmp/chapter99.txt || true
+      - name: Regenerate Chapter 99 mapping and verify official release
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/build-chapter99-index.py /tmp/chapter99.txt data/chapter99-index.json
+          python3 - <<'PY'
+          import json,urllib.request
+          index=json.load(open('data/chapter99-index.json',encoding='utf-8'))
+          with urllib.request.urlopen('https://hts.usitc.gov/reststop/currentRelease',timeout=20) as resp:
+              live=json.load(resp)
+          import re
+          m=re.search(r'Revision\s+(\d+)',live['description'])
+          assert m, live
+          assert index['htsRevision']==int(m[1]), f"Index {index['htsRevision']} vs live {m[1]}"
+          assert '83024130' in index['codes'], 'Missing test HTS 8302.41.30'
+          assert '7206' in index['codes'] and '9903.82.02' in index['codes']['7206'], 'Section 232 parent-heading mapping absent for 7206'
+          assert any(x.startswith('9903.') for x in index['codes']['83024130']), 'No Ch99 tariff mapping for sample metal derivative'
+          print('Current source verified:', live['description'],'example:',index['codes']['83024130'])
+          PY
+          node scripts/test-regulatory-release.mjs
+          node scripts/test-hts-shipment.mjs
+          node scripts/test-ch99-basis.mjs
+      - name: Commit refreshed index to the review branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add data/chapter99-index.json
+          if git diff --cached --quiet; then
+            echo 'Chapter 99 index already matches current source'
+          else
+            git commit -m 'Refresh Chapter 99 legal index from current USITC revision [skip ci]'
+            git push origin HEAD:fix/chapter99-legal-basis-20261008
+          fi

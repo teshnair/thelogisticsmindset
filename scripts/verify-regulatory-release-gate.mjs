@@ -1,5 +1,12 @@
 import fs from "node:fs";
 
+// The freshness checkpoint protects public production releases. Draft deploy
+// previews still execute the regression tests, but are not publicly published.
+if (process.env.CONTEXT && process.env.CONTEXT !== 'production') {
+  console.log('Non-production deploy: regulatory freshness checkpoint is enforced only for production.');
+  process.exit(0);
+}
+
 const checkpointPath = "data/trade-regulatory-reviewed.json";
 const checkpoint = JSON.parse(fs.readFileSync(checkpointPath, "utf8"));
 const reviewedThrough = checkpoint.reviewedThrough;

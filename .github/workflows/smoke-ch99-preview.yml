@@ -1,0 +1,86 @@
+name: Smoke-test Chapter 99 preview across HTS families
+# Includes enumerated four-digit steel heading regression probes.
+on:
+  push:
+    branches: [fix/chapter99-legal-basis-20261008]
+    paths:
+      - '.github/workflows/smoke-ch99-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - name: Screen different HTS codes through the deployed preview API
+        env:
+          BASE: https://deploy-preview-51--thelogisticsmindset.netlify.app
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.parse,urllib.request,time
+          base=os.environ['BASE']
+          probes=[
+            ('8302413000','CN','Section 232'),
+            ('8302413000','JP','Section 232'),
+            ('7308903000','CA','Section 232'),
+            ('7206100000','CA','Section 232'),
+            ('8716905060','CN',None),
+          ]
+          for code,country,expected in probes:
+              url=base+'/api/trade-rules?'+urllib.parse.urlencode({
+                  'hts':code,'country':country,'customsValue':'100000','entryDate':'2026-10-09','strictFacts':'true'})
+              last=None
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(url,timeout=110) as resp:
+                          data=json.load(resp)
+                      break
+                  except Exception as exc:
+                      last=exc
+                      print('Transient lookup error',code,country,attempt,repr(exc))
+                      time.sleep(5)
+              else:
+                  raise RuntimeError('Failed to screen '+code+': '+repr(last))
+              rows=data.get('measures') or []
+              programs={r['program'] for r in rows}
+              print('HTS',code,'origin',country,'status',data.get('status'),
+                    'index',data.get('indexHts',{}).get('revision'),
+                    'live',data.get('currentHts',{}).get('revision'),
+                    'candidates',len(rows),'programs',sorted(programs))
+              assert data.get('revisionVerified'), ('stale/not verified',code,country,data.get('message'))
+              assert data.get('status')!='source-stale', (code,country)
+              if not rows and code=='7206100000':
+                  index_url='https://raw.githubusercontent.com/teshnair/thelogisticsmindset/fix/chapter99-legal-basis-20261008/data/chapter99-index.json'
+                  with urllib.request.urlopen(index_url,timeout=25) as resp:
+                      idx=json.load(resp)
+                  print('DIAGNOSTIC 720610 index codes:',{k:v for k,v in idx['codes'].items() if k.startswith('7206')})
+                  for ref in ('9903.82.02','9903.82.05','9903.82.06'):
+                      m=idx['headings'].get(ref,{})
+                      print('DIAGNOSTIC',ref,'targets',m.get('noteTargets'),
+                            'note16c fields',[(k,len(v),v.find('7206.10')) for k,v in m.get('legalContext',{}).items() if k.startswith('16:c')])
+              assert rows, ('Missing all Chapter 99 candidates',code,country)
+              assert all(r.get('basis',{}).get('noteRefs') is not None for r in rows), ('Missing legal notes',code,country)
+              if expected:
+                  assert expected in programs, ('Required program missing',expected,code,country,sorted(programs))
+          # Exercise the actual POST route called by the website, not just the trade data API.
+          for code,country in [('8302413000','CN'),('7206100000','CA'),('7308903000','CA')]:
+              payload=json.dumps({
+                  'hts':code,'country':country,'customsValue':100000,
+                  'entryDate':'2026-10-09','mode':'ocean',
+                  'quantity1':10,'unit1':'kg','quantity2':'','unit2':'',
+                  'meltPourCountry':'CA' if country=='CA' else 'CN'
+              }).encode()
+              request=urllib.request.Request(base+'/api/hts-line',data=payload,
+                    headers={'Content-Type':'application/json'},method='POST')
+              with urllib.request.urlopen(request,timeout=110) as response:
+                  data=json.load(response)
+              rows=data.get('estimate',{}).get('measures') or []
+              assert rows, ('Full calculator failed to return Chapter 99 candidates',code,country)
+              assert data.get('rules',{}).get('revisionVerified'), ('Full calculator index stale',code,country)
+              assert any((r.get('basis') or {}).get('noteRefs') for r in rows), ('Full calculator omitted legal note context',code,country)
+              print('CALCULATOR POST',code,country,'candidates',len(rows),
+                    'programs',sorted({x['program'] for x in rows}))
+          print('PASS: Full calculator POST responses include verified Chapter 99 candidates and note context.');
+          print('PASS: Multiple HTS families and origins return verified Chapter 99 candidates.')
+          PY

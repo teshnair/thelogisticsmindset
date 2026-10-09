@@ -1,0 +1,769 @@
+{
+  "asOf": "2026-10-09",
+  "from": "2026-09-30",
+  "sourceHealth": [
+    {
+      "name": "USITC HTS",
+      "url": "https://hts.usitc.gov/",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "USITC HTS archive",
+      "url": "https://www.usitc.gov/harmonized_tariff_information/hts/archive/list",
+      "ok": false,
+      "status": 403
+    },
+    {
+      "name": "USTR Section 301 search",
+      "url": "https://ustr.gov/issue-areas/enforcement/section-301-investigations/search",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "USTR tariff actions",
+      "url": "https://ustr.gov/issue-areas/enforcement/section-301-investigations/tariff-actions",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "CBP trade remedies",
+      "url": "https://www.cbp.gov/trade/programs-administration/trade-remedies",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "Federal Register",
+      "url": "https://www.federalregister.gov/",
+      "ok": true,
+      "status": 200
+    }
+  ],
+  "hts": {
+    "reviewedRevision": 20,
+    "current": null,
+    "revisionChanged": false,
+    "error": "USITC archive returned 403"
+  },
+  "found": 166,
+  "potentialCount": 49,
+  "searchFailures": [],
+  "potentiallyRelevant": [
+    {
+      "documentNumber": "2026-20776",
+      "title": "Foreign-Trade Zone (FTZ) 50, Notification of Proposed Production Activity; Sanyo Denki America, Inc.; (Cooling, Servo, and Power Systems and Assemblies); Torrance, California",
+      "publicationDate": "2026-10-09",
+      "agencyNames": [
+        "Commerce Department",
+        "Foreign-Trade Zones Board"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/09/2026-20776/foreign-trade-zone-ftz-50-notification-of-proposed-production-activity-sanyo-denki-america-inc",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-09/pdf/2026-20776.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "Section 232"
+      ]
+    },
+    {
+      "documentNumber": "2026-20775",
+      "title": "Foreign-Trade Zone (FTZ) 40, Notification of Proposed Production Activity; Norman Noble Company Inc.; (Implantable Medical Devices); Highland Heights, Ohio",
+      "publicationDate": "2026-10-09",
+      "agencyNames": [
+        "Commerce Department",
+        "Foreign-Trade Zones Board"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/09/2026-20775/foreign-trade-zone-ftz-40-notification-of-proposed-production-activity-norman-noble-company-inc",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-09/pdf/2026-20775.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "Section 232"
+      ]
+    },
+    {
+      "documentNumber": "2026-20774",
+      "title": "Foreign-Trade Zone (FTZ) 16, Notification of Proposed Production Activity; Yazaki North America, Inc.; (Stamped Copper Terminals); Petoskey, Michigan",
+      "publicationDate": "2026-10-09",
+      "agencyNames": [
+        "Commerce Department",
+        "Foreign-Trade Zones Board"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/09/2026-20774/foreign-trade-zone-ftz-16-notification-of-proposed-production-activity-yazaki-north-america-inc",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-09/pdf/2026-20774.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "Section 232"
+      ]
+    },
+    {
+      "documentNumber": "2026-20758",
+      "title": "Amneal Pharmaceuticals of New York, LLC; Withdrawal of Approval of Abbreviated New Drug Application for Celecoxib Capsules, 50 Milligrams, 100 Milligrams, 200 Milligrams, and 400 Milligrams",
+      "publicationDate": "2026-10-09",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Food and Drug Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/09/2026-20758/amneal-pharmaceuticals-of-new-york-llc-withdrawal-of-approval-of-abbreviated-new-drug-application",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-09/pdf/2026-20758.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20663",
+      "title": "Agency Information Collection Activities; Proposed Collection; Comment Request; Channels of Trade Policy for Commodities With Residues of Pesticide Chemicals, for Which Tolerances Have Been Revoked, Suspended, or Modified by the Environmental Protection Agency Pursuant to Dietary Risk Considerations",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Health and Human Services Department",
+        "Food and Drug Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20663/agency-information-collection-activities-proposed-collection-comment-request-channels-of-trade",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20663.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20551",
+      "title": "Certain Paper Shopping Bags From Colombia: Preliminary Results of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-07",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/07/2026-20551/certain-paper-shopping-bags-from-colombia-preliminary-results-of-antidumping-duty-administrative",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-07/pdf/2026-20551.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20511",
+      "title": "Notice of Conforming Amendment to Product Exclusion: China's Acts, Policies, and Practices Related to Technology Transfer, Intellectual Property, and Innovation",
+      "publicationDate": "2026-10-07",
+      "agencyNames": [
+        "Trade Representative, Office of United States"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/07/2026-20511/notice-of-conforming-amendment-to-product-exclusion-chinas-acts-policies-and-practices-related-to",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-07/pdf/2026-20511.pdf",
+      "matchedTerms": [
+        "Section 301",
+        "Chapter 99",
+        "Harmonized Tariff Schedule"
+      ]
+    },
+    {
+      "documentNumber": "2026-20432",
+      "title": "Applications for Amendments to Facility Operating Licenses Involving Proposed No Significant Hazards Consideration Determination and Containing Sensitive Unclassified Non-Safeguards Information and Order Imposing Procedures for Access to Sensitive Unclassified Non-Safeguards Information",
+      "publicationDate": "2026-10-06",
+      "agencyNames": [
+        "Nuclear Regulatory Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/06/2026-20432/applications-for-amendments-to-facility-operating-licenses-involving-proposed-no-significant-hazards",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-06/pdf/2026-20432.pdf",
+      "matchedTerms": [
+        "Section 301"
+      ]
+    },
+    {
+      "documentNumber": "2026-20697",
+      "title": "Chromium Trioxide From the Republic of Türkiye: Final Affirmative Determination of Sales at Less Than Fair Value",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20697/chromium-trioxide-from-the-republic-of-trkiye-final-affirmative-determination-of-sales-at-less-than",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20697.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20696",
+      "title": "Chromium Trioxide From India: Final Affirmative Countervailing Duty Determination",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20696/chromium-trioxide-from-india-final-affirmative-countervailing-duty-determination",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20696.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20695",
+      "title": "Chromium Trioxide From India: Final Affirmative Determination of Sales at Less Than Fair Value",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20695/chromium-trioxide-from-india-final-affirmative-determination-of-sales-at-less-than-fair-value",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20695.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20692",
+      "title": "N-Cyclohexylbenzothiazole-2-Sulfenamide From the People's Republic of China: Preliminary Affirmative Countervailing Duty Determination, Preliminary Affirmative Critical Circumstances Determination, and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20692/n-cyclohexylbenzothiazole-2-sulfenamide-from-the-peoples-republic-of-china-preliminary-affirmative",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20692.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20690",
+      "title": "Oleoresin Paprika From India: Antidumping Duty Order and Countervailing Duty Order",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20690/oleoresin-paprika-from-india-antidumping-duty-order-and-countervailing-duty-order",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20690.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20609",
+      "title": "Oleoresin Paprika From India; Determinations",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "International Trade Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20609/oleoresin-paprika-from-india-determinations",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20609.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule"
+      ]
+    },
+    {
+      "documentNumber": "2026-20349",
+      "title": "Railway Tank Cars and Parts Thereof From Mexico; Institution of Antidumping and Countervailing Duty Investigations and Scheduling of Preliminary Phase Investigations",
+      "publicationDate": "2026-10-05",
+      "agencyNames": [
+        "International Trade Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/05/2026-20349/railway-tank-cars-and-parts-thereof-from-mexico-institution-of-antidumping-and-countervailing-duty",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-05/pdf/2026-20349.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule"
+      ]
+    },
+    {
+      "documentNumber": "2026-20286",
+      "title": "Amine Compounds From China; Institution of Antidumping and Countervailing Duty Investigations and Scheduling of Preliminary Phase Investigations",
+      "publicationDate": "2026-10-05",
+      "agencyNames": [
+        "International Trade Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/05/2026-20286/amine-compounds-from-china-institution-of-antidumping-and-countervailing-duty-investigations-and",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-05/pdf/2026-20286.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule"
+      ]
+    },
+    {
+      "documentNumber": "2026-20256",
+      "title": "Common Alloy Aluminum Sheet From the People's Republic of China: Initiation of Circumvention Inquiry of the Antidumping Duty and Countervailing Duty Orders",
+      "publicationDate": "2026-10-02",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/02/2026-20256/common-alloy-aluminum-sheet-from-the-peoples-republic-of-china-initiation-of-circumvention-inquiry",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-02/pdf/2026-20256.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20166",
+      "title": "Stationary and Portable Air Compressors From Malaysia: Preliminary Affirmative Countervailing Duty Determination and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20166/stationary-and-portable-air-compressors-from-malaysia-preliminary-affirmative-countervailing-duty",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20166.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20165",
+      "title": "Stationary and Portable Air Compressors From the People's Republic of China: Preliminary Affirmative Countervailing Duty Determination and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20165/stationary-and-portable-air-compressors-from-the-peoples-republic-of-china-preliminary-affirmative",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20165.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20164",
+      "title": "Stationary and Portable Air Compressors From the Socialist Republic of Vietnam: Preliminary Affirmative Countervailing Duty Determination, and Alignment of Final Determination With Final Antidumping Duty Determination",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20164/stationary-and-portable-air-compressors-from-the-socialist-republic-of-vietnam-preliminary",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20164.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20163",
+      "title": "Truck Bed Covers From the People's Republic of China: Preliminary Affirmative Determination of Sales at Less Than Fair Value, Postponement of Final Determination, and Extension of Provisional Measures",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20163/truck-bed-covers-from-the-peoples-republic-of-china-preliminary-affirmative-determination-of-sales",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20163.pdf",
+      "matchedTerms": [
+        "Harmonized Tariff Schedule",
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20779",
+      "title": "Passenger Vehicle and Light Truck Tires From Thailand: Preliminary Results and Rescission, in Part, of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-09",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/09/2026-20779/passenger-vehicle-and-light-truck-tires-from-thailand-preliminary-results-and-rescission-in-part-of",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-09/pdf/2026-20779.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20778",
+      "title": "Certain Hot-Rolled Steel Flat Products From the Republic of Korea: Final Results of Countervailing Duty Administrative Review; 2023",
+      "publicationDate": "2026-10-09",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/09/2026-20778/certain-hot-rolled-steel-flat-products-from-the-republic-of-korea-final-results-of-countervailing",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-09/pdf/2026-20778.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20777",
+      "title": "Certain Paper Shopping Bags From Cambodia: Preliminary Results of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-09",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/09/2026-20777/certain-paper-shopping-bags-from-cambodia-preliminary-results-of-antidumping-duty-administrative",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-09/pdf/2026-20777.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20699",
+      "title": "Certain Corrosion-Resistant Steel Products From the Republic of Korea: Preliminary Results and Recission, In Part, of Countervailing Duty Administrative Review; 2024",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20699/certain-corrosion-resistant-steel-products-from-the-republic-of-korea-preliminary-results-and",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20699.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20698",
+      "title": "Certain Corrosion-Resistant Steel Products From the Republic of Korea: Preliminary Results and Rescission, in Part, of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20698/certain-corrosion-resistant-steel-products-from-the-republic-of-korea-preliminary-results-and",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20698.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20694",
+      "title": "Certain Steel Nails From the Republic of Korea: Preliminary Results and Rescission, in Part of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20694/certain-steel-nails-from-the-republic-of-korea-preliminary-results-and-rescission-in-part-of",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20694.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20691",
+      "title": "Certain Paper Shopping Bags From Taiwan: Preliminary Results and Rescission, in Part, of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20691/certain-paper-shopping-bags-from-taiwan-preliminary-results-and-rescission-in-part-of-antidumping",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20691.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20673",
+      "title": "Seamless Carbon and Alloy Steel Standard, Line, and Pressure Pipe From Czechia, Russia, South Korea, and Ukraine; Scheduling of Full Five-Year Reviews",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "International Trade Commission"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20673/seamless-carbon-and-alloy-steel-standard-line-and-pressure-pipe-from-czechia-russia-south-korea-and",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20673.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20549",
+      "title": "Certain Paper Shopping Bags From Malaysia: Preliminary Results, Preliminary Determination of No Shipments and Rescission, in Part, of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-07",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/07/2026-20549/certain-paper-shopping-bags-from-malaysia-preliminary-results-preliminary-determination-of-no",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-07/pdf/2026-20549.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20547",
+      "title": "Certain Paper Shopping Bags From India: Preliminary Results and Rescission, in Part of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-07",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/07/2026-20547/certain-paper-shopping-bags-from-india-preliminary-results-and-rescission-in-part-of-antidumping",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-07/pdf/2026-20547.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20488",
+      "title": "Certain Frozen Warmwater Shrimp From Thailand: Final Results of Antidumping Duty Administrative Review and Final Determination of No Shipments; 2024-2025",
+      "publicationDate": "2026-10-06",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/06/2026-20488/certain-frozen-warmwater-shrimp-from-thailand-final-results-of-antidumping-duty-administrative",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-06/pdf/2026-20488.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20382",
+      "title": "Mattresses From Poland: Preliminary Intent To Rescind Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-05",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/05/2026-20382/mattresses-from-poland-preliminary-intent-to-rescind-antidumping-duty-administrative-review",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-05/pdf/2026-20382.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20380",
+      "title": "Large Diameter Welded Pipe From the Republic of Türkiye: Final Results of Antidumping Duty Administrative Review; 2024-2025; Correction",
+      "publicationDate": "2026-10-05",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/05/2026-20380/large-diameter-welded-pipe-from-the-republic-of-trkiye-final-results-of-antidumping-duty",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-05/pdf/2026-20380.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20376",
+      "title": "Oil Country Tubular Goods From Ukraine: Preliminary Results of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-05",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/05/2026-20376/oil-country-tubular-goods-from-ukraine-preliminary-results-of-antidumping-duty-administrative-review",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-05/pdf/2026-20376.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20294",
+      "title": "Steel Concrete Reinforcing Bar From the Republic of Türkiye: Preliminary Results and Rescission, in Part, of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-05",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/05/2026-20294/steel-concrete-reinforcing-bar-from-the-republic-of-trkiye-preliminary-results-and-rescission-in",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-05/pdf/2026-20294.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20273",
+      "title": "Polyethylene Terephthalate Film, Sheet, and Strip From Taiwan: Preliminary Results and Preliminary Intent To Rescind, In Part, of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-02",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/02/2026-20273/polyethylene-terephthalate-film-sheet-and-strip-from-taiwan-preliminary-results-and-preliminary",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-02/pdf/2026-20273.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20269",
+      "title": "Antidumping or Countervailing Duty Order, Finding, or Suspended Investigation; Opportunity To Request Administrative Review and Join Annual Inquiry Service List; Note Regarding Format of Review Requests",
+      "publicationDate": "2026-10-02",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/02/2026-20269/antidumping-or-countervailing-duty-order-finding-or-suspended-investigation-opportunity-to-request",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-02/pdf/2026-20269.pdf",
+      "matchedTerms": [
+        "additional duties",
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20257",
+      "title": "Notice of Extension of the Deadline for Determining the Adequacy of the Antidumping and Countervailing Duty Petitions: Certain Corrugated Die-Cut Cardboard Boxes From the People's Republic of China, Malaysia, and the Republic of Türkiye",
+      "publicationDate": "2026-10-02",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/02/2026-20257/notice-of-extension-of-the-deadline-for-determining-the-adequacy-of-the-antidumping-and",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-02/pdf/2026-20257.pdf",
+      "matchedTerms": [
+        "additional duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20693",
+      "title": "Notice of Scope Ruling Applications Filed in Antidumping and Countervailing Duty Proceedings",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20693/notice-of-scope-ruling-applications-filed-in-antidumping-and-countervailing-duty-proceedings",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20693.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20689",
+      "title": "Forged Steel Fluid End Blocks From Germany: Final Results of the Antidumping Duty Administrative Review; 2024",
+      "publicationDate": "2026-10-08",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/08/2026-20689/forged-steel-fluid-end-blocks-from-germany-final-results-of-the-antidumping-duty-administrative",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-08/pdf/2026-20689.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20489",
+      "title": "Circular Welded Carbon-Quality Steel Pipe From the United Arab Emirates: Final Results of Antidumping Duty Administrative Review; 2023-2024",
+      "publicationDate": "2026-10-06",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/06/2026-20489/circular-welded-carbon-quality-steel-pipe-from-the-united-arab-emirates-final-results-of-antidumping",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-06/pdf/2026-20489.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20484",
+      "title": "Certain Uncoated Paper From Portugal: Final Results of Antidumping Duty Administrative Review; 2024-2025",
+      "publicationDate": "2026-10-06",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/06/2026-20484/certain-uncoated-paper-from-portugal-final-results-of-antidumping-duty-administrative-review",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-06/pdf/2026-20484.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20482",
+      "title": "Large Diameter Welded Pipe From the Republic of Türkiye: Final Results of Countervailing Duty Administrative Review; 2024",
+      "publicationDate": "2026-10-06",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/06/2026-20482/large-diameter-welded-pipe-from-the-republic-of-trkiye-final-results-of-countervailing-duty",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-06/pdf/2026-20482.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20282",
+      "title": "Certain Corrosion Inhibitors From the People's Republic of China: Final Results of Countervailing Duty Administrative Review; 2024",
+      "publicationDate": "2026-10-05",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/05/2026-20282/certain-corrosion-inhibitors-from-the-peoples-republic-of-china-final-results-of-countervailing-duty",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-05/pdf/2026-20282.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20272",
+      "title": "Certain Aluminum Foil From the Republic of Türkiye: Final Results of Countervailing Duty Administrative Review; 2023",
+      "publicationDate": "2026-10-02",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/02/2026-20272/certain-aluminum-foil-from-the-republic-of-trkiye-final-results-of-countervailing-duty",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-02/pdf/2026-20272.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20258",
+      "title": "Certain Carbon Steel Butt-Weld Pipe Fittings From the People's Republic of China: Notice of Court Decision Not in Harmony With Final Covered Merchandise Determination and Notice of Amended Covered Merchandise Determination Pursuant to Court Decision; Correction",
+      "publicationDate": "2026-10-02",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/02/2026-20258/certain-carbon-steel-butt-weld-pipe-fittings-from-the-peoples-republic-of-china-notice-of-court",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-02/pdf/2026-20258.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20162",
+      "title": "Large Diameter Graphite Electrodes From India: Preliminary Affirmative Critical Circumstances Determination in Countervailing Duty Investigation",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20162/large-diameter-graphite-electrodes-from-india-preliminary-affirmative-critical-circumstances",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20162.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    },
+    {
+      "documentNumber": "2026-20160",
+      "title": "Initiation of Antidumping and Countervailing Duty Administrative Reviews",
+      "publicationDate": "2026-10-01",
+      "agencyNames": [
+        "Commerce Department",
+        "International Trade Administration"
+      ],
+      "htmlUrl": "https://www.federalregister.gov/documents/2026/10/01/2026-20160/initiation-of-antidumping-and-countervailing-duty-administrative-reviews",
+      "pdfUrl": "https://www.govinfo.gov/content/pkg/FR-2026-10-01/pdf/2026-20160.pdf",
+      "matchedTerms": [
+        "customs duties"
+      ]
+    }
+  ]
+}
