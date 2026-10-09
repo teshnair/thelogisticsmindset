@@ -1,5 +1,5 @@
 name: Refresh Chapter 99 legal index for preview
-# Revision-independent regression tests now accept current verified USITC releases.
+# Rebuild verifies enumerated 4-digit, 6-digit, 8-digit and 10-digit heading coverage.
 on:
   push:
     branches: [fix/chapter99-legal-basis-20261008]
