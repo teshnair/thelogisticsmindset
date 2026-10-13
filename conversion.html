@@ -613,6 +613,7 @@ html, body {
   <button type="button" style="margin-top:8px;" onclick="parsePastedDimensions()">
     Parse
   </button>
+  <div id="pasteParseStatus" role="status" aria-live="polite" style="margin-top:6px;font-size:0.9rem;color:#555;"></div>
 </div>
 
 <div class="dim-grid dim-header">
@@ -828,9 +829,11 @@ function parsePastedDimensions() {
   const lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
   if (!lines.length) return;
 
-  // Detect TSV/CSV paste (tab or comma separated)
-  const first = lines[0];
-  const delim = first.includes("\t") ? "\t" : (first.includes(",") ? "," : null);
+  // Thousands separators inside cargo weights must not trigger CSV parsing.
+  const first = lines[0].replace(/[\u00A0\u202F]/g, " ");
+  const isNarrative = /\d\s*[x×*]\s*\d+\s*[x×*]\s*\d+|\b\d+\s*[x×]\s*[^@;\n]+@/i.test(first);
+  const commaFields = first.split(",").length;
+  const delim = first.includes("\t") ? "\t" : (!isNarrative && commaFields >= 4 ? "," : null);
 
   // If table-like paste, map columns: L W H Weight Qty (like your example)
   if (delim) {
@@ -885,19 +888,39 @@ function parsePastedDimensions() {
 
     calculateDimWeight();
     bindDimAutoRecalc();
+    const status = document.getElementById("pasteParseStatus");
+    if (status) status.textContent = `Parsed ${rows.length} tabular lines.`;
     return;
   }
 
-  // Fallback: original “one line per item” parser
+  // Narrative cargo: one row per line, including a named cargo item before @.
   dimRowCount = lines.length;
   renderDimRows(dimRowCount);
 
+  let cargoLineTotalCount = 0;
+  let cargoEachCount = 0;
   lines.forEach((line, idx) => {
     parseLineIntoRow(line, idx + 1);
+    const normalized = line.replace(/[\u00A0\u202F\u2007]/g, " ");
+    const named = /^\s*\d+\s*[x×]\s*[^@\n]+@/i.test(normalized);
+    if (named) {
+      if (/\b(each|ea\.?|per\s*(?:piece|pc|unit|item))\b/i.test(normalized)) cargoEachCount++;
+      else cargoLineTotalCount++;
+      const item = normalized.match(/^\s*\d+\s*[x×]\s*(.*?)\s*@/i);
+      const rowEl = document.getElementById(`q${idx + 1}`)?.closest(".dim-grid");
+      if (item && rowEl) rowEl.title = item[1].trim();
+    }
   });
 
   calculateDimWeight();
   bindDimAutoRecalc();
+  const status = document.getElementById("pasteParseStatus");
+  if (status) {
+    status.textContent = `Parsed ${lines.length} lines.` +
+      (cargoLineTotalCount || cargoEachCount ?
+        ` Named cargo: ${cargoEachCount} explicitly marked "each" (piece weight); ` +
+        `${cargoLineTotalCount} without "each" (line total weight).` : "");
+  }
 }
 
 
@@ -1139,6 +1162,9 @@ function parseLocaleNumber(val) {
 <script>
 function parseLineIntoRow(line, row) {
 
+  // Normalize nonbreaking spaces from copied emails, Word and webpages.
+  line = String(line).replace(/[\u00A0\u202F\u2007]/g, " ");
+
   // Normalize quotes + clean common labels
   const text = line
     .replace(/[’]/g, "'")
@@ -1187,6 +1213,7 @@ let s = normalizeNumberText(cleaned);
   const qtyMatch =
     s.match(/\b(?:qty|quantity|q)\s*[:=]?\s*(\d+)\b/i) ||
     s.match(/\b(\d+)\s*(?:pcs|pc|pieces|units|unit)\b/i) ||
+    s.match(/^\s*(\d{1,5})\s*[x×]\s*(?=[a-z][^@\n]{0,150}@)/i) ||
   s.match(/^\s*(\d{1,2})\s*[x×]\s*(?=\d.*[x×].*[x×])/i)  ||
   s.match(/^\s*(\d{1,2})\s+(?=\d.*[x×].*[x×])/i);
 
@@ -1282,6 +1309,11 @@ function detectDimUnit(str) {
 
   if (wtMatch) {
     wtVal = parseLocaleNumber(wtMatch[1]);
+    // The calculator multiplies weight by quantity. Named cargo without an
+    // explicit "each" qualifier supplies a LINE total, not a piece weight.
+    const namedCargo = /^\s*\d+\s*[x×]\s*[^@\n]+@/i.test(text);
+    const isEach = /\b(each|ea\.?|per\s*(?:piece|pc|unit|item))\b/i.test(text);
+    if (namedCargo && !isEach && qty > 1 && Number.isFinite(wtVal)) wtVal /= qty;
     wtUnit = wtMatch[2]
   .toLowerCase()
   .replace("lbs", "lb")
