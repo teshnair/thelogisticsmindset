@@ -14,7 +14,7 @@ function isReviewedConverterOnlyRelease() {
     execFileSync("git", ["merge-base", "--is-ancestor", approvedProduction, "HEAD"], { stdio: "pipe" });
     const changed = execFileSync(
       "git", ["diff", "--name-only", approvedProduction, "HEAD"], { encoding: "utf8" }
-    ).trim().split(/\\r?\\n/).filter(Boolean);
+    ).trim().split(/\r?\n/).filter(Boolean);
     const allowed = new Set(["conversion.html", "scripts/verify-regulatory-release-gate.mjs"]);
     if (!changed.includes("conversion.html") || changed.some(path => !allowed.has(path))) return false;
     const converterBlob = execFileSync("git", ["rev-parse", "HEAD:conversion.html"], { encoding: "utf8" }).trim();
