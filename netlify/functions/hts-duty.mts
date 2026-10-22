@@ -34,7 +34,9 @@ const AGOA_2026 = new Set(
 );
 function preferenceProgram(country: string, entryDate?: string) {
   if (FTA_PROGRAM[country]) return FTA_PROGRAM[country];
-  // No forward assumption of a 2027 AGOA extension or country designation.
+  // AGOA was extended through December 31, 2028 (signed September 2, 2026),
+  // but 2027/2028 individual country eligibility has not been designated here.
+  // Never project the 2026 beneficiary list into a future year's calculation.
   const day = entryDate || new Date().toISOString().slice(0, 10);
   if (AGOA_2026.has(country) && day >= "2026-01-01" && day <= "2026-12-31")
     return { symbol: "D", name: "AGOA" };
