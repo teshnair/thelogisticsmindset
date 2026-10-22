@@ -3,7 +3,7 @@
 <title>U.S. Shipment Duty Calculator | The Logistics Mindset</title>
 <meta name="description" content="Screen up to 10 HTS lines, Chapter 99 tariffs and agency requirements with one shipment fee calculation.">
 <link rel="stylesheet" href="/css/header.css"><link rel="stylesheet" href="/css/hts-shipment.css">
-<script type="module" src="/js/hts-shipment.js?v=20261008-basis"></script></head><body>
+<script type="module" src="/js/hts-shipment.js?v=20261022-agoa"></script></head><body>
 <div class="container"><header class="page-header">
   <img src="img/logo.png" alt="Logo" class="page-logo">
   <div class="header-text">
@@ -47,9 +47,9 @@
 <form id="shipmentForm">
 <section class="card shipment-settings"><div><label for="shipmentMode">Shipment mode</label><select id="shipmentMode"><option value="ocean">Ocean</option><option value="air">Air</option><option value="land">Land / rail</option></select></div>
 <div><label for="entryDate">Entry date</label><input id="entryDate" type="date" required></div>
-<p>One formal entry in USD. MPF is calculated once across all lines; HMF applies to ocean cargo. No preferential treatment or fee exemption is assumed.</p></section>
+<p>One formal entry in USD. MPF is calculated once across all lines; HMF applies to ocean cargo. No preferential treatment is automatically assumed. Claim a benefit only when qualification is confirmed.</p></section>
 <div class="section-heading"><div><h2>Shipment lines</h2><p>Start with one line. Add only the lines you need.</p></div><span id="lineCount" class="pill">1 / 10 lines</span></div>
-<p class="hint">Required: HTS, origin and value. Optional details left blank give MFN rates only. Add the quantities and product facts needed to calculate amounts. Non-MFN origins retain Column 2 treatment.</p>
+<p class="hint">Required: HTS, origin and value. Optional details left blank do not prevent calculation of simple percentage duties; unconfirmed benefits retain MFN. Add the quantities and product facts needed to calculate amounts. Non-MFN origins retain Column 2 treatment.</p>
 <div id="shipmentLines"></div>
 <div class="actions"><button type="button" id="addLine" class="secondary">+ Add HTS line</button><button type="submit" id="calculate" class="primary">Calculate shipment</button><button type="button" id="clearAll" class="text-button">Clear all</button><span id="status" role="status" aria-live="polite"></span></div>
 </form>

@@ -1,6 +1,6 @@
 const USITC_SEARCH = "https://hts.usitc.gov/reststop/search";
 const COLUMN_2 = new Set(["BY", "CU", "KP", "RU"]);
-const BUILD_VERSION = "2026-08-24-broad-hts-rates-v10";
+const BUILD_VERSION = "2026-10-22-agoa-preferences-v11";
 
 const FTA_PROGRAM: Record<string, { symbol: string; name: string }> = {
   AU: { symbol: "AU", name: "U.S.-Australia FTA" },
@@ -24,6 +24,24 @@ const FTA_PROGRAM: Record<string, { symbol: string; name: string }> = {
   PE: { symbol: "PE", name: "U.S.-Peru TPA" },
   SG: { symbol: "SG", name: "U.S.-Singapore FTA" },
 };
+
+// AGOA beneficiary country list for calendar year 2026, from USTR's June 30,
+// 2026 eligibility notice (91 FR 39653). Country eligibility alone does not
+// establish product eligibility or qualifying origin. Program symbol D must
+// appear on the actual HTS provision before a duty preference can be shown.
+const AGOA_2026 = new Set(
+  "AO BJ BW CV TD KM CD CG CI DJ SZ GA GM GH GW KE LS LR MG MW MR MU MZ NA NG RW ST SN SL ZA TZ TG ZM".split(" ")
+);
+function preferenceProgram(country: string, entryDate?: string) {
+  if (FTA_PROGRAM[country]) return FTA_PROGRAM[country];
+  // AGOA was extended through December 31, 2028 (signed September 2, 2026),
+  // but 2027/2028 individual country eligibility has not been designated here.
+  // Never project the 2026 beneficiary list into a future year's calculation.
+  const day = entryDate || new Date().toISOString().slice(0, 10);
+  if (AGOA_2026.has(country) && day >= "2026-01-01" && day <= "2026-12-31")
+    return { symbol: "D", name: "AGOA" };
+  return null;
+}
 
 // Official CBP user-fee sources. The function attempts to read these live on
 // each calculation request. The fallback values are only used when the CBP
@@ -653,9 +671,10 @@ function symbolRegex(symbol: string): RegExp {
 
 function preferentialRateForCountry(
   special: string | null,
-  country: string
+  country: string,
+  entryDate?: string
 ) {
-  const program = FTA_PROGRAM[country];
+  const program = preferenceProgram(country, entryDate);
   if (!special || !program) return { program, rate: null };
 
   const regex = symbolRegex(program.symbol);
@@ -1222,7 +1241,8 @@ export default async (req: Request) => {
 
     const preference = preferentialRateForCountry(
       specialSource.value,
-      country
+      country,
+      typeof body?.entryDate === "string" ? body.entryDate : undefined
     );
     let preferenceUsed = false;
 
