@@ -19,7 +19,7 @@ export default async (req:Request) => {
     }
     const make=(path:string,body:any)=>new Request(new URL(path,req.url),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const [baseResponse,ruleResponse]=await Promise.all([
-      baseHandler(make('/api/hts-duty',{...input,quantity:input.quantity1,quantityUnit:input.unit1,ftaQualified:false})),
+      baseHandler(make('/api/hts-duty',{...input,quantity:input.quantity1,quantityUnit:input.unit1,ftaQualified:input.ftaQualification === 'yes'})),
       tradeHandler(make('/api/trade-rules',{...input,strictFacts:true}))
     ]);
     const base=await baseResponse.json(),rules=await ruleResponse.json();
