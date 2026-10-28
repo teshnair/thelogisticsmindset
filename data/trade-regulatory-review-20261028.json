@@ -1,0 +1,53 @@
+{
+  "generatedAt": "2026-10-28",
+  "reviewedThrough": "2026-10-28",
+  "htsRevision": 21,
+  "reviewType": "Limited production-release screening for ad valorem arithmetic fix; not a comprehensive tariff compliance certification",
+  "sourcesChecked": [
+    {
+      "source": "USITC live currentRelease",
+      "url": "https://hts.usitc.gov/reststop/currentRelease",
+      "observation": "2026HTSRev21 confirmed October 28, 2026; matching bundled index Revision 21."
+    },
+    {
+      "source": "USITC HTS archive",
+      "url": "https://www.usitc.gov/harmonized_tariff_information/hts/archive/list",
+      "observation": "Newest listed edition is Revision 21 (October 9, 2026); no newer revision listed at review time."
+    },
+    {
+      "source": "CBP CSMS #70261629 (October 22)",
+      "url": "https://content.govdelivery.com/accounts/USDHSCBP/bulletins/4301b7d",
+      "observation": "Section 301 China exclusion conforming amendments for notes 20(vvv)(i)(4),(5),(6),(20) and (iv)(4); ACE availability October 23. These are product-specific exclusions; website still requires manual confirmation, does not automatically grant relief."
+    },
+    {
+      "source": "CBP CSMS #70197855 (October 14)",
+      "url": "https://content.govdelivery.com/accounts/USDHSCBP/bulletins/42f225f",
+      "observation": "HSU 2626 made four HTS and 14 ABI updates including Section 232 and PGA flag changes; live HTS Revision 21 remains current. Exact ACE PGA flags are outside this tool."
+    },
+    {
+      "source": "White House proclamation (October 23)",
+      "url": "https://www.whitehouse.gov/presidential-actions/2026/10/further-modifying-the-scope-of-products-of-canada-subject-to-the-additional-duties-imposed-to-offset-canadian-discrimination-against-the-commerce-of-the-united-states-with-respect-to-motor-vehicles/",
+      "observation": "Canadian Section 338 auto/product scope changes effective October 30, 2026 (not effective at this October 28 release). Future-dated entries from October 30 need annex incorporation; not represented as automatically resolved by this arithmetic-only release."
+    },
+    {
+      "source": "White House proclamation (October 22)",
+      "url": "https://www.whitehouse.gov/presidential-actions/2026/10/adjusting-imports-of-wind-turbines-and-their-parts-and-components-into-the-united-states/",
+      "observation": "Section 232 wind-turbine determination directs negotiations but explicitly does not impose new duties in this proclamation."
+    },
+    {
+      "source": "Federal Register, Section 301 shipping request for comments (October 26)",
+      "url": "https://www.govinfo.gov/content/pkg/FR-2026-10-26/html/2026-21755.htm",
+      "observation": "Proposal to further suspend Section 301 maritime/logistics/shipbuilding action through January 9, 2027; request for comment, not a newly imposed product-wide duty."
+    }
+  ],
+  "codeScope": "Only calculate ad valorem MFN dollars from declared customs value without optional quantities; preserve all existing Section 232/301/338 data, eligibility decisions and warning behavior. No tariff rates, index mappings or preferential treatment were added/removed.",
+  "tests": "Netlify preview #53 succeeded October 28; regression tests exercise $36,000 at 0.8%= $288, $124.70 FY2027 MPF, $45 HMF, nulls for unknown tariffs, and required quantities for specific and compound duties.",
+  "knownOpenItems": [
+    "This check is limited to a public-source change triage, not an exhaustive regulator search or formal customs legal review.",
+    "October 30 Canadian Section 338 annex changes require follow-up screening/index work; future-dated Canadian entries should be manually confirmed.",
+    "Product-specific Section 301 exclusions, quota eligibility, preferential agreements, sanctions, AD/CVD and ACE PGA flags remain manual review.",
+    "The tool screens identified tariffs and cannot establish that no other Chapter 99 treatment applies.",
+    "The live revision check and code-side handling must block or flag unresolved future source changes."
+  ],
+  "releaseDecision": "Allow owner-authorized arithmetic-only release with unchanged indexed tariff rates/logic and the existing review warnings. Never assert all duties complete if Chapter 99 review is unresolved."
+}
