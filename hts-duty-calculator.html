@@ -49,7 +49,7 @@
 <div><label for="entryDate">Entry date</label><input id="entryDate" type="date" required></div>
 <p>One formal entry in USD. MPF is calculated once across all lines; HMF applies to ocean cargo. No preferential treatment or fee exemption is assumed.</p></section>
 <div class="section-heading"><div><h2>Shipment lines</h2><p>Start with one line. Add only the lines you need.</p></div><span id="lineCount" class="pill">1 / 10 lines</span></div>
-<p class="hint">Required: HTS, origin and value. Optional details left blank give MFN rates only. Add the quantities and product facts needed to calculate amounts. Non-MFN origins retain Column 2 treatment.</p>
+<p class="hint">Required: HTS, origin and value. Ad valorem MFN duties are calculated from customs value alone. Add quantities for specific or compound rates, and product details for conditional tariffs. Non-MFN origins retain Column 2 treatment.</p>
 <div id="shipmentLines"></div>
 <div class="actions"><button type="button" id="addLine" class="secondary">+ Add HTS line</button><button type="submit" id="calculate" class="primary">Calculate shipment</button><button type="button" id="clearAll" class="text-button">Clear all</button><span id="status" role="status" aria-live="polite"></span></div>
 </form>
