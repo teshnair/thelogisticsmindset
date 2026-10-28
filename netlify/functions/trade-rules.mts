@@ -347,9 +347,17 @@ function calculationBase(ref:string,input:any,context:string,customsValue:number
 
 async function evaluateCandidate(ref:string,index:Chapter99Index,input:any,hts:string,country:string,customsValue:number):Promise<EvaluatedMeasure|null>{
   const meta=index.headings?.[ref];
-  // Missing country-wide source metadata is an unresolved screen, never a
-  // negative result. The official origin code still appears for review.
-  if(!meta && isForcedLaborCountryHeading(ref))return{program:"Section 301",hts:ref,description:"Country-specific Section 301 forced-labor treatment under U.S. note 52; tariff text not indexed.",rateText:"Current legal heading unavailable",ratePercent:null,rateMode:"unknown",estimatedDuty:null,replacementDutyEstimate:null,applicability:"review-required",reason:"Chapter 99 index is missing this origin-specific heading. Verify current USITC tariff text before calculating.",requiredFacts:[],noteTargets:["52"],exceptionRefs:[],source:"CBP CSMS 69326983, verify USITC Revision 21",sourceContext:"",liveHeadingVerified:false};
+  // Country-wide headings are not always reverse-linked by the generated
+  // Chapter 1-97 index. Resolve them directly from the *current* USITC row.
+  // The CBP country map supplies the code, never an unverified tariff amount.
+  if(!meta && isForcedLaborCountryHeading(ref)){
+    const live=await resolveLiveHeading(ref);
+    const fallbackMeta:IndexHeading={text:clean(live?.description),noteTargets:["52"]};
+    const rate=live.found?rateDecision(fallbackMeta,live):{rateMode:"unknown" as const,ratePercent:null,rateText:"Official rate row unavailable"};
+    const origin=forcedLaborHeadingMatchesOrigin(ref,country);
+    const effective=String(fact(input,"entryDate")||"2026-10-28").slice(0,10)>=SECTION301_FORCED_LABOR_EFFECTIVE;
+    return {program:"Section 301",hts:ref,description:clean(live?.description)||"Country-specific Section 301 forced-labor rate under U.S. note 52",rateText:rate.rateText,ratePercent:rate.ratePercent,rateMode:rate.rateMode,estimatedDuty:null,replacementDutyEstimate:null,applicability:origin&&effective?"review-required":"not-applicable",reason:!live.found?"Current USITC tariff heading could not be verified. No tariff amount is assumed.":!origin?"The country-specific heading is not applicable to this origin.":!effective?"This origin measure was not effective before July 24, 2026.":"The applicable origin-specific heading is identified, but exclusions under U.S. note 52(b)-(k), including 9903.05.85–9903.05.92, require merchandise-specific confirmation before calculating the final additional duty.",requiredFacts:[],noteTargets:["52"],exceptionRefs:exceptionRefs(clean(live?.description)),source:"Current USITC Chapter 99 row / CBP CSMS 69326983",sourceContext:clean(live?.description),liveHeadingVerified:!!live?.found};
+  }
   if(!meta)return null;
   const live=await resolveLiveHeading(ref),context=headingContext(meta,live),sourceContext=clean(`${meta?.text||""} ${(meta?.relationContext||[]).join(" ")} ${Object.values(meta?.legalContext||{}).join(" ")}`).slice(0,7000),program=programFor(ref,meta),origin=originDecision(country,ref,meta,live),empty=(applicability:Applicability,reason:string):EvaluatedMeasure=>({program,hts:ref,description:clean(live?.description)||clean(meta?.text),rateText:"",ratePercent:null,rateMode:"unknown",estimatedDuty:null,replacementDutyEstimate:null,applicability,reason,requiredFacts:[],noteTargets:meta?.noteTargets||[],exceptionRefs:[],source:"Current USITC Chapter 99 index",sourceContext,liveHeadingVerified:!!live?.found});if(origin.state==="no-match")return empty("not-applicable",origin.reason);
   if(isForcedLaborCountryHeading(ref)&&String(fact(input,"entryDate")||"2026-10-28").slice(0,10)<SECTION301_FORCED_LABOR_EFFECTIVE)return empty("not-applicable","The Section 301 forced-labor country-wide measure is effective July 24, 2026.");
