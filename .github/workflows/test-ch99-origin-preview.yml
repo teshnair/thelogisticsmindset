@@ -1,0 +1,21 @@
+name: Chapter 99 origin regression checks
+on:
+  push:
+    branches: [fix/ch99-origin-dispatch-20261028]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  origin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify origin-specific Chapter 99 regression
+        run: node scripts/test-ch99-origin.mjs
+      - name: Verify Chapter 99 status basis
+        run: node scripts/test-ch99-basis.mjs
