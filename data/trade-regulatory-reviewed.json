@@ -1,6 +1,6 @@
 {
   "reviewedThrough": "2026-10-28",
   "htsRevision": 21,
-  "reviewRecord": "data/trade-regulatory-review-20261028.json",
-  "note": "Limited Oct 28 production release screening: current USITC HTS Revision 21 verified, CBP China exclusion guidance and Canada Oct 30 Section 338 future changes flagged for manual review. Only ad valorem shipment math is modified. No full legal certification; see dated record."
+  "reviewRecord": "data/trade-regulatory-review-origin-20261028.json",
+  "note": "Limited Chapter 99 Section 301 forced-labor origin-routing review against CBP CSMS 69326983 and USITC Rev21, Oct 28, 2026. Colombia 9903.05.32; Chile 9903.05.30. Exemptions remain subject to review; not filing advice."
 }
