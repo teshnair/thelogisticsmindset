@@ -1,6 +1,6 @@
 {
-  "reviewedThrough": "2026-10-08",
+  "reviewedThrough": "2026-10-28",
   "htsRevision": 21,
-  "reviewRecord": "data/trade-regulatory-review-20261009.json",
-  "note": "Limited production release screening. USITC Revision 21 validated against direct official release and Chapter 99; Oct 7 China Section 301 product-exclusion amendment flagged for individual verification; AD/CVD case review and unresolved exemptions remain outside automatic calculation. See review record and warnings."
+  "reviewRecord": "data/trade-regulatory-review-20261028.json",
+  "note": "Limited Oct 28 production release screening: current USITC HTS Revision 21 verified, CBP China exclusion guidance and Canada Oct 30 Section 338 future changes flagged for manual review. Only ad valorem shipment math is modified. No full legal certification; see dated record."
 }
