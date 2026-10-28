@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-10-28",
+  "reviewedThrough": "2026-10-28",
+  "htsRevision": 21,
+  "reviewType": "Limited review of country-dependent Section 301 forced-labor Chapter 99 routing, not comprehensive classification or customs compliance certification.",
+  "officialSources": [
+    {
+      "name": "CBP CSMS #69326983 (July 23, 2026)",
+      "url": "https://content.govdelivery.com/accounts/USDHSCBP/bulletins/421d887",
+      "finding": "The 65 Chapter 99 origin headings 9903.05.20–9903.05.84 took effect July 24, 2026. 9903.05.30 is Chile, 9903.05.32 is Colombia (+12.5%), 9903.05.86 is a possible U.S. note 52(b) exception; 9903.05.85–9903.05.92 contain shared exclusions. Paired EU, JP, KR, CH and TW rates require Column 1 comparison."
+    },
+    {
+      "name": "USITC 2026 HTS Revision 21",
+      "url": "https://hts.usitc.gov/",
+      "finding": "Revision 21 remains current. Screen rates from live USITC tariff rows where code-specific metadata is missing from bundled reverse index."
+    },
+    {
+      "name": "Official Federal Register, 91 FR July 28, 2026",
+      "url": "https://www.govinfo.gov/content/pkg/FR-2026-07-28/pdf/2026-15274.pdf",
+      "finding": "Heading 9903.05.32 is designated for Colombian goods with +12.5% subject to Note 52 exemptions."
+    }
+  ],
+  "implemented": [
+    "Country-specific candidate dispatch across all 65 origin headings; unrelated country-specific codes are excluded from candidate list.",
+    "Use current USITC row to show the originating country heading even if the static reverse HTS index omitted it; if live row unavailable fail closed.",
+    "Column 1 positive surcharge is not zeroed by Column 2's 'No change'.",
+    "Origin-country baseline and Note 52 exemption candidates are not conflated; unresolved exception eligibility prevents a misleading confirmed total.",
+    "9903.01.30 donation provision no longer displays unrelated 2(a) Mexico note text; exact subdivision notes are cited.",
+    "Paired Chapter 99 treatments that depend on Column 1 rate are flagged for review instead of stacked."
+  ],
+  "regressionEvidence": "Netlify preview #54 built successfully on Oct 28. GitHub Actions Chapter 99 origin regression tests passed against mocked USITC currentRevision and Chapter 99 rows, including 9903.05.32 Colombia vs 9903.05.30 Chile, Column 1 12.5%, and exclusion of Mexican Note 2(a) excerpt. Existing metal/vehicle Chapter 99 basis tests also passed.",
+  "exclusions": [
+    "Only U.S. note 52 origin dispatch is reviewed; AD/CVD, quotas and ACE flags not reviewed.",
+    "All exemptions under U.S. note 52(b)-(k) require matching product/entry facts before a full total is declared.",
+    "Future dated tariff changes, including announced Oct 30 Canadian changes, still require additional legal data and tests.",
+    "No assertion that the calculator is suitable for actual filing or that every Chapter 99 interaction is resolved."
+  ],
+  "releaseDecision": "Permit owner-requested correction for origin routing with unresolved measure review labeling preserved; no generic zero-duty assumption."
+}
