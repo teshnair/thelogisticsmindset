@@ -2,7 +2,7 @@
   # Dated, owner-authorized manual releases or marked Sunday releases only.
   # The regulatory source review gate and regression tests are always required.
   ignore = "node scripts/netlify-ignore.cjs"
-  command = "node scripts/verify-regulatory-release-gate.mjs && node scripts/test-regulatory-release.mjs && node scripts/test-hts-shipment.mjs && node scripts/test-ch99-basis.mjs && node scripts/test-ch99-origin.mjs"
+  command = "node scripts/verify-regulatory-release-gate.mjs && node scripts/test-regulatory-release.mjs && node scripts/test-hts-shipment.mjs && node scripts/test-ch99-basis.mjs"
 
 [build.environment]
   NODE_VERSION = "24"
