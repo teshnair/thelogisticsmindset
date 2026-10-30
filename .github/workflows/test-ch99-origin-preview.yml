@@ -16,6 +16,8 @@ jobs:
         with:
           node-version: '24'
       - name: Verify origin-specific Chapter 99 regression
-        run: node scripts/test-ch99-origin.mjs
+        run: |
+          node scripts/test-ch99-origin.mjs
+          node scripts/test-ch99-stale.mjs
       - name: Verify Chapter 99 status basis
         run: node scripts/test-ch99-basis.mjs
