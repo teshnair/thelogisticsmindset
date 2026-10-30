@@ -27,4 +27,14 @@ jobs:
                       if target.startswith(('31:','16:')):
                           m=re.search('8716.{0,30}',body)
                           print(' NOTE',target,'LEN',len(body),'HAS 8716',bool(m),'LOC',m.group(0) if m else '-','START',body[:180])
+          for ref in ('9903.91.03','9903.91.11','9903.91.12','9903.91.13'):
+              h=i['headings'].get(ref,{})
+              print('OPERATIVE',ref,repr(h.get('text','')[:1500]))
+              for key in ['31:d','31:j','31:j:i','31:k:i','31:d:ii','31:k:ii']:
+                  body=h.get('legalContext',{}).get(key,'')
+                  if not body: continue
+                  print('LEGAL',ref,key,'END',repr(body[-500:]))
+                  matches=list(re.finditer('8716\\.90\\.50',body))
+                  for m in matches[:4]:
+                      print('8716-CONTEXT',ref,key,repr(body[max(0,m.start()-350):m.start()+350]))
           PY
