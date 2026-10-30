@@ -142,6 +142,25 @@ function note51HeadingForHts(index:Chapter99Index,hts:string):string|null{
   }
   return null;
 }
+// A Chapter 99 index relation is only a candidate. The operative U.S. Note 31
+// (d) and (j) enumerate specific 8-digit lines. The printed PDF may flow (k)
+// onto the same extracted paragraph, and a loose substring search can wrongly
+// attach the future chassis heading to the 2024/2025 China surcharge lists.
+function note31EnumeratedScope(ref:string,meta:IndexHeading|undefined,hts:string){
+  const target=ref==="9903.91.03"?"31:d":ref==="9903.91.11"?"31:j":null;
+  if(!target)return true;
+  const raw=clean(meta?.legalContext?.[target]);
+  if(!raw)return true; // Missing legal text cannot establish non-applicability.
+  const boundary=ref==="9903.91.03"
+    ?/\s+\(e\)\s+Heading\s+9903\.91\./i
+    :/\s+\(k\)\s+\(i\)\s+Heading\s+9903\.91\./i;
+  const operative=raw.split(boundary)[0];
+  const list=[...operative.matchAll(/\b\d{4}\.\d{2}\.\d{2}\b/g)]
+    .map(m=>digits(m[0])).filter(d=>!d.startsWith("99"));
+  if(!list.length)return true; // Rate-only review if parser cannot isolate scope.
+  const code8=digits(hts).slice(0,8);
+  return list.some(d=>code8===d);
+}
 function candidateRefs(index:Chapter99Index,hts:string,country:string){
   const refs=new Set<string>();
   for(const key of candidateKeys(hts))for(const ref of index.codes?.[key]||[]){
@@ -150,6 +169,7 @@ function candidateRefs(index:Chapter99Index,hts:string,country:string){
     // multiple country-specific Chapter 99 rows. Origin is a hard constraint:
     // never display Chile, China or other countries' rows on a Colombia entry.
     if(isForcedLaborCountryHeading(ref)&&!forcedLaborHeadingMatchesOrigin(ref,country))continue;
+    if(!note31EnumeratedScope(ref,index.headings?.[ref],hts))continue;
     refs.add(ref);
   }
   // Note 52 country surcharges are country-wide, not only index-linked HTS rows.
