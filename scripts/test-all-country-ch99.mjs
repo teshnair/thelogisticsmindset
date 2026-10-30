@@ -90,6 +90,26 @@ const us=await run('8302413000','US','CN');
 assert.equal(us.measures.some(m=>m.hts==='9903.05.31'),false,'CN smelt cannot trigger a China-origin charge');
 const china=await run('8302413000','CN','US');
 assert.equal(china.measures.some(m=>m.hts==='9903.05.31'),true,'China-origin charge cannot be removed by US smelt');
+
+async function withFacts(hts,country,facts){
+  const req=new Request('https://example.test/api/trade-rules',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({hts,country,customsValue:100000,entryDate:'2026-10-30',strictFacts:true,...facts})});
+  return (await handler(req)).json();
+}
+const unknownMetal=await withFacts('8302413000','CN',{meltPourCountry:'CN'});
+assert.ok(unknownMetal.requiredFacts.includes('subjectMetalType'),
+  'For a base-metal fitting, HTS 8302 does not identify the actual metal; ask for it before selecting Section 232');
+const certifiedSteel=await withFacts('7206100000','CN',{meltPourCountry:'CN'});
+assert.equal(certifiedSteel.requiredFacts.includes('subjectMetalType'),false,
+  'Chapter 72 directly establishes steel; never ask the user to identify steel again');
+assert.equal(certifiedSteel.measures.some(m=>m.hts==='9903.82.01'||m.hts==='9903.82.03'),false,
+  'No-metal and under-15% exceptions are not valid for HTS Chapter 72');
+const statedNone=await withFacts('8302413000','CN',{meltPourCountry:'CN',subjectMetalType:'none'});
+assert.equal(statedNone.measures.some(m=>/^9903\\.82\\./.test(m.hts)&&m.hts!=='9903.82.01'),false,
+  'When an article has no subject metal, all covered metal-treatment candidates must be screened out');
+assert.ok(statedNone.measures.some(m=>m.hts==='9903.05.31'),
+  'Metal conditions do not suppress country-based tariff screening');
+console.log('PASS: automatic metal inference for chapters 72/73/74/76, single material question for base-metal fittings, and note 16 material exclusions.');
 const invalid=await handler(post({hts:'8302413000',country:'XX',smelt:'CN'}));
 assert.equal(invalid.status,400,'Invalid origin must be rejected, not silently fall back');
 
