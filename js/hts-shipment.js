@@ -70,6 +70,31 @@ function chapter99Basis(m){
     +(notes.length?'<details><summary>Read linked legal-note excerpts</summary>'+notes.map(n=>'<p><strong>'+esc(n.reference)+':</strong> '+esc(n.excerpt)+'</p>').join('')+'<small>Excerpts only. <a href="https://hts.usitc.gov/reststop/file?release=currentRelease&amp;filename=Chapter%2099" target="_blank" rel="noopener">Read the full official Chapter 99 and U.S. notes</a> before filing.</small></details>':'')
     +'</div>';
 }
+// HTS-linked Chapter 99 rows can be mutually exclusive ALTERNATIVES.
+// Do not present metal exceptions and other branches as cumulative duties.
+function tariffRows(ms,r,stale){
+  const code=r.classification?.displayHts||r.input.hts,chapter=String(r.input.hts||'').replace(/\D/g,'').slice(0,2);
+  const knownMaterial=chapter==='72'||chapter==='73'?'steel':chapter==='74'?'copper':chapter==='76'?'aluminum':null;
+  const material=knownMaterial||r.input.subjectMetalType||'';
+  const metal=m=>m.program==='Section 232'&&/^9903\.82\.(?:0[1-9]|1\d|2[0-6])$/.test(m.hts);
+  const alternatives=ms.filter(metal),grouped=alternatives.length>1;
+  const other=grouped?ms.filter(m=>!metal(m)):ms;
+  const row=m=>'<tr><td><strong>'+esc(m.program)+'</strong><br><a href="https://hts.usitc.gov/search?query='+encodeURIComponent(m.hts)+'" target="_blank" rel="noopener">'+esc(m.hts)+'</a></td><td>'+(m.ratePercent!=null?m.ratePercent+'%'+(stale?' (published only)':''):'Rate not verified')+'<small>'+esc(m.rateMode)+'</small><details><summary>Published rate</summary>'+esc(m.rateText)+'</details></td><td>'+chapter99Basis(m)+'</td><td class="amount">'+money(m.amount)+'</td></tr>';
+  let prefix='';
+  if(grouped){
+    const confirmed=alternatives.filter(m=>m.applicability==='applicable'),pending=alternatives.filter(m=>m.applicability!=='applicable');
+    const resolved=confirmed.length===1&&!pending.length;
+    const rate=resolved&&confirmed[0].ratePercent!=null?confirmed[0].ratePercent+'%':'Conditional / not determined';
+    const summary=!material?
+      'HTS '+code+' does not establish whether this article contains steel, aluminum or copper. Identify the actual metal. The listed U.S. note 16 provisions are alternatives, not duties to be added.' :
+      (knownMaterial?'The HTS chapter identifies ':'The provided product facts identify ')+material+'. The rate still depends on the applicable U.S. note 16 condition, including source of metal, composition and exceptions. The rates below are alternatives, not cumulative.';
+    const needed=[...new Set(alternatives.flatMap(m=>m.basis?.missingFacts||[]))].filter(Boolean);
+    const snippets=alternatives.map(m=>'<li><strong>'+esc(m.hts)+'</strong> ('+(m.ratePercent==null?'rate unverified':m.ratePercent+'%')+'): '+esc((m.basis?.headingSummary||m.description||'See official heading').slice(0,350))+'<br><small>'+esc(m.reason||'')+'</small></li>').join('');
+    prefix='<tr><td><strong>Section 232</strong><br>Metal-specific alternatives</td><td>'+rate+'<small>Not cumulative</small></td><td><strong>'+(resolved?'Resolved metal rate':'Product condition(s) unresolved')+'</strong><p>'+esc(summary)+'</p>'+(needed.length?'<p><strong>Still needed:</strong> '+esc(needed.slice(0,5).join('; '))+'</p>':'')+'<details><summary>Read '+alternatives.length+' metal tariff alternatives and their product conditions</summary><ul>'+snippets+'</ul></details></td><td class="amount">'+(resolved?money(confirmed[0].amount):'Not calculated')+'</td></tr>';
+  }
+  const result=prefix+other.map(row).join('');
+  return result||'<tr><td colspan="4">No Chapter 99 provision was established from this HTS and origin. That does not establish an exemption.</td></tr>';
+}
 function renderLine(r,i){if(r.error)return `<div class="card result-line error"><strong>Line ${i+1} · ${esc(r.input.hts)}</strong><p>${esc(r.error)}</p><p>No amount has been assumed. Correct this line or retry.</p></div>`;
   const e=r.estimate,c=r.classification,ms=e.measures,stale=!r.rules.revisionVerified;
   const smelt=r.input.meltPourCountry||'not entered';
@@ -79,7 +104,7 @@ function renderLine(r,i){if(r.error)return `<div class="card result-line error">
   <div class="tablescroll"><table><thead><tr><th>Ordinary duty</th><th>Rate</th><th>Amount</th></tr></thead><tbody><tr><td>MFN / Column 1 General</td><td>${esc(r.rates.mfnRate||r.rates.appliedRate||'Not returned')}</td><td class="amount">${r.rates.appliedBasis==='Column 2'?'Reference only':money(e.ordinary.amount)}</td></tr>${r.rates.appliedBasis==='Column 2'?`<tr><td>Applicable Column 2 treatment</td><td>${esc(r.rates.appliedRate)}</td><td class="amount">${money(e.ordinary.amount)}</td></tr>`:''}</tbody></table></div>
   ${e.ordinary.reason?`<p class="hint">${esc(e.ordinary.reason)}</p>`:''}
   ${r.rates.broadDutySummary?.multipleRates?`<div class="notice">Multiple rates exist below this heading. Select a full 10-digit code to determine the applicable rate and amounts.</div>`:''}
-  <h3 class="subheading">Tariff sections &amp; Chapter 99</h3><div class="tablescroll"><table><thead><tr><th>Section / Chapter 99</th><th>Rate</th><th>Status / basis</th><th>Tariff amount</th></tr></thead><tbody>${ms.map(m=>`<tr><td><strong>${esc(m.program)}</strong><br><a href="https://hts.usitc.gov/search?query=${encodeURIComponent(m.hts)}" target="_blank" rel="noopener">${esc(m.hts)}</a></td><td>${m.ratePercent!=null?`${m.ratePercent}% ${stale?'(published only, not assessed)':''}`:'Rate not verified'}<small>${esc(m.rateMode)} ${m.rateMode==='replacement'?'— replaces duty, not additive':''}</small><details><summary>Published rate</summary>${esc(m.rateText)}</details></td><td>${chapter99Basis(m)}</td><td class="amount">${money(m.amount)}</td></tr>`).join('')||`<tr><td colspan="4">${stale?'Current Chapter 99 mapping unavailable. No applicable-rate conclusion can be drawn until the legal index is refreshed.':'No matching Chapter 99 candidate returned. This does not clear global, product-specific or unindexed measures.'}</td></tr>`}</tbody></table></div>
+  <h3 class="subheading">Tariff sections &amp; Chapter 99</h3><div class="tablescroll"><table><thead><tr><th>Section / Chapter 99</th><th>Rate</th><th>Status / basis</th><th>Tariff amount</th></tr></thead><tbody>${tariffRows(ms,r,stale)}</tbody></table></div>
   <p><strong>Calculated tariffs: ${money(e.knownTariffs)}</strong>${e.tariffTotal==null?' · Partial — unresolved tariffs excluded':''}</p>
   ${(r.rules.supplementalNotices||[]).map(n=>`<div class="notice"><strong>${esc(n.title)}</strong><p>${esc(n.message)}</p><a href="${esc(n.source)}" target="_blank" rel="noopener">Official source</a></div>`).join('')}
   ${e.warnings.map(w=>`<div class="notice">${esc(w)}</div>`).join('')}
