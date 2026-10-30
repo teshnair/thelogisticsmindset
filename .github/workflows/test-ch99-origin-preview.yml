@@ -9,13 +9,19 @@ permissions:
 jobs:
   origin:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Validate calculator browser script syntax
+        run: node --check js/hts-shipment.js
       - name: Verify origin-specific Chapter 99 regression
-        run: node scripts/test-ch99-origin.mjs
+        run: |
+          node scripts/test-ch99-origin.mjs
+          node scripts/test-ch99-stale.mjs
+      - name: Verify every ISO country against diverse HTS families
+        run: node scripts/test-all-country-ch99.mjs
       - name: Verify Chapter 99 status basis
         run: node scripts/test-ch99-basis.mjs

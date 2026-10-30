@@ -34,7 +34,7 @@ assert.equal(donationBasis.legalNotes.some(n=>n.excerpt&&n.excerpt.includes('Mex
 const liveSearches=[];
 globalThis.fetch=async input=>{
   const url=new URL(String(input));
-  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision 21',date:'2026-10-09'});
+  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision '+JSON.parse(readFileSync(new URL('../data/chapter99-index.json',import.meta.url),'utf8')).htsRevision,date:'2026-10-30'});
   if(url.pathname.endsWith('/search')){
     const key=url.searchParams.get('keyword')||'';
     liveSearches.push(key);
@@ -60,5 +60,10 @@ assert.equal(co.measures.some(m=>m.hts==='9903.05.30'||m.hts==='9903.05.31'),fal
 assert.equal(co.measures.some(m=>m.hts==='9903.01.30'&&m.basis?.legalNotes?.some(n=>n.excerpt&&n.excerpt.includes('Mexico'))),false);
 const cl=await check('2008991500','CL');
 assert.deepEqual(cl.measures.filter(m=>isForcedLaborCountryHeading(m.hts)).map(m=>m.hts),['9903.05.30']);
+const chinaChassis=await check('8716905060','CN');
+assert.equal(chinaChassis.measures.some(m=>['9903.91.03','9903.91.11'].includes(m.hts)),false,
+  '8716.90.50 is not enumerated in the operative U.S. Note 31(d) or (j); later Note 31(k) text must not contaminate the prior lists.');
+assert.equal(chinaChassis.measures.some(m=>['9903.91.12','9903.91.13'].includes(m.hts)),false,
+  'The Nov 10, 2026 Note 31(k) chassis rules are not effective on Oct 28.');
 assert.ok(liveSearches.includes('99030532'));
 console.log('PASS: Colombia 9903.05.32; Chile 9903.05.30; Section 301 Column 1 rate; legal-note specificity; EU/Japan paired rates flagged.');
