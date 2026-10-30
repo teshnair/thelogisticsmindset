@@ -61,6 +61,13 @@ assert.equal(co.measures.some(m=>m.hts==='9903.01.30'&&m.basis?.legalNotes?.some
 const cl=await check('2008991500','CL');
 assert.deepEqual(cl.measures.filter(m=>isForcedLaborCountryHeading(m.hts)).map(m=>m.hts),['9903.05.30']);
 const chinaChassis=await check('8716905060','CN');
+console.log('CHASSIS DEBUG',chinaChassis.measures.map(m=>m.hts));
+for(const [ref,target] of [['9903.91.03','31:d'],['9903.91.11','31:j']]){
+ const raw=JSON.parse(readFileSync(new URL('../data/chapter99-index.json',import.meta.url),'utf8')).headings[ref]?.legalContext?.[target]||'';
+ const splitAt=ref.endsWith('.03')?/\s+\(e\)\s+|\s+\(k\)\s+/i:/\s+\(k\)\s+/i;
+ const first=raw.split(splitAt)[0];
+ console.log('NOTE31 DEBUG',ref,'rawLen',raw.length,'isolatedLen',first.length,'occurrences',first.match(/.{0,100}8716\.90\.50.{0,100}/g)?.slice(0,2), 'markers',raw.slice(0,110), 'hasK',raw.includes('(k)'));
+}
 assert.equal(chinaChassis.measures.some(m=>['9903.91.03','9903.91.11'].includes(m.hts)),false,
   '8716.90.50 is not enumerated in the operative U.S. Note 31(d) or (j); later Note 31(k) text must not contaminate the prior lists.');
 assert.equal(chinaChassis.measures.some(m=>['9903.91.12','9903.91.13'].includes(m.hts)),false,
