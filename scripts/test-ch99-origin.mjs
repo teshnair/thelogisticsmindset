@@ -34,7 +34,7 @@ assert.equal(donationBasis.legalNotes.some(n=>n.excerpt&&n.excerpt.includes('Mex
 const liveSearches=[];
 globalThis.fetch=async input=>{
   const url=new URL(String(input));
-  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision 21',date:'2026-10-09'});
+  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision '+JSON.parse(readFileSync(new URL('../data/chapter99-index.json',import.meta.url),'utf8')).htsRevision,date:'2026-10-30'});
   if(url.pathname.endsWith('/search')){
     const key=url.searchParams.get('keyword')||'';
     liveSearches.push(key);
