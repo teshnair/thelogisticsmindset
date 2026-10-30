@@ -1,0 +1,48 @@
+name: Live preview Chapter 99 response smoke
+on:
+  push:
+    branches:
+      - fix/ch99-rev22-country-screen-20261030
+    paths:
+      - .github/workflows/live-ch99-preview-smoke.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check deployed preview GET tariff rules against USITC revision
+        env:
+          PREVIEW: https://deploy-preview-55--thelogisticsmindset.netlify.app
+        run: |
+          python3 - <<'PY'
+          import json,os,time,urllib.parse,urllib.request
+          base=os.environ['PREVIEW']
+          probes=[('8302413000','CN','CN'),('7326908688','CN','CN'),('7206100000','CN','CN'),
+                  ('3919102055','ZA','ZA'),('8716905060','CN','CN'),('8302413000','US','CN')]
+          for hts,country,smelt in probes:
+              query=urllib.parse.urlencode({'hts':hts,'country':country,'meltPourCountry':smelt,
+                                            'customsValue':100000,'entryDate':'2026-10-30','strictFacts':'true'})
+              url=base+'/api/trade-rules?'+query
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(url,timeout=120) as resp: data=json.load(resp)
+                      break
+                  except Exception as err:
+                      print('retry',hts,country,attempt,repr(err),flush=True)
+                      if attempt==2: raise
+                      time.sleep(4)
+              rows=data.get('measures') or []
+              print('CHECK',hts,country,'smelt',smelt,'status',data.get('status'),'current',data.get('currentHts'),
+                    'index',data.get('indexHts',{}).get('revision'),'candidateCount',data.get('candidateCount'),
+                    'visible',len(rows),'programs',sorted(set(r['program'] for r in rows)),
+                    'top',[(r['hts'],r['ratePercent'],r['applicability']) for r in rows[:20]],flush=True)
+              assert data.get('revisionVerified'),(hts,country,data.get('message'))
+              assert data.get('indexHts',{}).get('revision')==22,(hts,country)
+              assert len(rows)<100,'Potential Chapter 99 flood for '+hts
+              if country=='US':
+                  assert not any(m['hts']=='9903.05.31' for m in rows),'China smelt alone must not trigger China-origin Section 301'
+          print('PASS: live preview uses the current index and keeps China smelt separate from country of origin')
+          PY
