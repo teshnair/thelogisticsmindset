@@ -66,6 +66,7 @@ for(const [ref,target] of [['9903.91.03','31:d'],['9903.91.11','31:j']]){
  const raw=JSON.parse(readFileSync(new URL('../data/chapter99-index.json',import.meta.url),'utf8')).headings[ref]?.legalContext?.[target]||'';
  const splitAt=ref.endsWith('.03')?/\s+\(e\)\s+|\s+\(k\)\s+/i:/\s+\(k\)\s+/i;
  const first=raw.split(splitAt)[0];
+ console.log('NOTE31 RAW BODY',ref,JSON.stringify(raw.slice(0,2150)));
  console.log('NOTE31 DEBUG',ref,'rawLen',raw.length,'isolatedLen',first.length,'occurrences',first.match(/.{0,100}8716\.90\.50.{0,100}/g)?.slice(0,2), 'markers',raw.slice(0,110), 'hasK',raw.includes('(k)'));
 }
 assert.equal(chinaChassis.measures.some(m=>['9903.91.03','9903.91.11'].includes(m.hts)),false,
