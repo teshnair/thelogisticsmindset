@@ -152,8 +152,8 @@ function note31EnumeratedScope(ref:string,meta:IndexHeading|undefined,hts:string
   const raw=clean(meta?.legalContext?.[target]);
   if(!raw)return true; // Missing legal text cannot establish non-applicability.
   const boundary=ref==="9903.91.03"
-    ?/\s+\(e\)\s+Heading\s+9903\.91\./i
-    :/\s+\(k\)\s+\(i\)\s+Heading\s+9903\.91\./i;
+    ?/\s+\(e\)\s+|\s+\(k\)\s+/i
+    :/\s+\(k\)\s+/i;
   const operative=raw.split(boundary)[0];
   const list=[...operative.matchAll(/\b\d{4}\.\d{2}\.\d{2}\b/g)]
     .map(m=>digits(m[0])).filter(d=>!d.startsWith("99"));
