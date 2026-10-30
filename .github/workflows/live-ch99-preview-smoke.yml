@@ -42,6 +42,9 @@ jobs:
               assert data.get('revisionVerified'),(hts,country,data.get('message'))
               assert data.get('indexHts',{}).get('revision')==22,(hts,country)
               assert len(rows)<100,'Potential Chapter 99 flood for '+hts
+              if hts=='8716905060':
+                  assert not any(m['hts'] in ('9903.91.03','9903.91.11') for m in rows),'Chassis code leaked into the unrelated Note 31(d)/(j) goods list'
+                  assert not any(m['hts'] in ('9903.91.12','9903.91.13') for m in rows),'Future November 10 chassis rules cannot apply on October 30'
               if country=='US':
                   assert not any(m['hts']=='9903.05.31' for m in rows),'China smelt alone must not trigger China-origin Section 301'
           print('PASS: live preview uses the current index and keeps China smelt separate from country of origin')
