@@ -56,6 +56,13 @@ async function run(hts,country,smelt=''){
  return data;
 }
 
+for(const code of ['8302','83024130','7206','7326','7610']){
+ console.log('INDEX CODE',code,(indexed.codes[code]||[]).join(','));
+}
+for(const ref of ['9903.82.01','9903.82.02','9903.82.03','9903.82.04','9903.82.06','9903.82.09','9903.82.14','9903.82.18','9903.82.20','9903.82.21','9903.82.22','9903.82.23','9903.82.24','9903.82.25','9903.82.26']){
+const m=indexed.headings[ref]||{};
+console.log('INDEX HEADING',ref,JSON.stringify(m.text||'').slice(0,1600),'targets',(m.noteTargets||[]).join(','));
+}
 const families=['8302413000','7206100000','3919102055','8544422000','8716905060'];
 let calls=0,originRows=0;
 for(const country of countries){
