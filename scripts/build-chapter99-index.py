@@ -14,7 +14,7 @@ lines = text.splitlines()
 
 rev = None
 hts_year = None
-rev_match = re.search(r'Harmonized Tariff Schedule of the United States Revision\s+(\d+)\s*\((2026)\)', text)
+rev_match = re.search(r'Harmonized Tariff Schedule of the United States Revision\s+(\d+)\s*\((20\d{2})\)', text)
 if rev_match:
     rev = int(rev_match.group(1))
     hts_year = int(rev_match.group(2))
