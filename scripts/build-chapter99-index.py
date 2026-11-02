@@ -13,9 +13,11 @@ text = open(src, "r", encoding="utf-8", errors="replace").read()
 lines = text.splitlines()
 
 rev = None
+hts_year = None
 rev_match = re.search(r'Harmonized Tariff Schedule of the United States Revision\s+(\d+)\s*\((2026)\)', text)
 if rev_match:
     rev = int(rev_match.group(1))
+    hts_year = int(rev_match.group(2))
 
 note_membership = defaultdict(set)
 subdivision_text = defaultdict(list)
@@ -354,7 +356,7 @@ payload = {
     "schemaVersion": 2,
     "source": "USITC current Chapter 99 PDF",
     "sourceUrl": "https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099",
-    "htsYear": 2026,
+    "htsYear": hts_year,
     "htsRevision": rev,
     "generatedAt": datetime.now(timezone.utc).isoformat(),
     "safetyPolicy": {
