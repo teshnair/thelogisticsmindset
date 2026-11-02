@@ -28,14 +28,14 @@ const donationBasis=buildChapter99Basis(
 assert.deepEqual(donationBasis.noteRefs,['U.S. note 2(v)(ii)']);
 assert.equal(donationBasis.legalNotes.some(n=>n.excerpt&&n.excerpt.includes('Mexico')),false,'Do not display unrelated Mexican note text for Colombian donation exception');
 
-const revision=JSON.parse(readFileSync('data/chapter99-index.json','utf8')).htsRevision;
+const {htsYear,htsRevision}=JSON.parse(readFileSync('data/chapter99-index.json','utf8'));
 // Exercise real deployed handler logic under isolated official-source stubs.
 // Fail if a country-specific code is omitted, if foreign codes leak, or if
 // column 2 "No change" overrides the positive column 1 Section 301 rate.
 const liveSearches=[];
 globalThis.fetch=async input=>{
   const url=new URL(String(input));
-  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision '+revision,date:'2026-10-09'});
+  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:htsYear+' HTS Revision '+htsRevision,date:'2026-10-09'});
   if(url.pathname.endsWith('/search')){
     const key=url.searchParams.get('keyword')||'';
     liveSearches.push(key);
