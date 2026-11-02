@@ -1,0 +1,49 @@
+name: Smoke-test HTS Rev22 origin and exclusions preview
+on:
+  push:
+    branches: [fix/hts-rev22-origin-exclusions-20261102]
+    paths:
+      - '.github/workflows/test-rev22-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Verify live Netlify deploy-preview-56 responses
+        run: |
+          python3 - <<'PY'
+          import json,time,urllib.request,re
+          base='https://deploy-preview-56--thelogisticsmindset.netlify.app'
+          def check(hts,country,smelt=''):
+              payload=json.dumps({'hts':hts,'country':country,'meltPourCountry':smelt,
+                  'customsValue':100000,'entryDate':'2026-11-02','strictFacts':True}).encode()
+              req=urllib.request.Request(base+'/api/trade-rules',data=payload,
+                  headers={'Content-Type':'application/json'},method='POST')
+              for i in range(4):
+                  try:
+                      with urllib.request.urlopen(req,timeout=110) as r: result=json.load(r)
+                      break
+                  except Exception as e:
+                      if i==3: raise
+                      print('Transient preview error',str(e));time.sleep(5)
+              assert result['revisionVerified'],result.get('message')
+              assert result['indexHts']['revision']==22,result.get('indexHts')
+              print(hts,country,'revision',result['indexHts']['revision'],
+                    'status',result['status'],'candidates',len(result['measures']))
+              return result
+          za=check('3919102055','ZA')
+          assert not any(re.match(r'^9903\\.(88|91)\\.',m['hts']) for m in za['measures']), 'China tariff leaked into South Africa screen'
+          assert not any('China origin' in x for m in za['measures'] for x in (m.get('basis',{}).get('eligibility') or [])), 'China origin leaked into South Africa legal basis'
+          assert any(m['hts']=='9903.05.69' for m in za['measures']), 'ZA-specific Section 301 measure not found'
+          for m in za['measures']:
+              refs=m.get('basis',{}).get('noteRefs') or []
+              assert not any('20(qqq)' in n or '20(ttt)' in n for n in refs),(m['hts'],refs)
+          za_metal=check('8302413000','ZA')
+          assert not any(re.match(r'^9903\\.(88|91)\\.',m['hts']) for m in za_metal['measures'])
+          cn=check('8302413000','CN')
+          assert not any(m['hts'] in {'9903.88.64','9903.88.66','9903.88.67','9903.88.68'} for m in cn['measures']), 'Expired historical China exclusions still visible'
+          print('PASS: Rev22 live preview; SA does not display China origin; expired 20(qqq)/20(ttt) exclusions suppressed.')
+          PY

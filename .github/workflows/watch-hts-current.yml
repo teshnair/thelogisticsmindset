@@ -1,0 +1,88 @@
+name: Watch current USITC HTS and prepare Chapter 99 updates
+on:
+  schedule:
+    # GitHub scheduled workflows run on the repository default branch only.
+    - cron: '19 11 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - id: current
+        name: Compare current USITC release against reviewed main index
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, re, urllib.request
+          with urllib.request.urlopen('https://hts.usitc.gov/reststop/currentRelease', timeout=25) as r:
+              release=json.load(r)
+          m=re.search(r'(20\d{2})\s+HTS\s+Revision\s+(\d+)',release.get('description',''))
+          if not m: raise SystemExit('USITC release format changed; human review required: '+str(release))
+          year,rev=int(m[1]),int(m[2])
+          index=json.load(open('data/chapter99-index.json',encoding='utf8'))
+          changed=(index.get('htsYear'),index.get('htsRevision'))!=(year,rev)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write(f'changed={str(changed).lower()}\n')
+              out.write(f'year={year}\nrevision={rev}\n')
+              out.write(f'branch=automation/hts-{year}-revision-{rev}\n')
+          print('Official:',release['description'],'Reviewed deployed index:',index.get('htsYear'),index.get('htsRevision'),'Update required:',changed)
+          PY
+      - if: steps.current.outputs.changed == 'true'
+        name: Read current official Chapter 99 PDF and rebuild scoped legal index
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 150 \
+            'https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099' \
+            --output /tmp/chapter99.pdf
+          test "$(head -c4 /tmp/chapter99.pdf)" = '%PDF'
+          pdftotext -layout /tmp/chapter99.pdf /tmp/chapter99.txt
+          python3 scripts/build-chapter99-index.py /tmp/chapter99.txt data/chapter99-index.json
+          python3 - <<'PY'
+          import json, os
+          idx=json.load(open('data/chapter99-index.json',encoding='utf8'))
+          assert idx['htsYear']==int(os.environ['EXPECT_YEAR'])
+          assert idx['htsRevision']==int(os.environ['EXPECT_REVISION'])
+          assert idx.get('stats',{}).get('validatedCandidateLinks',0)>0
+          print('Index revision, year, structural links verified:',idx['htsYear'],idx['htsRevision'])
+          PY
+          node scripts/test-regulatory-release.mjs
+          node scripts/test-ch99-basis.mjs
+          node scripts/test-ch99-origin.mjs
+          node scripts/test-hts-shipment.mjs
+        env:
+          EXPECT_YEAR: ${{ steps.current.outputs.year }}
+          EXPECT_REVISION: ${{ steps.current.outputs.revision }}
+      - if: steps.current.outputs.changed == 'true'
+        name: Open a review-only PR for the new USITC revision
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPDATE_BRANCH: ${{ steps.current.outputs.branch }}
+          EXPECT_YEAR: ${{ steps.current.outputs.year }}
+          EXPECT_REVISION: ${{ steps.current.outputs.revision }}
+        run: |
+          set -euo pipefail
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git switch -c "$UPDATE_BRANCH"
+          git add data/chapter99-index.json
+          git commit -m "Prepare USITC $EXPECT_YEAR HTS Revision $EXPECT_REVISION Chapter 99 legal index"
+          git push -u origin "HEAD:$UPDATE_BRANCH"
+          gh pr create --base main --head "$UPDATE_BRANCH" --draft \
+            --title "Review USITC $EXPECT_YEAR HTS Revision $EXPECT_REVISION Chapter 99 index" \
+            --body "New official USITC HTS revision detected. Index regenerated from current Chapter 99 PDF and regression-tested. **Regulatory review required before production.** Check changed Chapter 99 headings/notes, source effective dates, country rules, and update the dated regulatory release checkpoint before merging. The normal Netlify production release gate remains in place." \
+            || echo "::warning::Updated review branch exists, but automatic PR creation was blocked; open the PR manually."

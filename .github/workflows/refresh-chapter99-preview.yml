@@ -1,10 +1,11 @@
-name: Refresh Chapter 99 legal index for preview
+name: Refresh current Chapter 99 index for HTS screening review
 # Rebuild verifies enumerated 4-digit, 6-digit, 8-digit and 10-digit heading coverage.
 on:
   push:
-    branches: [fix/chapter99-legal-basis-20261008]
+    branches: [fix/hts-rev22-origin-exclusions-20261102]
     paths:
       - '.github/workflows/refresh-chapter99-preview.yml'
+      - 'scripts/build-chapter99-index.py'
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fix/chapter99-legal-basis-20261008
+          ref: fix/hts-rev22-origin-exclusions-20261102
           persist-credentials: true
       - name: Retrieve current HTS PDF from USITC
         shell: bash
@@ -52,6 +53,7 @@ jobs:
           node scripts/test-regulatory-release.mjs
           node scripts/test-hts-shipment.mjs
           node scripts/test-ch99-basis.mjs
+          node scripts/test-ch99-origin.mjs
       - name: Commit refreshed index to the review branch
         shell: bash
         run: |
@@ -63,5 +65,5 @@ jobs:
             echo 'Chapter 99 index already matches current source'
           else
             git commit -m 'Refresh Chapter 99 legal index from current USITC revision [skip ci]'
-            git push origin HEAD:fix/chapter99-legal-basis-20261008
+            git push origin HEAD:fix/hts-rev22-origin-exclusions-20261102
           fi
