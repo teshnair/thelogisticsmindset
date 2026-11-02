@@ -28,13 +28,14 @@ const donationBasis=buildChapter99Basis(
 assert.deepEqual(donationBasis.noteRefs,['U.S. note 2(v)(ii)']);
 assert.equal(donationBasis.legalNotes.some(n=>n.excerpt&&n.excerpt.includes('Mexico')),false,'Do not display unrelated Mexican note text for Colombian donation exception');
 
+const revision=JSON.parse(readFileSync('data/chapter99-index.json','utf8')).htsRevision;
 // Exercise real deployed handler logic under isolated official-source stubs.
 // Fail if a country-specific code is omitted, if foreign codes leak, or if
 // column 2 "No change" overrides the positive column 1 Section 301 rate.
 const liveSearches=[];
 globalThis.fetch=async input=>{
   const url=new URL(String(input));
-  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision 21',date:'2026-10-09'});
+  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision '+revision,date:'2026-10-09'});
   if(url.pathname.endsWith('/search')){
     const key=url.searchParams.get('keyword')||'';
     liveSearches.push(key);
@@ -61,4 +62,14 @@ assert.equal(co.measures.some(m=>m.hts==='9903.01.30'&&m.basis?.legalNotes?.some
 const cl=await check('2008991500','CL');
 assert.deepEqual(cl.measures.filter(m=>isForcedLaborCountryHeading(m.hts)).map(m=>m.hts),['9903.05.30']);
 assert.ok(liveSearches.includes('99030532'));
+const za=await check('3919102055','ZA');
+assert.equal(za.revisionVerified,true,'Updated legal index must match the current USITC release');
+assert.ok(za.measures.every(m=>!/^9903\\.(88|91)\\./.test(m.hts)),
+  'South Africa origin must not display China-only Section 301 headings');
+assert.ok(za.measures.every(m=>!(m.basis?.noteRefs||[]).some(n=>/U\\.S\\. note 20\\((?:qqq|ttt)\\)/.test(n))),
+  'Expired China exclusions 20(qqq)/20(ttt) must not appear as current notes');
+const outdated=buildChapter99Basis({hts:'9903.88.03',description:'Products of China as provided for in U.S. note 20(f)',applicability:'applicable'},
+  {noteTargets:['20:f','20:qqq','20:ttt','20:vvv'],legalContext:{}},'CN');
+assert.ok(outdated.noteRefs.includes('U.S. note 20(f)'));
+assert.ok(!outdated.noteRefs.some(n=>/20\\((?:qqq|ttt)\\)/.test(n)),'Stale exclusion note references are suppressed');
 console.log('PASS: Colombia 9903.05.32; Chile 9903.05.30; Section 301 Column 1 rate; legal-note specificity; EU/Japan paired rates flagged.');
