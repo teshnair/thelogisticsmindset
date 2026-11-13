@@ -34,7 +34,7 @@ assert.equal(donationBasis.legalNotes.some(n=>n.excerpt&&n.excerpt.includes('Mex
 const liveSearches=[];
 globalThis.fetch=async input=>{
   const url=new URL(String(input));
-  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision 21',date:'2026-10-09'});
+  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision 23',date:'2026-10-09'});
   if(url.pathname.endsWith('/search')){
     const key=url.searchParams.get('keyword')||'';
     liveSearches.push(key);
@@ -46,11 +46,11 @@ globalThis.fetch=async input=>{
 const {default: handler}=await import('../netlify/functions/trade-rules.mts');
 const post=body=>new Request('https://example.org/api/trade-rules',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 const check=async (hts,country)=>{
-  const res=await handler(post({hts,country,customsValue:36000,entryDate:'2026-10-28',strictFacts:true}));
+  const res=await handler(post({hts,country,customsValue:36000,entryDate:'2026-11-13',strictFacts:true}));
   assert.equal(res.ok,true,'API must return success for '+country);
   return res.json();
 };
-const co=await check('2008991500','CO');
+const co=await check('4819400040','CO');
 assert.equal(co.revisionVerified,true);
 const forced=co.measures.filter(m=>isForcedLaborCountryHeading(m.hts));
 assert.deepEqual(forced.map(m=>m.hts),['9903.05.32'],'Use Colombia heading 9903.05.32 and not Chile or China');
@@ -58,7 +58,9 @@ assert.equal(forced[0].program,'Section 301');
 assert.equal(forced[0].ratePercent,12.5,'Column 1 +12.5% is controlling even if Column 2 says No change');
 assert.equal(co.measures.some(m=>m.hts==='9903.05.30'||m.hts==='9903.05.31'),false);
 assert.equal(co.measures.some(m=>m.hts==='9903.01.30'&&m.basis?.legalNotes?.some(n=>n.excerpt&&n.excerpt.includes('Mexico'))),false);
-const cl=await check('2008991500','CL');
+const cl=await check('4819400040','CL');
 assert.deepEqual(cl.measures.filter(m=>isForcedLaborCountryHeading(m.hts)).map(m=>m.hts),['9903.05.30']);
 assert.ok(liveSearches.includes('99030532'));
 console.log('PASS: Colombia 9903.05.32; Chile 9903.05.30; Section 301 Column 1 rate; legal-note specificity; EU/Japan paired rates flagged.');
+
+

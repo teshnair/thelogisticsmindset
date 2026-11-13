@@ -1,0 +1,47 @@
+name: Verify tariff engine preview
+on:
+  push:
+    branches: [preview/hts-rules-engine]
+    paths-ignore: ['data/chapter99-index.json']
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Rebuild from current official legal source
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+          curl --fail --retry 3 --location 'https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099' -o /tmp/ch99.pdf
+          pdftotext -layout /tmp/ch99.pdf /tmp/ch99.txt
+          python3 scripts/build-chapter99-index.py /tmp/ch99.txt data/chapter99-index.json
+          python3 - <<'PY'
+          import json, hashlib, urllib.request, re
+          p='data/chapter99-index.json'
+          i=json.load(open(p))
+          r=json.load(urllib.request.urlopen('https://hts.usitc.gov/reststop/currentRelease'))
+          assert i['htsRevision']==int(re.search(r'Revision (\d+)',r['description'])[1])==23
+          i['effectiveFrom']='2026-11-10'
+          i['sourceSha256']=hashlib.sha256(open('/tmp/ch99.pdf','rb').read()).hexdigest()
+          open(p,'w').write(json.dumps(i,indent=2,sort_keys=True)+'\n')
+          PY
+      - name: Verify rules and shipment calculations
+        run: |
+          node scripts/test-regulatory-release.mjs
+          node scripts/test-hts-shipment.mjs
+          node scripts/test-ch99-basis.mjs
+          node scripts/test-ch99-origin.mjs
+          node scripts/test-tariff-engine.mjs
+      - name: Commit verified source to preview only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/chapter99-index.json
+          git diff --cached --quiet || git commit -m 'Refresh verified Revision 23 legal source for tariff preview'
+          git push origin HEAD:preview/hts-rules-engine
+
