@@ -251,6 +251,9 @@ def parse_heading_relations(heading, block):
     for rm in re.finditer(r'subdivisions?\s+(.{1,700}?)\s+of\s+(?:U\.\s*S\.\s*)?note\s+(\d+)', normalized, re.I):
         for key in subdivision_keys(rm.group(1), int(rm.group(2)), scope):
             add_relation(heading, key, normalized)
+    # Country-wide headings cite an entire note, without a subdivision.
+    for rm in re.finditer(r'U\.\s*S\.\s*note\s+(\d+)\s+to this subchapter', normalized, re.I):
+        add_relation(heading, f"{scope}|{rm.group(1)}", normalized)
     for rm in re.finditer(r'(?:U\.\s*S\.\s*)?note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', normalized, re.I):
         note, letter, roman = int(rm.group(1)), rm.group(2).lower(), rm.group(3)
         base = f"{note}:{letter}" + (f":{roman.lower()}" if roman else '')
@@ -342,7 +345,7 @@ for h, block in heading_blocks.items():
             if legal:
                 # Note 51(b) is an operative product list, not a display excerpt.
                 normalized = re.sub(r'\s+', ' ', legal).strip()
-                legal_context[unscoped_key(key)] = normalized if unscoped_key(key) == '51:b' else normalized[:5000]
+                legal_context[unscoped_key(key)] = normalized
     headings_out[h] = {
         "noteTargets": targets,
         "text": re.sub(r'\s+', ' ', block).strip()[:5000],
@@ -361,6 +364,7 @@ payload = {
         "candidateIsNotApplicability": True,
         "description": "A code-to-heading relation is only a candidate until origin and any rule-specific conditions are resolved. Unresolved candidates must be shown as review-required, not not-applicable."
     },
+    "legalNotes": {unscoped_key(k): re.sub(r"\s+", " ", " ".join(v)).strip() for k,v in subdivision_text.items() if key_scope(k) == "3"},
     "headings": headings_out,
     "codes": {code: sorted(vals) for code, vals in sorted(code_candidates.items()) if vals},
     "stats": {
@@ -384,3 +388,4 @@ print("9903.88.01 targets", sorted(unscoped_key(k) for k in relations.get("9903.
 print("9903.82.09 targets", sorted(unscoped_key(k) for k in relations.get("9903.82.09", [])))
 print("9903.82.15 targets", sorted(unscoped_key(k) for k in relations.get("9903.82.15", [])))
 print("9903.82.16 targets", sorted(unscoped_key(k) for k in relations.get("9903.82.16", [])))
+
