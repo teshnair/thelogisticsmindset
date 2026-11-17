@@ -37,6 +37,7 @@ jobs:
           node scripts/test-ch99-basis.mjs
           node scripts/test-ch99-origin.mjs
           node scripts/test-tariff-engine.mjs
+          node scripts/test-hts-8431.mjs
       - name: Commit verified source to preview only
         run: |
           git config user.name 'github-actions[bot]'
