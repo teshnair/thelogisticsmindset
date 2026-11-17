@@ -32,7 +32,7 @@ code_re = re.compile(r'\b(\d{4}\.\d{2}(?:\.\d{2,4})?(?:\.\d{2})?)\b')
 bare_heading_re = re.compile(r'(?<![\d.])(\d{4})(?![\d.])')
 heading_re = re.compile(r'^\s*(99\d{2}\.\d{2}\.\d{2})\b')
 note_start_re = re.compile(r'^\s*(\d{1,3})\.\s*(?:\(([a-z])\))?(?:\s+|$)')
-sub_re = re.compile(r'^\s*\(([a-z]+)\)\s+')
+sub_re = re.compile(r'^\s*\(([a-z]+)\)(?:\s+|$)')
 roman_tokens = {"i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv","xvi","xvii","xviii","xix","xx"}
 subchapter_page_re = re.compile(r'\b99\s*-\s*([IVXLCDM]+)\s*-\s*\d+\b', re.I)
 subchapter_title_re = re.compile(r'\bSUBCHAPTER\s+([IVXLCDM]+)\b', re.I)
@@ -120,7 +120,7 @@ for raw in lines:
             indent = len(line) - len(line.lstrip())
             if token in roman_tokens and current_letter is not None and not (len(token) == 1 and len(current_letter) == 1 and ord(token) == ord(current_letter) + 1 and letter_indent is not None and indent <= letter_indent):
                 current_roman = token
-            elif token.isalpha():
+            elif token.isalpha() and indent <= 10:
                 current_letter = token
                 current_roman = None
                 letter_indent = indent

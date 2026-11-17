@@ -8,6 +8,8 @@ assert.deepEqual(index.headings['9903.88.69'].noteTargets,['20:vvv']);
 assert.ok(index.codes['8431200000'].includes('9903.88.69'),'Exact statistical suffix exclusion must be retained');
 assert.ok(!index.codes['84312000'].includes('9903.88.69'),'Do not spread statistical exclusions to sibling codes');
 assert.ok(index.legalNotes['20:vvv'].includes('8431.20.0000'));
+for(const ref of ['9903.91.03','9903.91.11'])assert.ok(!index.codes['87169050'].includes(ref),'Trailer code cannot inherit unrelated EV/tungsten scope');
+assert.ok(index.codes['87169050'].includes('9903.91.12'),'Standalone note 31(k) must retain the dated chassis provision');
 assert.ok(index.legalNotes['16:i'].includes('smelted and cast in Canada or Mexico'));
 globalThis.fetch=async input=>{const u=new URL(String(input));if(u.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision 23'});if(u.pathname.endsWith('/search'))return Response.json(fixture.rows[u.searchParams.get('keyword')]||[]);throw Error('Unexpected source '+u);};
 const {default:handler}=await import('../netlify/functions/trade-rules.mts');
