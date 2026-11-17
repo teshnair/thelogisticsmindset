@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-11-17",
+  "reviewedThrough": "2026-11-17",
+  "htsRevision": 23,
+  "reviewType": "Release review for owner-authorized HTS calculator repair; standard-entry estimates with unresolved treatments retained for review.",
+  "ownerAuthorization": "User requested publication to production if checks pass on 2026-11-17.",
+  "reviewedCodeCommit": "5c03b020e9b0277ac666edb632224e44ce6a03a8",
+  "sourceSha256": "294e4a2d5957271a6b40f06f555839c804023d3702d82b9a6c59bb244e33d60b",
+  "officialSources": [
+    {
+      "url": "https://hts.usitc.gov/reststop/currentRelease",
+      "finding": "Live API confirms 2026 HTS Revision 23."
+    },
+    {
+      "url": "https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099",
+      "finding": "Fresh download SHA-256 matches the complete bundled legal source."
+    },
+    {
+      "url": "https://www.usitc.gov/2026_hts_revision_23",
+      "finding": "November 10 release sources identify the exclusion extensions and maritime suspension reflected in the index."
+    },
+    {
+      "url": "https://www.govinfo.gov/content/pkg/FR-2026-11-10/pdf/2026-22925.pdf",
+      "finding": "Exclusions 9903.88.69 and .70 extended through January 9, 2027; exact statistical code and narrative eligibility are cumulative."
+    },
+    {
+      "url": "https://www.federalregister.gov/documents/2026/11/10/2026-22867/notice-of-modification-of-section-301-action-chinas-targeting-of-the-maritime-logistics-and",
+      "finding": "Maritime headings 9903.91.12-.16 suspended until January 10, 2027; current-date trailer regression excludes them."
+    },
+    {
+      "url": "https://www.federalregister.gov/documents/2026/10/30/2026-22292/further-modifying-the-scope-of-products-of-canada-subject-to-the-additional-duties-imposed-to-offset",
+      "finding": "Canadian scope amendment incorporated in Revision 22 and retained in Revision 23. Canada paper-bag regression excludes Section 338."
+    },
+    {
+      "url": "https://www.federalregister.gov/documents/2026/11/02/2026-22385/adjusting-imports-of-robotics-industrial-machinery-and-their-parts-and-components-into-the-united",
+      "finding": "Proclamation directs negotiations and monitoring; it does not impose a new immediate machinery duty."
+    }
+  ],
+  "sourceWatch": {
+    "windowStart": "2026-10-28",
+    "windowEnd": "2026-11-17",
+    "potentialDocuments": 245,
+    "triage": "Broad term searches include unrelated statutes, AD/CVD cases, FTZ-specific notices and information collections. General tariff changes relevant to this repair were reviewed against current USITC and the linked primary notices. AD/CVD and special-entry determinations remain explicitly excluded from totals.",
+    "limitation": "Shell USITC archive request returned 403; official currentRelease API, release pages and current PDF were independently verified."
+  },
+  "validation": {
+    "localSuites": 6,
+    "livePreviewRequests": 14,
+    "preview": "https://deploy-preview-57--thelogisticsmindset.netlify.app/hts-duty-calculator.html",
+    "reportedCase": {
+      "hts": "8431200000",
+      "origin": "CN",
+      "customsValue": 25000,
+      "conditions": "100% subject metal, China melt/pour, no U.S. metal qualification, ordinary commercial entry, product exclusion declined",
+      "ordinaryDuty": 0,
+      "additionalTariffs": 12500,
+      "mpf": 86.6,
+      "hmf": 31.25,
+      "total": 12617.85
+    },
+    "indexStats": {
+      "codesWithCandidates": 13260,
+      "noteMembershipCodes": 13356,
+      "noteSubdivisions": 716,
+      "operativeHeadings": 581,
+      "validatedCandidateLinks": 191707
+    }
+  },
+  "limitations": [
+    "Not exhaustive legal validation of every HTS classification or special program.",
+    "Historical dates, paired/replacement rate interactions and unresolved product/end-use conditions remain blocked or review-required.",
+    "AD/CVD, excise and admissibility are not established by this estimate."
+  ],
+  "releaseDecision": "Permit owner-authorized production repair with existing review warnings, stale-source gate and incomplete-total behavior preserved."
+}
