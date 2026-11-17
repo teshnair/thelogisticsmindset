@@ -1,3 +1,4 @@
+import { entryDateError, isQualified } from "../../lib/tariff-decision.mjs";
 import baseHandler from './hts-duty.mts';
 import tradeHandler from './trade-rules.mts';
 import { lineEstimate } from '../../lib/hts-shipment.mjs';
@@ -7,6 +8,8 @@ export default async (req:Request) => {
   if(req.method!=='POST') return Response.json({error:'Method not allowed'},{status:405});
   try {
     const input=await req.json();
+    const dateError=entryDateError(input.entryDate);
+    if(dateError)return Response.json({error:dateError},{status:400});
     input.hts=String(input.hts||'').replace(/\D/g,'');
     if(!/^(\d{4}|\d{6}|\d{8}|\d{10})$/.test(input.hts)) return Response.json({error:'Enter a 4, 6, 8 or 10-digit HTS code.'},{status:400});
     if(!Number.isFinite(Number(input.customsValue))||Number(input.customsValue)<=0) return Response.json({error:'Enter a positive customs value.'},{status:400});
@@ -18,12 +21,12 @@ export default async (req:Request) => {
       if(input[key]!=null&&input[key]!==''&&(!Number.isFinite(Number(input[key]))||Number(input[key])<0||Number(input[key])>Number(input.customsValue))) return Response.json({error:'Metal/content values must be between zero and the line customs value.'},{status:400});
     }
     const make=(path:string,body:any)=>new Request(new URL(path,req.url),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const [baseResponse,ruleResponse]=await Promise.all([
-      baseHandler(make('/api/hts-duty',{...input,quantity:input.quantity1,quantityUnit:input.unit1,ftaQualified:false})),
-      tradeHandler(make('/api/trade-rules',{...input,strictFacts:true}))
-    ]);
-    const base=await baseResponse.json(),rules=await ruleResponse.json();
-    if(!baseResponse.ok) return Response.json(base,{status:baseResponse.status});
+    const baseResponse=await baseHandler(make('/api/hts-duty',{...input,quantity:input.quantity1,quantityUnit:input.unit1,ftaQualified:isQualified(input.ftaQualification)}));
+    const base=await baseResponse.json();
+    if(!baseResponse.ok)return Response.json(base,{status:baseResponse.status});
+    input.usmcaDutyFree=['CA','MX'].includes(input.country)&&isQualified(input.ftaQualification)&&/^free$/i.test(base.rates?.appliedRate||'');
+    const ruleResponse=await tradeHandler(make('/api/trade-rules',{...input,strictFacts:true}));
+    const rules=await ruleResponse.json();
     if(!ruleResponse.ok) {rules.status='source-unavailable';rules.revisionVerified=false;}
     const estimate=lineEstimate(input,base,rules);
     estimate.measures=estimate.measures.map(({sourceContext,...measure}:any)=>measure);
@@ -35,3 +38,4 @@ export default async (req:Request) => {
   } catch(error:any) {return Response.json({error:'Unable to complete this line. Retry; no zero-duty result has been assumed.',detail:error.message},{status:502});}
 };
 export const config={path:'/api/hts-line',method:['POST']};
+

@@ -22,16 +22,17 @@ subdivision_text = defaultdict(list)
 current_note = None
 current_letter = None
 current_roman = None
+letter_indent = None
 current_subchapter = None
 in_notes = False
 
-code_re = re.compile(r'\b(\d{4}(?:\.\d{2}){1,3})\b')
+code_re = re.compile(r'\b(\d{4}\.\d{2}(?:\.\d{2,4})?(?:\.\d{2})?)\b')
 # U.S. legal notes also enumerate four-digit headings (e.g. steel 7206)
 # as valid HTS scope. Keep heading-level keys instead of dropping all descendants.
 bare_heading_re = re.compile(r'(?<![\d.])(\d{4})(?![\d.])')
 heading_re = re.compile(r'^\s*(99\d{2}\.\d{2}\.\d{2})\b')
 note_start_re = re.compile(r'^\s*(\d{1,3})\.\s*(?:\(([a-z])\))?(?:\s+|$)')
-sub_re = re.compile(r'^\s*\(([a-z]|[ivxlcdm]+)\)\s+')
+sub_re = re.compile(r'^\s*\(([a-z]+)\)(?:\s+|$)')
 roman_tokens = {"i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv","xvi","xvii","xviii","xix","xx"}
 subchapter_page_re = re.compile(r'\b99\s*-\s*([IVXLCDM]+)\s*-\s*\d+\b', re.I)
 subchapter_title_re = re.compile(r'\bSUBCHAPTER\s+([IVXLCDM]+)\b', re.I)
@@ -66,8 +67,7 @@ def add_codes(line, keys):
         for key in keys:
             if key:
                 note_membership[d].add(key)
-                if len(d) == 10:
-                    note_membership[d[:8]].add(key)
+                # A statistical suffix must not promote its siblings into scope.
     # Only treat a bare four-digit number as a heading when it starts a
     # tabular enumeration line, not in prose with years, duty dates, or notes.
     # No material-specific hardcoding: this fixes every relevant 4-digit
@@ -108,7 +108,7 @@ for raw in lines:
         in_notes = False
         current_note = current_letter = current_roman = None
         continue
-    m = note_start_re.match(line) if in_notes else None
+    m = note_start_re.match(line) if in_notes and len(line) - len(line.lstrip()) <= 5 else None
     if m:
         current_note = int(m.group(1))
         current_letter = m.group(2)
@@ -117,11 +117,13 @@ for raw in lines:
         sm = sub_re.match(line)
         if sm:
             token = sm.group(1)
-            if token in roman_tokens and current_letter is not None:
+            indent = len(line) - len(line.lstrip())
+            if token in roman_tokens and current_letter is not None and not (len(token) == 1 and len(current_letter) == 1 and ord(token) == ord(current_letter) + 1 and letter_indent is not None and indent <= letter_indent):
                 current_roman = token
-            elif len(token) == 1 and token.isalpha():
+            elif token.isalpha() and indent <= 10:
                 current_letter = token
                 current_roman = None
+                letter_indent = indent
     if in_notes and current_note is not None:
         keys = keys_for_state()
         for key in keys:
@@ -251,16 +253,24 @@ def parse_heading_relations(heading, block):
     for rm in re.finditer(r'subdivisions?\s+(.{1,700}?)\s+of\s+(?:U\.\s*S\.\s*)?note\s+(\d+)', normalized, re.I):
         for key in subdivision_keys(rm.group(1), int(rm.group(2)), scope):
             add_relation(heading, key, normalized)
-    for rm in re.finditer(r'(?:U\.\s*S\.\s*)?note\s+(\d+)\s*\(([a-z])\)(?:\(([ivxlcdm]+)\))?', normalized, re.I):
+    # Country-wide headings cite an entire note, without a subdivision.
+    for rm in re.finditer(r'U\.\s*S\.\s*note\s+(\d+)\s+to this subchapter', normalized, re.I):
+        add_relation(heading, f"{scope}|{rm.group(1)}", normalized)
+    for rm in re.finditer(r'(?:U\.\s*S\.\s*)?note\s+(\d+)\s*\(([a-z]+)\)(?:\(([ivxlcdm]+)\))?', normalized, re.I):
         note, letter, roman = int(rm.group(1)), rm.group(2).lower(), rm.group(3)
         base = f"{note}:{letter}" + (f":{roman.lower()}" if roman else '')
         add_relation(heading, f"{scope}|{base}", normalized)
 
 # Parse note/subdivision references from EVERY occurrence of a heading, not
 # only the selected display block.
-for heading, occurrences in all_heading_occurrences.items():
-    for block in occurrences:
-        parse_heading_relations(heading, block)
+# Only operative tariff rows establish the heading's scope. Cross-references
+# in other rows and exclusions cannot donate legal-note targets.
+relations.clear()
+relation_context.clear()
+for key, parts in subdivision_text.items():
+    block = " ".join(parts)
+    for hm in re.finditer(r"\bHeading\s+(9903\.\d{2}\.\d{2})\s+applies\s+to\b", block, re.I):
+        add_relation(hm.group(1), key, block)
 
 # Independent tariff-row sweep. pdftotext occasionally introduces page/table
 # boundaries that make the stateful line-block pass lose an otherwise valid
@@ -342,7 +352,7 @@ for h, block in heading_blocks.items():
             if legal:
                 # Note 51(b) is an operative product list, not a display excerpt.
                 normalized = re.sub(r'\s+', ' ', legal).strip()
-                legal_context[unscoped_key(key)] = normalized if unscoped_key(key) == '51:b' else normalized[:5000]
+                legal_context[unscoped_key(key)] = normalized
     headings_out[h] = {
         "noteTargets": targets,
         "text": re.sub(r'\s+', ' ', block).strip()[:5000],
@@ -361,6 +371,7 @@ payload = {
         "candidateIsNotApplicability": True,
         "description": "A code-to-heading relation is only a candidate until origin and any rule-specific conditions are resolved. Unresolved candidates must be shown as review-required, not not-applicable."
     },
+    "legalNotes": {unscoped_key(k): re.sub(r"\s+", " ", " ".join(v)).strip() for k,v in subdivision_text.items() if key_scope(k) == "3"},
     "headings": headings_out,
     "codes": {code: sorted(vals) for code, vals in sorted(code_candidates.items()) if vals},
     "stats": {
@@ -384,3 +395,4 @@ print("9903.88.01 targets", sorted(unscoped_key(k) for k in relations.get("9903.
 print("9903.82.09 targets", sorted(unscoped_key(k) for k in relations.get("9903.82.09", [])))
 print("9903.82.15 targets", sorted(unscoped_key(k) for k in relations.get("9903.82.15", [])))
 print("9903.82.16 targets", sorted(unscoped_key(k) for k in relations.get("9903.82.16", [])))
+

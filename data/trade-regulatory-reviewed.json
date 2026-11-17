@@ -1,6 +1,6 @@
 {
-  "reviewedThrough": "2026-10-28",
-  "htsRevision": 21,
-  "reviewRecord": "data/trade-regulatory-review-origin-20261028.json",
-  "note": "Limited Chapter 99 Section 301 forced-labor origin-routing review against CBP CSMS 69326983 and USITC Rev21, Oct 28, 2026. Colombia 9903.05.32; Chile 9903.05.30. Exemptions remain subject to review; not filing advice."
+  "reviewedThrough": "2026-11-17",
+  "htsRevision": 23,
+  "reviewRecord": "data/trade-regulatory-review-20261117.json",
+  "note": "Owner-authorized production repair reviewed against current official Revision 23, its change sources, six regression suites and fourteen live preview checks. Unresolved legal/product conditions remain review-required."
 }
