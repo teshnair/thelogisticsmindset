@@ -444,7 +444,7 @@ function buildClassificationPath(rows: any[], target: string, selected: any) {
   };
 }
 
-function searchSuggestions(rows: any[], query: string) {
+function searchSuggestions(rows: any[], query: string, fullCodesOnly = false) {
   const target = digits(query);
   const seen = new Set<string>();
 
@@ -462,7 +462,7 @@ function searchSuggestions(rows: any[], query: string) {
       (item) =>
         item.code &&
         item.description &&
-        item.code.startsWith(target)
+        item.code.startsWith(target) && (!fullCodesOnly || item.code.length === 10)
     )
     .sort(
       (a, b) =>
@@ -474,11 +474,13 @@ function searchSuggestions(rows: any[], query: string) {
       seen.add(key);
       return true;
     })
-    .slice(0, 20)
+    .slice(0, fullCodesOnly ? Infinity : 20)
     .map((item) => ({
       hts: formatHts(item.code),
       code: item.code,
       description: item.description,
+      generalRate: inheritedField(rows,item.code,rows.find(row=>fullCode(row)===item.code),"general").value,
+      column2Rate: inheritedField(rows,item.code,rows.find(row=>fullCode(row)===item.code),"other").value,
       descriptionPath: [...new Set(rows.filter(row=>!isChapter99(row)&&rowCode(row)&&item.code.startsWith(rowCode(row))&&rowCode(row).length<item.code.length).sort((a,b)=>rowCode(a).length-rowCode(b).length).map(row=>cleanText(row.description)).filter(Boolean)),item.description].join(' → '),
       units: item.units,
     }));
@@ -1103,7 +1105,7 @@ export default async (req: Request) => {
 
       const rows = await fetchSearchRows(hts);
       return Response.json(
-        { suggestions: searchSuggestions(rows, hts) },
+        { suggestions: searchSuggestions(rows, hts, body.fullCodesOnly===true) },
         {
           headers: {
             "Cache-Control": "public, max-age=0, s-maxage=3600",
