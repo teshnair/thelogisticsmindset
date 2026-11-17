@@ -15,10 +15,9 @@ jobs:
           node-version: 24
       - name: Rebuild from current official legal source
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq poppler-utils
+          python3 -m pip install pypdf==6.21.4
           curl --fail --retry 3 --location 'https://hts.usitc.gov/reststop/file?release=currentRelease&filename=Chapter%2099' -o /tmp/ch99.pdf
-          pdftotext -layout /tmp/ch99.pdf /tmp/ch99.txt
+          python3 -c "from pypdf import PdfReader; r=PdfReader('/tmp/ch99.pdf'); open('/tmp/ch99.txt','w',encoding='utf-8').write('\n'.join(p.extract_text(extraction_mode='layout') for p in r.pages))"
           python3 scripts/build-chapter99-index.py /tmp/ch99.txt data/chapter99-index.json
           python3 - <<'PY'
           import json, hashlib, urllib.request, re
