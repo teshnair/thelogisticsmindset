@@ -479,6 +479,7 @@ function searchSuggestions(rows: any[], query: string) {
       hts: formatHts(item.code),
       code: item.code,
       description: item.description,
+      descriptionPath: [...new Set(rows.filter(row=>!isChapter99(row)&&rowCode(row)&&item.code.startsWith(rowCode(row))&&rowCode(row).length<item.code.length).sort((a,b)=>rowCode(a).length-rowCode(b).length).map(row=>cleanText(row.description)).filter(Boolean)),item.description].join(' → '),
       units: item.units,
     }));
 }
