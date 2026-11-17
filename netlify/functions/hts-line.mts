@@ -3,6 +3,8 @@ import baseHandler from './hts-duty.mts';
 import tradeHandler from './trade-rules.mts';
 import { lineEstimate } from '../../lib/hts-shipment.mjs';
 import { screenAgencies } from '../../lib/pga-screening.mjs';
+import { classificationChoices, lineGuidance, productConditionDescriptions } from '../../lib/hts-guidance.mjs';
+import legalIndex from '../../data/chapter99-index.json' with {type:'json'};
 
 export default async (req:Request) => {
   if(req.method!=='POST') return Response.json({error:'Method not allowed'},{status:405});
@@ -21,6 +23,12 @@ export default async (req:Request) => {
       if(input[key]!=null&&input[key]!==''&&(!Number.isFinite(Number(input[key]))||Number(input[key])<0||Number(input[key])>Number(input.customsValue))) return Response.json({error:'Metal/content values must be between zero and the line customs value.'},{status:400});
     }
     const make=(path:string,body:any)=>new Request(new URL(path,req.url),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(input.hts.length!==10){
+      const response=await baseHandler(make('/api/hts-duty',{action:'search',hts:input.hts}));
+      const search=await response.json();
+      if(!response.ok)return Response.json(search,{status:response.status});
+      return Response.json({input,guidance:{...lineGuidance(input,{measures:[]},{requiredFacts:[]}),choices:classificationChoices(search.suggestions||[],input.hts)},classification:{displayHts:input.hts,description:'Choose a specific product below',units:[]},rules:{requiredFacts:[]},estimate:{complete:false}},{headers:{'Cache-Control':'no-store'}});
+    }
     const baseResponse=await baseHandler(make('/api/hts-duty',{...input,quantity:input.quantity1,quantityUnit:input.unit1,ftaQualified:isQualified(input.ftaQualification)}));
     const base=await baseResponse.json();
     if(!baseResponse.ok)return Response.json(base,{status:baseResponse.status});
@@ -29,12 +37,13 @@ export default async (req:Request) => {
     const rules=await ruleResponse.json();
     if(!ruleResponse.ok) {rules.status='source-unavailable';rules.revisionVerified=false;}
     const estimate=lineEstimate(input,base,rules);
+    const productConditions=productConditionDescriptions(estimate.measures.map((m:any)=>({...m,sourceContext:Object.values((legalIndex.headings as any)[m.hts]?.legalContext||{}).join(' ')})),input.hts);
     estimate.measures=estimate.measures.map(({sourceContext,...measure}:any)=>measure);
     const pga=screenAgencies(input.hts,input.mode);
     const exciseReview=['22','24','27'].includes(input.hts.slice(0,2));
     if(exciseReview){estimate.complete=false;estimate.warnings.push('Federal excise taxes may apply to this product and are not calculated. Total taxes require review.');}
     if(['CU','IR','KP','SY','RU','BY'].includes(input.country)) {estimate.complete=false;estimate.warnings.push('Sanctions/export-control restrictions require a separate admissibility and party review; a duty estimate is not import authorization.');}
-    return Response.json({input,classification:base.classification,rates:base.rates,estimate,rules:{...rules,measures:undefined},pga,review:base.review,exciseReview,source:base.source},{headers:{'Cache-Control':'no-store'}});
+    return Response.json({input,classification:base.classification,rates:base.rates,estimate,guidance:{...lineGuidance(input,estimate,rules),productConditions},rules:{...rules,measures:undefined},pga,review:base.review,exciseReview,source:base.source},{headers:{'Cache-Control':'no-store'}});
   } catch(error:any) {return Response.json({error:'Unable to complete this line. Retry; no zero-duty result has been assumed.',detail:error.message},{status:502});}
 };
 export const config={path:'/api/hts-line',method:['POST']};
