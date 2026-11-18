@@ -4,3 +4,26 @@
 /* Chapter 99 source-derived eligibility and review notes. */
 .classification-choices{display:grid;gap:10px;margin:14px 0}.classification-choices button{text-align:left;white-space:normal}.classification-choices strong,.classification-choices span{display:block}.classification-choices span{font-weight:400;font-size:.9rem;margin-top:4px}.line-answer{padding:15px;background:#e1f2e9;border-radius:6px;margin:12px 0}.line-answer strong,.line-answer span{display:block}.line-answer span{font-size:.85rem;margin-top:5px}.legal-details>summary{display:list-item;cursor:pointer;font-size:.85rem;font-weight:600}.legal-details .ch99-basis{margin:14px 0;padding-bottom:12px;border-bottom:1px solid var(--border);max-width:none;min-width:0}
 .ch99-basis{min-width:300px;max-width:560px;overflow-wrap:anywhere;line-height:1.4}.ch99-basis>small{margin:6px 0}.ch99-basis ul{margin:4px 0 7px;padding-left:20px}.ch99-basis li{margin:3px 0}.ch99-basis .basis-conditions{margin:7px 0;color:#183149}.ch99-basis .basis-required{border-left:3px solid #97631a;padding:6px 10px;margin:8px 0;background:#fff9ef}.ch99-basis details{margin-top:9px;font-size:.8rem}.ch99-basis details>summary{display:list-item;font-weight:600;color:#2469a6;cursor:pointer}.ch99-basis details p{margin:6px 0}.ch99-basis small{display:block;color:#53687b}
+
+/* Shipment result print layout: never let five summary cards push past paper width. */
+.line-screening{margin:18px 0;padding:14px;border:1px solid var(--border);border-radius:8px}
+.line-screening h4{font-size:.95rem;margin:14px 0 7px}
+.line-screening p{overflow-wrap:anywhere}
+@page{size:auto;margin:13mm}
+@media print{
+  html,body{width:100%!important;max-width:100%!important;overflow:visible!important}
+  .container,main,#shipmentResults{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:0!important}
+  #shipmentResults .section-heading{display:block!important;margin-top:8px}
+  #printResults{display:none!important}
+  .summary{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  .summary .metric{min-width:0!important;padding:9px!important;break-inside:avoid}
+  .summary .metric.total{grid-column:1/-1!important}
+  .summary .metric strong{font-size:1.15rem!important}
+  .notice,.card,.line-screening{max-width:100%!important;min-width:0!important;overflow-wrap:anywhere}
+  .tablescroll{overflow:visible!important}
+  table{width:100%!important;table-layout:fixed;font-size:9pt!important}
+  th,td{padding:5px!important;overflow-wrap:anywhere;word-break:normal}
+  .pga-list{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .pga-item{break-inside:avoid}
+  .line-screening a{color:black!important;overflow-wrap:anywhere}
+}
