@@ -26,6 +26,11 @@ assert(!exact.measures.some(m=>m.hts==='9903.88.04'),'Note 20(g)(2) specifically
 assert(exact.measures.some(m=>m.hts==='9903.88.15'&&m.ratePercent===7.5),'Note 20(s)(ii) 7.5% rate must be present');
 assert(!exact.measures.some(m=>/^9903\\.0[12]\\./.test(m.hts)),'Expired IEEPA measures must be excluded');
 assert(!exact.measures.some(m=>/^9903\\.03\\.(?:0[1-9]|1[01])$/.test(m.hts)),'Expired Section 122 must be excluded');
+assert.equal(exact.note52Exemption?.hts,'9903.05.86','Note 52(b) classifies 8517.62.00 as exempt from the country-wide 12.5% surcharge');
+assert(!exact.measures.some(m=>m.hts==='9903.05.31'),'Exempt heading should not be included as a surcharge');
+assert(!exact.measures.some(m=>m.hts==='9903.05.86'),'Exemption heading must be shown as basis, not as an unpriced surcharge');
+assert(!exact.measures.some(m=>m.hts.startsWith('9903.02.')),'Expired IEEPA heading flood must not appear');
+assert(exact.measures.length<20,'Only relevant active Chapter 99 provisions should be shown');
 const other=await run('8517620010');
 assert(!other.measures.some(m=>m.hts==='9903.88.15'&&m.applicability==='applicable'),'Sibling suffix must not inherit .0090 List 4A exception');
 console.log('PASS: China 8517.62.0090 specific Chapter 99, expired IEEPA/Section 122, sibling suffix');
