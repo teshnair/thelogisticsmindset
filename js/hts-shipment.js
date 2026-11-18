@@ -71,11 +71,13 @@ function renderAgencyReview(r){
   const chapter99Html=chapter99.length
     ?'<p>'+chapter99.map(m=>'<strong>'+esc(m.hts||'Code under review')+'</strong> · '+esc(m.program||'Chapter 99')+' · '+esc(m.rateText||((m.ratePercent!=null)?m.ratePercent+'%':'Rate requires verification'))).join('<br>')+'</p>'
     :'<p>No Chapter 99 provision was identified in this result. This is not confirmation of exemption; verify source coverage and the current legal notes.</p>';
+  const note52=r.rules?.note52Exemption;
+  const note52Info=note52?'<p><strong>Section 301 exemption · '+esc(note52.hts)+'</strong>: '+esc(note52.reason)+'</p>':'';
   const s338=r.rules?.section338;
   const s338Info=r.input?.country==='CA'&&s338?.inNote51List
     ?'<div class="notice info"><strong>Section 338 · Canada: '+(s338.inNote51List?'50% potential additional duty ('+esc(s338.hts)+')':'Not listed for this classification')+'</strong><p>'+esc(s338.message)+'</p><p class="source">Status: '+esc(s338.status)+' · Source: HTS Revision '+esc(s338.sourceRevision)+' · <a href="'+esc(s338.reference)+'" target="_blank" rel="noopener noreferrer">CBP guidance</a></p></div>'
     :'';
-  return '<section class="line-screening"><h4>Chapter 99 provisions identified</h4>'+chapter99Html+s338Info
+  return '<section class="line-screening"><h4>Chapter 99 provisions identified</h4>'+chapter99Html+note52Info+s338Info
     +(rows.length?'<h4>Potential government agency requirements (PGA)</h4>'+agency+'<p class="source">'+esc(r.pga?.note||'Product-specific PGA flags are not verified against live ACE data.')+'</p>':'')
     +'<h4>Antidumping / countervailing duty (AD/CVD)</h4><p><strong>Not determined.</strong> AD/CVD orders depend on product scope, exporter/manufacturer and case details, not HTS alone. The estimate excludes AD/CVD; absence from the duty table does not mean the goods are outside an order. <a href="https://access.trade.gov/" target="_blank" rel="noopener noreferrer">Check Commerce ACCESS</a> and <a href="https://www.usitc.gov/trade_remedy/731_ad_701_cvd/index.htm" target="_blank" rel="noopener noreferrer">USITC trade remedies</a>.</p></section>';
 }
