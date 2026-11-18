@@ -27,3 +27,40 @@
   .pga-item{break-inside:avoid}
   .line-screening a{color:black!important;overflow-wrap:anywhere}
 }
+
+
+/* Duty calculator only: plain printed report, not a web card framed as a page. */
+@media print {
+  @page { size: letter portrait; margin: 0.55in 0.55in 0.6in; }
+  html, body { background:#fff!important; margin:0!important; padding:0!important; width:auto!important; max-width:none!important; }
+  body, .container, main, #shipmentResults { overflow:visible!important; box-shadow:none!important; }
+  .container { padding:0!important; margin:0!important; width:auto!important; max-width:none!important; }
+  /* Global header.css otherwise inserts a huge fixed watermark on every sheet. */
+  .page-logo { display:none!important; }
+  .page-header { position:static!important; background:transparent!important; border:0!important; border-bottom:1px solid #243749!important; padding:0 0 8px!important; margin:0 0 14px!important; box-shadow:none!important; }
+  .page-header h1 { font-size:17pt!important; margin:0 0 3px!important; }
+  .page-header .subtitle { font-size:9pt!important; margin:0!important; }
+  #shipmentResults { margin:0!important; padding:0!important; width:auto!important; max-width:none!important; }
+  #shipmentResults .section-heading { margin:0 0 12px!important; padding:0!important; }
+  #shipmentResults .section-heading h2 { font-size:14pt!important; }
+  .card, .result-line, .line-screening, .line-answer, .metric, .notice, .pga-item {
+    border-radius:0!important; box-shadow:none!important; background:#fff!important;
+  }
+  .card, .result-line { border:0!important; border-top:1px solid #bbb!important; padding:10px 0!important; margin:12px 0!important; }
+  .line-screening { border:0!important; padding:8px 0!important; margin:8px 0!important; }
+  .line-answer { border:0!important; border-left:2px solid #555!important; padding:7px 10px!important; }
+  .notice { border:0!important; border-left:2px solid #555!important; padding:5px 10px!important; }
+  .summary { grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:0!important; margin:8px 0 12px!important; }
+  .summary .metric { border:0!important; border-bottom:1px solid #ddd!important; padding:7px 8px!important; min-width:0!important; }
+  .summary .metric.total { grid-column:1/-1!important; border-top:1px solid #777!important; border-bottom:2px solid #777!important; }
+  .summary .metric span, .summary .metric strong { color:#111!important; }
+  .summary .metric strong { font-size:12pt!important; }
+  .pga-item { border:0!important; border-bottom:1px solid #ddd!important; padding:6px!important; }
+  table { table-layout:fixed!important; width:100%!important; border-collapse:collapse!important; }
+  th,td { padding:5px 4px!important; overflow-wrap:anywhere!important; }
+  .legal-details { break-inside:auto!important; }
+  .tablescroll { overflow:visible!important; }
+  h2,h3,h4,thead,tr,.line-answer { break-after:avoid-page; }
+  tr,.metric,.pga-item { break-inside:avoid-page; }
+  footer { display:none!important; }
+}
