@@ -1,0 +1,45 @@
+name: Verify HTS result UI and production gates
+on:
+  push:
+    branches: [fix-hts-results-print-pga-20261117]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify production regulatory review checkpoint
+        run: node scripts/verify-regulatory-release-gate.mjs
+      - name: Run all tariff regression suites
+        run: |
+          node scripts/test-regulatory-release.mjs
+          node scripts/test-hts-shipment.mjs
+          node scripts/test-ch99-basis.mjs
+          node scripts/test-ch99-origin.mjs
+          node scripts/test-tariff-engine.mjs
+          node scripts/test-hts-8431.mjs
+          node scripts/test-hts-guidance.mjs
+          node scripts/test-hts-worst-case.mjs
+      - name: Verify HTML result markup and print CSS
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const js=fs.readFileSync('js/hts-shipment.js','utf8');
+          const css=fs.readFileSync('css/hts-shipment.css','utf8');
+          assert.match(js,/function renderAgencyReview\(r\)/);
+          assert.match(js,/Potential government agency requirements \(PGA\)/);
+          assert.match(js,/Antidumping \/ countervailing duty \(AD\/CVD\)/);
+          assert.match(js,/renderAgencyReview\(r\)/g);
+          assert.match(js,/Chapter 99 replacement provision/);
+          assert.match(css,/@page\{size:auto;margin:13mm\}/);
+          assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
+          console.log('Result UI/print checks passed');
+          JS
