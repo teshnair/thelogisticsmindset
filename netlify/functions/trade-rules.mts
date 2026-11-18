@@ -156,6 +156,13 @@ function candidateRefs(index:Chapter99Index,hts:string,country:string){
     if(isForcedLaborCountryHeading(ref)&&!forcedLaborHeadingMatchesOrigin(ref,country))continue;
     refs.add(ref);
   }
+  // CBP U.S. note 20(g)(2) excludes suffix 8517.62.0090 from 25% List 3.
+  // This suffix is in List 4A under note 20(s)(ii), heading 9903.88.15.
+  if(country==="CN" && digits(hts)==="8517620090"){
+    refs.delete("9903.88.04");
+    refs.delete("9903.88.14");
+    refs.add("9903.88.15");
+  }
   // Note 52 country surcharges are country-wide, not only index-linked HTS rows.
   // Always include the appropriate heading, subject to exceptions under 85-92.
   for(const ref of forcedLaborHeadingsForOrigin(country))refs.add(ref);
@@ -380,6 +387,11 @@ async function evaluateCandidate(ref:string,index:Chapter99Index,input:any,hts:s
     return {program:"Section 301",hts:ref,description:clean(live?.description)||"Country-specific Section 301 forced-labor rate under U.S. note 52",rateText:rate.rateText,ratePercent:rate.ratePercent,rateMode:rate.rateMode,estimatedDuty:null,replacementDutyEstimate:null,applicability:origin&&effective?"review-required":"not-applicable",reason:!live.found?"Current USITC tariff heading could not be verified. No tariff amount is assumed.":!origin?"The country-specific heading is not applicable to this origin.":!effective?"This origin measure was not effective before July 24, 2026.":"The applicable origin-specific heading is identified, but exclusions under U.S. note 52(b)-(k), including 9903.05.85–9903.05.92, require merchandise-specific confirmation before calculating the final additional duty.",requiredFacts:[],noteTargets:["52"],exceptionRefs:exceptionRefs(clean(live?.description)),source:"Current USITC Chapter 99 row / CBP CSMS 69326983",sourceContext:clean(live?.description),liveHeadingVerified:!!live?.found};
   }
   if(!meta)return null;
+  // IEEPA duties ended for entries February 24, 2026 onward (CBP 67834313).
+  const day=String(fact(input,"entryDate")||new Date().toISOString().slice(0,10)).slice(0,10);
+  if(["9903.01.20","9903.01.24"].includes(ref)&&day>="2026-02-24"){
+    return {program:"Chapter 99",hts:ref,description:"Historical IEEPA tariff",rateText:"Expired for entry date",ratePercent:null,rateMode:"unknown" as const,estimatedDuty:null,replacementDutyEstimate:null,applicability:"not-applicable" as const,reason:"CBP terminated IEEPA duty collection effective February 24, 2026.",requiredFacts:[],noteTargets:meta.noteTargets||[],exceptionRefs:[],source:"CBP CSMS #67834313",sourceContext:"",liveHeadingVerified:true};
+  }
   const live=await resolveLiveHeading(ref),context=headingContext(meta,live),sourceContext=clean(`${meta?.text||""} ${(meta?.relationContext||[]).join(" ")} ${Object.values(meta?.legalContext||{}).join(" ")}`).slice(0,7000),program=programFor(ref,meta),origin=originDecision(country,ref,meta,live),empty=(applicability:Applicability,reason:string):EvaluatedMeasure=>({program,hts:ref,description:clean(live?.description)||clean(meta?.text),rateText:"",ratePercent:null,rateMode:"unknown",estimatedDuty:null,replacementDutyEstimate:null,applicability,reason,requiredFacts:[],noteTargets:meta?.noteTargets||[],exceptionRefs:[],source:"Current USITC Chapter 99 index",sourceContext,liveHeadingVerified:!!live?.found});if(origin.state==="no-match")return empty("not-applicable",origin.reason);
   if(isForcedLaborCountryHeading(ref)&&String(fact(input,"entryDate")||new Date().toISOString().slice(0,10)).slice(0,10)<SECTION301_FORCED_LABOR_EFFECTIVE)return empty("not-applicable","The Section 301 forced-labor country-wide measure is effective July 24, 2026.");
   if(!live.found)return empty("review-required","The operative current USITC row is unavailable. No applicability or amount is established.");
