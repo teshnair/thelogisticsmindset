@@ -19,3 +19,27 @@ jobs:
         run: node scripts/test-ch99-origin.mjs
       - name: Verify Chapter 99 status basis
         run: node scripts/test-ch99-basis.mjs
+      - name: Verify complete tariff calculator and publishing checkpoint
+        run: |
+          node scripts/verify-regulatory-release-gate.mjs
+          node scripts/test-regulatory-release.mjs
+          node scripts/test-hts-shipment.mjs
+          node scripts/test-tariff-engine.mjs
+          node scripts/test-hts-8431.mjs
+          node scripts/test-hts-guidance.mjs
+          node scripts/test-hts-worst-case.mjs
+      - name: Verify HTML output and print rules
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const js=fs.readFileSync('js/hts-shipment.js','utf8');
+          const css=fs.readFileSync('css/hts-shipment.css','utf8');
+          assert.match(js,/function renderAgencyReview\\(r\\)/);
+          assert.match(js,/Potential government agency requirements/);
+          assert.match(js,/Antidumping \\/ countervailing duty/);
+          assert.match(js,/Chapter 99 replacement provision/);
+          assert.match(css,/@page\\{size:auto;margin:13mm\\}/);
+          assert.match(css,/grid-template-columns:repeat\\(2,minmax\\(0,1fr\\)\\)!important/);
+          console.log('HTML/PDF print rule assertions passed');
+          JS
