@@ -151,10 +151,10 @@ function candidateRefs(index:Chapter99Index,hts:string,country:string){
   const today=new Date().toISOString().slice(0,10);
   for(const key of candidateKeys(hts))for(const ref of index.codes?.[key]||[]){
     // The current generated legal index retains historical headings.
-    if(today>="2026-02-24"&&/^9903\\.0[12]\\.\\d{2}$/.test(ref))continue;
-    if(today>="2026-07-24"&&/^9903\\.03\\.(?:0[1-9]|1[01])$/.test(ref))continue;
+    if(today>="2026-02-24"&&/^9903\.0[12]\.\d{2}$/.test(ref))continue;
+    if(today>="2026-07-24"&&/^9903\.03\.(?:0[1-9]|1[01])$/.test(ref))continue;
     // These Section 301 headings describe exemptions, not tariff charges.
-    if(/^9903\\.05\\.(?:8[5-9]|9[0-2])$/.test(ref))continue;
+    if(/^9903\.05\.(?:8[5-9]|9[0-2])$/.test(ref))continue;
     if(SECTION338_HEADINGS.has(ref))continue;
     // The source-generated index can link the same Chapter 1-97 heading to
     // multiple country-specific Chapter 99 rows. Origin is a hard constraint:
@@ -396,8 +396,8 @@ async function evaluateCandidate(ref:string,index:Chapter99Index,input:any,hts:s
   // Apply operative date boundaries before the historical Chapter 99 row is
   // evaluated. Searchable expired headings are not current additive tariffs.
   const day=String(fact(input,"entryDate")||new Date().toISOString().slice(0,10)).slice(0,10);
-  const isIEEPA=/^9903\\.0[12]\\.\\d{2}$/.test(ref);
-  const isSection122=/^9903\\.03\\.(?:0[1-9]|1[01])$/.test(ref);
+  const isIEEPA=/^9903\.0[12]\.\d{2}$/.test(ref);
+  const isSection122=/^9903\.03\.(?:0[1-9]|1[01])$/.test(ref);
   if((isIEEPA&&day>="2026-02-24")||(isSection122&&day>="2026-07-24")){
     const isOldIEEPA=isIEEPA;
     return {program:isOldIEEPA?"Historical IEEPA duty":"Section 122",hts:ref,description:"Historical Chapter 99 tariff",rateText:"Not effective for entry date",ratePercent:null,rateMode:"unknown" as const,estimatedDuty:null,replacementDutyEstimate:null,applicability:"not-applicable" as const,reason:isOldIEEPA?"CBP ended IEEPA duty collection effective February 24, 2026.":"Section 122's 150-day surcharge ended July 24, 2026.",requiredFacts:[],noteTargets:meta.noteTargets||[],exceptionRefs:[],source:isOldIEEPA?"CBP CSMS #67834313":"CBP CSMS #67844987",sourceContext:"",liveHeadingVerified:true};
