@@ -39,18 +39,32 @@ function showFacts(el,result){const keys=[...new Set(result.guidance?.questions|
 }
 function coverage(r){const programs=['Section 232','Section 301','Section 338','Section 122','Section 201 / safeguard','Other Chapter 99'];return programs.map(p=>{const ms=r.estimate.measures.filter(m=>p==='Other Chapter 99'?!programs.includes(m.program):m.program===p);return `${p}: ${ms.length?ms.length+' relevant provision(s)':'no applicable provision identified'}`;}).join(' · ');}
 
-function rateList(screening,program){
-  if(!screening?.sourceVerified)return 'Unverified';
-  const measures=[...(screening.measures||[]),...(screening.replacement?[screening.replacement]:[])].filter(m=>m.program===program);
-  const unknown=(screening.unpriced||[]).filter(m=>m.program===program);
-  return measures.map(m=>esc(m.ratePercent)+'% ('+esc(m.hts)+')'+(m.rateMode==='replacement'?' — replacement':'')).concat(unknown.map(m=>'Unquantified: '+esc(m.rateText))).join('<br>')||'No additional rate identified';
+function relevantMeasures(screening, program) {
+  if (!screening?.sourceVerified) return [];
+  return [...(screening.measures||[]),...(screening.replacement?[screening.replacement]:[])]
+    .filter(m=>m.program===program && m.hts && m.ratePercent!=null)
+    .concat((screening.unpriced||[]).filter(m=>m.program===program && m.hts));
 }
-function comparisonTable(r){return '<div class="tablescroll"><table><thead><tr><th>Full HTS code / product</th><th>Ordinary duty rate</th><th>Section 232 in worst case</th><th>Section 301 in worst case</th><th>Section 338 (Canada)</th><th>Worst-case duty amount</th></tr></thead><tbody>'+(r.comparison||[]).map(c=>'<tr><td><strong>'+esc(c.displayHts)+'</strong><small>'+esc(c.description)+'</small><button type="button" class="text-button" data-select-line="'+esc(r.input.lineIndex)+'" data-code="'+esc(c.hts)+'">Use this code</button></td><td>'+esc(c.ordinaryRate||'Published formula unavailable')+'</td><td>'+rateList(c.screening,'Section 232')+'</td><td>'+rateList(c.screening,'Section 301')+'</td><td>'+rateList(c.screening,'Section 338')+'</td><td class="amount">'+money(c.screening.totalDuty)+'</td></tr>').join('')+'</tbody></table></div>';}
+function rateList(screening,program){
+  return relevantMeasures(screening,program).map(m=>{
+    const rate=m.ratePercent==null?'Review required':esc(m.ratePercent)+'%';
+    return rate+' ('+esc(m.hts)+')'+(m.rateMode==='replacement'?' · replacement':'');
+  }).join('<br>');
+}
+function comparisonTable(r){
+  const rows=r.comparison||[];
+  // Only display a tariff column when at least one candidate has a relevant tariff.
+  const programs=['Section 232','Section 301',...(r.input.country==='CA'?['Section 338']:[]),'Section 122','Section 201 / safeguard'];
+  const visible=programs.filter(program=>rows.some(c=>relevantMeasures(c.screening,program).length));
+  const headers=visible.map(program=>'<th>'+esc(program)+'</th>').join('');
+  const body=rows.map(c=>'<tr><td><strong>'+esc(c.displayHts)+'</strong><small>'+esc(c.description)+'</small><button type="button" class="text-button" data-select-line="'+esc(r.input.lineIndex)+'" data-code="'+esc(c.hts)+'">Use this code</button></td><td>'+esc(c.ordinaryRate||'Published formula unavailable')+'</td>'+visible.map(program=>'<td>'+(rateList(c.screening,program)||'')+'</td>').join('')+'<td class="amount">'+money(c.screening.totalDuty)+'</td></tr>').join('');
+  return '<div class="tablescroll"><table><thead><tr><th>Full HTS code / product</th><th>Ordinary duty rate</th>'+headers+'<th>Worst-case duty amount</th></tr></thead><tbody>'+body+'</tbody></table></div>';
+}
 function renderAgencyReview(r){
-  const rows=r.pga?.rows||[];
+  const rows=(r.pga?.rows||[]).filter(item=>item.agency!=='FMC');
   const agency=rows.length
     ?'<div class="pga-list">'+rows.map(item=>'<div class="pga-item"><strong>'+esc(item.agency)+'</strong><span class="muted">'+esc(item.status||'Potential requirement')+'</span><p>'+esc(item.requirement)+'</p>'+(item.url?'<a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">Agency guidance</a>':'')+'</div>').join('')+'</div>'
-    :'<p>No specific agency prompt identified from this HTS alone. Product use and composition may still trigger requirements.</p>';
+    :'';
   const measures=r.screening||{};
   const replacement=measures.replacement;
   const chapter99=[...(replacement?[replacement]:[]),...(measures.measures||[]),...(measures.unpriced||[])];
@@ -58,12 +72,11 @@ function renderAgencyReview(r){
     ?'<p>'+chapter99.map(m=>'<strong>'+esc(m.hts||'Code under review')+'</strong> · '+esc(m.program||'Chapter 99')+' · '+esc(m.rateText||((m.ratePercent!=null)?m.ratePercent+'%':'Rate requires verification'))).join('<br>')+'</p>'
     :'<p>No Chapter 99 provision was identified in this result. This is not confirmation of exemption; verify source coverage and the current legal notes.</p>';
   const s338=r.rules?.section338;
-  const s338Info=s338
+  const s338Info=r.input?.country==='CA'&&s338?.inNote51List
     ?'<div class="notice info"><strong>Section 338 · Canada: '+(s338.inNote51List?'50% potential additional duty ('+esc(s338.hts)+')':'Not listed for this classification')+'</strong><p>'+esc(s338.message)+'</p><p class="source">Status: '+esc(s338.status)+' · Source: HTS Revision '+esc(s338.sourceRevision)+' · <a href="'+esc(s338.reference)+'" target="_blank" rel="noopener noreferrer">CBP guidance</a></p></div>'
-    :r.input?.country==='CA'?'<p>Section 338: current applicability could not be screened; verify U.S. note 51 and the entry date.</p>':'';
+    :'';
   return '<section class="line-screening"><h4>Chapter 99 provisions identified</h4>'+chapter99Html+s338Info
-    +'<h4>Potential government agency requirements (PGA)</h4>'+agency
-    +'<p class="source">'+esc(r.pga?.note||'Product-specific PGA flags are not verified against live ACE data.')+'</p>'
+    +(rows.length?'<h4>Potential government agency requirements (PGA)</h4>'+agency+'<p class="source">'+esc(r.pga?.note||'Product-specific PGA flags are not verified against live ACE data.')+'</p>':'')
     +'<h4>Antidumping / countervailing duty (AD/CVD)</h4><p><strong>Not determined.</strong> AD/CVD orders depend on product scope, exporter/manufacturer and case details, not HTS alone. The estimate excludes AD/CVD; absence from the duty table does not mean the goods are outside an order. <a href="https://access.trade.gov/" target="_blank" rel="noopener noreferrer">Check Commerce ACCESS</a> and <a href="https://www.usitc.gov/trade_remedy/731_ad_701_cvd/index.htm" target="_blank" rel="noopener noreferrer">USITC trade remedies</a>.</p></section>';
 }
 function renderLine(r,i){
