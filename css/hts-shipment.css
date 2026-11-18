@@ -36,7 +36,23 @@
   body, .container, main, #shipmentResults { overflow:visible!important; box-shadow:none!important; }
   .container { padding:0!important; margin:0!important; width:auto!important; max-width:none!important; }
   /* Global header.css otherwise inserts a huge fixed watermark on every sheet. */
-  .page-logo { display:none!important; }
+  .page-logo {
+    display:block!important;
+    position:fixed!important;
+    top:50%!important;
+    left:50%!important;
+    right:auto!important;
+    transform:translate(-50%,-50%)!important;
+    width:220px!important;
+    max-width:40%!important;
+    height:auto!important;
+    opacity:0.055!important;
+    filter:grayscale(100%)!important;
+    box-shadow:none!important;
+    border:0!important;
+    z-index:0!important;
+    pointer-events:none!important;
+  }
   .page-header { position:static!important; background:transparent!important; border:0!important; border-bottom:1px solid #243749!important; padding:0 0 8px!important; margin:0 0 14px!important; box-shadow:none!important; }
   .page-header h1 { font-size:17pt!important; margin:0 0 3px!important; }
   .page-header .subtitle { font-size:9pt!important; margin:0!important; }
