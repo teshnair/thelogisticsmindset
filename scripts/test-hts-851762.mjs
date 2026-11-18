@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const index=JSON.parse(readFileSync('data/chapter99-index.json','utf8'));
+assert.equal(index.htsRevision,23);
+const rates={99038804:25,99038815:7.5,99030531:12.5,99030120:10,99030301:10};
+globalThis.fetch=async (input)=>{
+  const url=new URL(String(input));
+  if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision 23'});
+  if(url.pathname.endsWith('/search')){
+    const key=url.searchParams.get('keyword');
+    const rate=rates[key];
+    return Response.json(rate==null?[]:[{htsno:key,description:'Articles the product of China as provided for in Chapter 99; relevant exclusions apply',general:'The duty provided in the applicable subheading + '+rate+'%'}]);
+  }
+  throw Error('Unexpected live fetch '+url);
+};
+const {default:handler}=await import('../netlify/functions/trade-rules.mts');
+const run=async(hts,entryDate='2026-11-18')=>{
+  const response=await handler(new Request('https://example.org/api/trade-rules',{method:'POST',body:JSON.stringify({hts,country:'CN',customsValue:1000,entryDate,importPurpose:'ordinary',ftaQualification:'no',strictFacts:true})}));
+  assert(response.ok);
+  return response.json();
+};
+const exact=await run('8517620090');
+console.log('Active 8517.62.0090 headings:',exact.measures.map(m=>m.hts+': '+m.ratePercent+'% ('+m.applicability+')').join('; '));
+assert.equal(exact.revisionVerified,true);
+assert(!exact.measures.some(m=>m.hts==='9903.88.04'),'Note 20(g)(2) specifically excludes suffix .0090');
+assert(exact.measures.some(m=>m.hts==='9903.88.15'&&m.ratePercent===7.5),'Note 20(s)(ii) 7.5% rate must be present');
+assert(!exact.measures.some(m=>/^9903\\.0[12]\\./.test(m.hts)),'Expired IEEPA measures must be excluded');
+assert(!exact.measures.some(m=>/^9903\\.03\\.(?:0[1-9]|1[01])$/.test(m.hts)),'Expired Section 122 must be excluded');
+const other=await run('8517620010');
+assert(!other.measures.some(m=>m.hts==='9903.88.15'&&m.applicability==='applicable'),'Sibling suffix must not inherit .0090 List 4A exception');
+console.log('PASS: China 8517.62.0090 specific Chapter 99, expired IEEPA/Section 122, sibling suffix');
