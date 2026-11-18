@@ -37,7 +37,7 @@ jobs:
           const css=fs.readFileSync('css/hts-shipment.css','utf8');
           assert.match(js,/function renderAgencyReview\\(r\\)/);
           assert.match(js,/Potential government agency requirements/);
-          assert.match(js,/Antidumping \\/ countervailing duty/);
+          assert.ok(js.includes('Antidumping / countervailing duty'));
           assert.match(js,/Chapter 99 replacement provision/);
           assert.match(css,/@page\\{size:auto;margin:13mm\\}/);
           assert.match(css,/grid-template-columns:repeat\\(2,minmax\\(0,1fr\\)\\)!important/);
