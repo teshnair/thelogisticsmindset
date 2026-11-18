@@ -31,6 +31,13 @@ assert(!exact.measures.some(m=>m.hts==='9903.05.31'),'Exempt heading should not 
 assert(!exact.measures.some(m=>m.hts==='9903.05.86'),'Exemption heading must be shown as basis, not as an unpriced surcharge');
 assert(!exact.measures.some(m=>m.hts.startsWith('9903.02.')),'Expired IEEPA heading flood must not appear');
 assert(exact.measures.length<20,'Only relevant active Chapter 99 provisions should be shown');
+assert.deepEqual(exact.measures.map(m=>m.hts),['9903.88.15'],'Only the active List 4A tariff should remain for the stated ordinary-entry facts');
+const {worstCaseEstimate}=await import('../lib/hts-worst-case.mjs');
+const screening=worstCaseEstimate({hts:'8517620090',country:'CN',customsValue:1000,importPurpose:'ordinary',ftaQualification:'no',entryDate:'2026-11-18'},{appliedRate:'Free'},exact,index);
+assert.equal(screening.complete,true,'No expired tariff should leave the 8517 calculation incomplete');
+assert.equal(screening.additionalDuty,75,'7.5% on $1,000 is $75, not $590');
+assert.equal(screening.totalDuty,75);
+assert.deepEqual(screening.measures.map(m=>m.hts),['9903.88.15']);
 const other=await run('8517620010');
 assert(!other.measures.some(m=>m.hts==='9903.88.15'&&m.applicability==='applicable'),'Sibling suffix must not inherit .0090 List 4A exception');
 console.log('PASS: China 8517.62.0090 specific Chapter 99, expired IEEPA/Section 122, sibling suffix');
