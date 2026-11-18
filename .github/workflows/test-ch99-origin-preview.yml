@@ -19,6 +19,8 @@ jobs:
         run: node scripts/test-ch99-origin.mjs
       - name: Verify conditional tariff and PGA result presentation
         run: node scripts/test-hts-conditional-ui.mjs
+      - name: Verify 8517.62.0090 China specific tariff and expiration
+        run: node scripts/test-hts-851762.mjs
       - name: Verify Chapter 99 status basis
         run: node scripts/test-ch99-basis.mjs
       - name: Verify complete tariff calculator and publishing checkpoint
