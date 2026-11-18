@@ -155,6 +155,15 @@ function candidateRefs(index:Chapter99Index,hts:string,country:string){
     if(today>="2026-07-24"&&/^9903\.03\.(?:0[1-9]|1[01])$/.test(ref))continue;
     // These Section 301 headings describe exemptions, not tariff charges.
     if(/^9903\.05\.(?:8[5-9]|9[0-2])$/.test(ref))continue;
+    // Scope must respect the stated country even when a broad 8-digit
+    // ancestor has unrelated country-specific measures in the reverse index.
+    if(ref==="9903.05.01"&&country!=="BR")continue;
+    if(ref==="9903.96.01"&&country!=="GB")continue;
+    if(ref==="9903.96.02"&&country!=="JP")continue;
+    // Per USTR's November 10, 2026 extension, only 9903.88.69 and .70
+    // remain operative Section 301 China product-exclusion headings.
+    const heading=index.headings?.[ref];
+    if(/^9903\.88\./.test(ref)&&!["9903.88.69","9903.88.70"].includes(ref)&&/each covered by an exclusion granted by the U\.S\. Trade Representative/i.test(heading?.text||""))continue;
     if(SECTION338_HEADINGS.has(ref))continue;
     // The source-generated index can link the same Chapter 1-97 heading to
     // multiple country-specific Chapter 99 rows. Origin is a hard constraint:
