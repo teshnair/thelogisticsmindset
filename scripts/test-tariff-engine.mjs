@@ -26,7 +26,7 @@ globalThis.fetch=async input=>{
   if(url.pathname.endsWith('/currentRelease'))return Response.json({description:'2026 HTS Revision 23'});
   if(url.pathname.endsWith('/search')){
     const key=url.searchParams.get('keyword');
-    const rates={'99030529':10,'99030531':12.5,'99030569':12.5,'99038803':25};
+    const rates={'99030529':10,'99030531':12.5,'99030569':12.5,'99038803':25,'99030312':50,'99030313':50,'99030314':50};
     if(['99038848','99038864','99038867'].includes(key))return Response.json([{htsno:key,description:'[Expired] exclusion through December 31, 2024',general:'Free'}]);
     const rate=rates[key];
     return Response.json(rate==null?[]:[{htsno:key,description:key==='99038803'?'Articles the product of China as provided for in U.S. note 20(f)':`Articles the product of ${key==='99030529'?'Canada':key==='99030531'?'China':'South Africa'}, as provided for in U.S. note 52 to this subchapter`,general:'The duty provided in the applicable subheading + '+rate+'%'}]);
@@ -38,6 +38,20 @@ const call=async(country,extra={})=>(await handler(new Request('https://example.
 const ca=await call('CA');
 assert.deepEqual(ca.measures.map(m=>[m.hts,m.estimatedDuty]),[['9903.05.29',1000]]);
 assert.equal(ca.measures.some(m=>m.program==='Section 338'),false,'Canada scope amended in Revision 22');
+assert.equal(ca.section338.screened,true);
+assert.equal(ca.section338.inNote51List,false,'Removed Canadian paper-bag code must not incur 338');
+assert.equal(ca.section338.status,'not-listed');
+for(const [hts,heading] of [['2203000000','9903.03.12'],['0402100500','9903.03.13'],['9403604000','9903.03.14']]){
+  const result=await call('CA',{hts});
+  assert.equal(result.section338.hts,heading,hts+' must be in U.S. note 51(b)');
+  assert.equal(result.section338.statutoryPlanningRatePercent,50);
+  const m=result.measures.find(m=>m.hts===heading);
+  assert.equal(m?.program,'Section 338','No Canada surcharge displayed for '+hts);
+  assert.equal(m?.ratePercent,50);
+  assert.equal(m?.estimatedDuty,5000,'Section 338 calculation on $10k customs value');
+}
+assert.equal((await call('US',{hts:'9403604000'})).section338,null,'Do not apply Canada 338 to non-Canadian origin');
+
 assert.equal((await call('CA',{ftaQualification:'yes',usmcaDutyFree:true})).measures.length,0);
 assert.deepEqual((await call('CN')).measures.map(m=>m.hts),['9903.05.31','9903.88.03']);
 assert.deepEqual((await call('ZA')).measures.map(m=>m.hts),['9903.05.69']);
