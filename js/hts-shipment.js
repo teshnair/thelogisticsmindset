@@ -45,7 +45,7 @@ function rateList(screening,program){
   const unknown=(screening.unpriced||[]).filter(m=>m.program===program);
   return measures.map(m=>esc(m.ratePercent)+'% ('+esc(m.hts)+')'+(m.rateMode==='replacement'?' — replacement':'')).concat(unknown.map(m=>'Unquantified: '+esc(m.rateText))).join('<br>')||'No additional rate identified';
 }
-function comparisonTable(r){return '<div class="tablescroll"><table><thead><tr><th>Full HTS code / product</th><th>Ordinary duty rate</th><th>Section 232 in worst case</th><th>Section 301 in worst case</th><th>Worst-case duty amount</th></tr></thead><tbody>'+(r.comparison||[]).map(c=>'<tr><td><strong>'+esc(c.displayHts)+'</strong><small>'+esc(c.description)+'</small><button type="button" class="text-button" data-select-line="'+esc(r.input.lineIndex)+'" data-code="'+esc(c.hts)+'">Use this code</button></td><td>'+esc(c.ordinaryRate||'Published formula unavailable')+'</td><td>'+rateList(c.screening,'Section 232')+'</td><td>'+rateList(c.screening,'Section 301')+'</td><td class="amount">'+money(c.screening.totalDuty)+'</td></tr>').join('')+'</tbody></table></div>';}
+function comparisonTable(r){return '<div class="tablescroll"><table><thead><tr><th>Full HTS code / product</th><th>Ordinary duty rate</th><th>Section 232 in worst case</th><th>Section 301 in worst case</th><th>Section 338 (Canada)</th><th>Worst-case duty amount</th></tr></thead><tbody>'+(r.comparison||[]).map(c=>'<tr><td><strong>'+esc(c.displayHts)+'</strong><small>'+esc(c.description)+'</small><button type="button" class="text-button" data-select-line="'+esc(r.input.lineIndex)+'" data-code="'+esc(c.hts)+'">Use this code</button></td><td>'+esc(c.ordinaryRate||'Published formula unavailable')+'</td><td>'+rateList(c.screening,'Section 232')+'</td><td>'+rateList(c.screening,'Section 301')+'</td><td>'+rateList(c.screening,'Section 338')+'</td><td class="amount">'+money(c.screening.totalDuty)+'</td></tr>').join('')+'</tbody></table></div>';}
 function renderAgencyReview(r){
   const rows=r.pga?.rows||[];
   const agency=rows.length
@@ -57,7 +57,11 @@ function renderAgencyReview(r){
   const chapter99Html=chapter99.length
     ?'<p>'+chapter99.map(m=>'<strong>'+esc(m.hts||'Code under review')+'</strong> · '+esc(m.program||'Chapter 99')+' · '+esc(m.rateText||((m.ratePercent!=null)?m.ratePercent+'%':'Rate requires verification'))).join('<br>')+'</p>'
     :'<p>No Chapter 99 provision was identified in this result. This is not confirmation of exemption; verify source coverage and the current legal notes.</p>';
-  return '<section class="line-screening"><h4>Chapter 99 provisions identified</h4>'+chapter99Html
+  const s338=r.rules?.section338;
+  const s338Info=s338
+    ?'<div class="notice info"><strong>Section 338 · Canada: '+(s338.inNote51List?'50% potential additional duty ('+esc(s338.hts)+')':'Not listed for this classification')+'</strong><p>'+esc(s338.message)+'</p><p class="source">Status: '+esc(s338.status)+' · Source: HTS Revision '+esc(s338.sourceRevision)+' · <a href="'+esc(s338.reference)+'" target="_blank" rel="noopener noreferrer">CBP guidance</a></p></div>'
+    :r.input?.country==='CA'?'<p>Section 338: current applicability could not be screened; verify U.S. note 51 and the entry date.</p>':'';
+  return '<section class="line-screening"><h4>Chapter 99 provisions identified</h4>'+chapter99Html+s338Info
     +'<h4>Potential government agency requirements (PGA)</h4>'+agency
     +'<p class="source">'+esc(r.pga?.note||'Product-specific PGA flags are not verified against live ACE data.')+'</p>'
     +'<h4>Antidumping / countervailing duty (AD/CVD)</h4><p><strong>Not determined.</strong> AD/CVD orders depend on product scope, exporter/manufacturer and case details, not HTS alone. The estimate excludes AD/CVD; absence from the duty table does not mean the goods are outside an order. <a href="https://access.trade.gov/" target="_blank" rel="noopener noreferrer">Check Commerce ACCESS</a> and <a href="https://www.usitc.gov/trade_remedy/731_ad_701_cvd/index.htm" target="_blank" rel="noopener noreferrer">USITC trade remedies</a>.</p></section>';
