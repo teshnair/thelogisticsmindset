@@ -51,7 +51,7 @@ export default async (req:Request) => {
     if(!ruleResponse.ok) {rules.status='source-unavailable';rules.revisionVerified=false;}
     const estimate=lineEstimate(input,base,rules);
     const screening=worstCaseEstimate(input,base.rates,rules,legalIndex);
-    const productConditions=productConditionDescriptions((rules.measures||[]).map((m:any)=>({...m,sourceContext:[...Object.values((legalIndex.headings as any)[m.hts]?.legalContext||{}),...(m.noteTargets||[]).map((key:string)=>(legalIndex.legalNotes as any)[key]||'')].join(' ')})),input.hts);
+    const productConditions=productConditionDescriptions(estimate.measures.map((m:any)=>({...m,sourceContext:Object.values((legalIndex.headings as any)[m.hts]?.legalContext||{}).join(' ')})),input.hts);
     estimate.measures=estimate.measures.map(({sourceContext,...measure}:any)=>measure);
     const pga=screenAgencies(input.hts,input.mode);
     const exciseReview=['22','24','27'].includes(input.hts.slice(0,2));
