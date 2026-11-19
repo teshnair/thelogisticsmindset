@@ -58,7 +58,7 @@ export default async (req:Request) => {
     if(exciseReview){estimate.complete=false;estimate.warnings.push('Federal excise taxes may apply to this product and are not calculated. Total taxes require review.');}
     if(['CU','IR','KP','SY','RU','BY'].includes(input.country)) {estimate.complete=false;estimate.warnings.push('Sanctions/export-control restrictions require a separate admissibility and party review; a duty estimate is not import authorization.');}
     if(exciseReview||['CU','IR','KP','SY','RU','BY'].includes(input.country)){screening.complete=false;screening.totalDuty=null;}
-    return Response.json({input,classification:base.classification,rates:base.rates,estimate,screening,guidance:{...lineGuidance(input,estimate,rules),productConditions},rules:{...rules,measures:undefined},pga,review:base.review,exciseReview,source:base.source},{headers:{'Cache-Control':'no-store'}});
+    return Response.json({input,classification:base.classification,rates:base.rates,estimate,screening,guidance:{...lineGuidance(input,estimate,rules),productConditions},aceMeasures:(rules.measures||[]).filter(m=>m.applicability!=='not-applicable').map(({hts,program,applicability,reason,rateMode,ratePercent,estimatedDuty,liveHeadingVerified})=>({hts,program,applicability,reason,rateMode,ratePercent,estimatedDuty,liveHeadingVerified})),rules:{...rules,measures:undefined},pga,review:base.review,exciseReview,source:base.source},{headers:{'Cache-Control':'no-store'}});
   } catch(error:any) {return Response.json({error:'Unable to complete this line. Retry; no zero-duty result has been assumed.',detail:error.message},{status:502});}
 };
 export const config={path:'/api/hts-line',method:['POST']};

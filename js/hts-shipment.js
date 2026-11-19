@@ -81,12 +81,44 @@ function renderAgencyReview(r){
     +(rows.length?'<h4>Potential government agency requirements (PGA)</h4>'+agency+'<p class="source">'+esc(r.pga?.note||'Product-specific PGA flags are not verified against live ACE data.')+'</p>':'')
     +'<h4>Antidumping / countervailing duty (AD/CVD)</h4><p><strong>Not determined.</strong> AD/CVD orders depend on product scope, exporter/manufacturer and case details, not HTS alone. The estimate excludes AD/CVD; absence from the duty table does not mean the goods are outside an order. <a href="https://access.trade.gov/" target="_blank" rel="noopener noreferrer">Check Commerce ACCESS</a> and <a href="https://www.usitc.gov/trade_remedy/731_ad_701_cvd/index.htm" target="_blank" rel="noopener noreferrer">USITC trade remedies</a>.</p></section>';
 }
+function renderAceOrder(r) {
+  const source = '<a href="https://content.govdelivery.com/accounts/USDHSCBP/bulletins/4270d2a">CBP filing sequence</a>';
+  const start = '<section class="line-screening"><h4>ACE filing order</h4>';
+  if (r.comparison || String(r.classification.displayHts).replace(/\D/g,'').length !== 10)
+    return start + '<p>Select the full 10-digit commodity code to see the line sequence.</p></section>';
+  const rows = [...(r.aceMeasures || [])];
+  const exemption = r.rules?.note52Exemption;
+  if (exemption && !rows.some(m => m.hts === exemption.hts))
+    rows.push({...exemption, program:'Section 301', applicability:'review-required'});
+  function order(m) {
+    if (m.program === 'Section 301') return 2;
+    if (m.program === 'Section 338') return 3;
+    if (m.program === 'Section 232') return 4;
+    if (/Section 201/.test(m.program)) return /quota/i.test(m.program) ? 6 : 5;
+    if (/quota/i.test(m.program)) return 8;
+    if (m.rateMode === 'replacement') return 7;
+    if (m.rateMode === 'additional') return 1;
+    return null;
+  }
+  const filing = [], review = [];
+  for (const m of rows.sort((a,b)=>(order(a)??99)-(order(b)??99))) {
+    const rate = m.ratePercent == null ? 'Rate unverified' : esc(m.ratePercent)+'%';
+    const item = '<strong>'+esc(m.hts)+'</strong> · '+esc(m.program)+' · '+rate;
+    if (m.applicability === 'applicable' && m.liveHeadingVerified && r.rules?.revisionVerified && order(m) !== null)
+      filing.push(item + (m.ratePercent === 0 ? ' · $0.00' : ''));
+    else review.push(item+' · '+esc(m.reason || 'Confirm applicability and filing instructions.'));
+  }
+  filing.push('<strong>'+esc(r.classification.displayHts)+'</strong> · Commodity classification');
+  return start+'<p>Report applicable provisions in this sequence. Include a required zero-duty code. If claiming Chapter 98, enter it first.</p><ol><li>'+filing.join('</li><li>')+'</li></ol>'
+    +(review.length ? '<h5>Conditional provisions requiring review</h5><ul><li>'+review.join('</li><li>')+'</li></ul>' : '')
+    +'<p>Report entered value on the commodity code unless Chapter 98 directs otherwise. '+source+'</p></section>';
+}
 function renderLine(r,i){
   if(r.error)return '<section class="card error"><h3>Line '+(i+1)+' · '+esc(r.input.hts)+'</h3><p>'+esc(r.error)+'</p></section>';
   const w=r.screening||{},comparison=r.comparison,hasAmount=w.totalDuty!=null;
   return '<section class="card result-line"><h3>Line '+(i+1)+' · '+esc(r.classification.displayHts)+' · '+esc(names.of(r.input.country))+'</h3><p>'+esc(r.classification.description)+'</p><div class="line-answer"><strong>Worst-case duty for this line: '+(hasAmount?money(w.totalDuty):'Not fully quantified')+'</strong><span>'+(comparison?'Highest-cost matching classification'+(w.selectedHts?' · '+esc(w.selectedHts):'')+'. This does not select the correct product classification.':'Ordinary / replacement duty '+money(w.ordinaryDuty)+' + additional tariffs '+money(w.additionalDuty)+'.')+' Shipment fees are shown once above.</span></div>'
   +(comparison?'<p>'+comparison.length+' matching 10-digit codes. Each amount assumes the whole line value of '+money(r.input.customsValue)+' falls under that row.</p>'+comparisonTable(r):'<table><thead><tr><th>Duty</th><th>Planning rate</th><th>Amount</th></tr></thead><tbody><tr><td>'+(w.replacement?'Replacement ordinary duty':'Ordinary duty')+'</td><td>'+esc(w.replacement?w.replacement.ratePercent+'%':w.ordinaryRate||'Unknown')+'</td><td>'+money(w.ordinaryDuty)+'</td></tr>' +(w.replacement?'<tr><td>Chapter 99 replacement provision · '+esc(w.replacement.hts||'Not identified')+'</td><td>'+esc(w.replacement.ratePercent!=null?w.replacement.ratePercent+'%':'Review')+'</td><td>Included in ordinary / replacement duty above</td></tr>':'')+(w.measures||[]).map(m=>'<tr><td>'+esc(m.program)+' · '+esc(m.hts)+'</td><td>'+esc(m.ratePercent)+'%</td><td>'+money(m.screeningAmount)+'</td></tr>').join('')+'</tbody></table>')
-  +renderAgencyReview(r)
+  +renderAceOrder(r)+renderAgencyReview(r)
   +'<details class="legal-details"><summary>Estimate assumptions and limitations</summary><ul>'+(w.assumptions||[]).map(a=>'<li>'+esc(a)+'</li>').join('')+'</ul>'+(w.unpriced||[]).map(m=>'<p>Unquantified: '+esc(m.hts)+' · '+esc(m.rateText)+'</p>').join('')+'<p>AD/CVD, excise, quotas and special-entry costs are excluded. This is a planning estimate, not a confirmed filing total.</p></details></section>';
 }
 function render(results){
