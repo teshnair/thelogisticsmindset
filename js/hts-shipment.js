@@ -63,7 +63,7 @@ function comparisonTable(r){
 function renderAgencyReview(r){
   const rows=(r.pga?.rows||[]).filter(item=>item.agency!=='FMC');
   const agency=rows.length
-    ?'<div class="pga-list">'+rows.map(item=>'<div class="pga-item"><strong>'+esc(item.agency)+'</strong><span class="muted">'+esc(item.status||'Potential requirement')+'</span><p>'+esc(item.requirement)+'</p>'+(item.url?'<a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">Agency guidance</a>':'')+'</div>').join('')+'</div>'
+    ?'<div class="pga-list">'+rows.map(item=>'<div class="pga-item"><strong>'+esc(item.agency)+'</strong><span class="muted">'+esc(item.status||'Potential requirement')+'</span><p>'+esc(item.requirement)+'</p>'+(item.url?'<a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">View '+esc(item.agency)+' import requirements</a>':'')+'</div>').join('')+'</div>'
     :'';
   const measures=r.screening||{};
   const replacement=measures.replacement;
@@ -71,8 +71,10 @@ function renderAgencyReview(r){
   const chapter99Html=chapter99.length
     ?'<p>'+chapter99.map(m=>'<strong>'+esc(m.hts||'Code under review')+'</strong> · '+esc(m.program||'Chapter 99')+' · '+esc(m.rateText||((m.ratePercent!=null)?m.ratePercent+'%':'Rate requires verification'))).join('<br>')+'</p>'
     :'<p>No Chapter 99 provision was identified in this result. This is not confirmation of exemption; verify source coverage and the current legal notes.</p>';
-  const note52=r.rules?.note52Exemption;
-  const note52Info=note52?'<p><strong>Section 301 exemption · '+esc(note52.hts)+'</strong>: '+esc(note52.reason)+'</p>':'';
+  const exemptions=r.rules?.exemptionCandidates || [];
+  const note52Info=r.comparison?'':'<h4>Potential exemptions and exclusions</h4>'+(exemptions.length
+    ? '<ul>'+exemptions.map(m=>'<li><a href="https://hts.usitc.gov/search?query='+encodeURIComponent(m.hts)+'">'+esc(m.hts)+'</a> · '+esc(m.reason)+'</li>').join('')+'</ul>'
+    : '<p>No exemption identified by the current screening rules.</p>');
   const s338=r.rules?.section338;
   const s338Info=r.input?.country==='CA'&&s338?.inNote51List
     ?'<div class="notice info"><strong>Section 338 · Canada: '+(s338.inNote51List?'50% potential additional duty ('+esc(s338.hts)+')':'Not listed for this classification')+'</strong><p>'+esc(s338.message)+'</p><p class="source">Status: '+esc(s338.status)+' · Source: HTS Revision '+esc(s338.sourceRevision)+' · <a href="'+esc(s338.reference)+'" target="_blank" rel="noopener noreferrer">CBP guidance</a></p></div>'
