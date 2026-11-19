@@ -1,6 +1,16 @@
 {
-  "reviewedThrough": "2026-11-17",
+  "reviewedThrough": "2026-11-18",
   "htsRevision": 23,
   "reviewRecord": "data/trade-regulatory-review-20261117.json",
-  "note": "Owner-authorized production repair reviewed against current official Revision 23, its change sources, six regression suites and fourteen live preview checks. Unresolved legal/product conditions remain review-required."
+  "note": "Owner-authorized production repair reviewed against current official Revision 23, its change sources, six regression suites and fourteen live preview checks. Unresolved legal/product conditions remain review-required.",
+  "releaseReview": {
+    "checkedOn": "2026-11-19",
+    "scope": "Incremental review since November 17 for ACE order and formal-entry fee display. Current USITC release remains Revision 23. November 18 source search identified plywood AD/CVD orders outside the calculator totals. No change identified to the fee limits or reporting sequence.",
+    "sources": [
+      "https://hts.usitc.gov/reststop/currentRelease",
+      "https://content.govdelivery.com/accounts/USDHSCBP/bulletins/4270d2a",
+      "https://public-inspection.federalregister.gov/2026-15530.pdf",
+      "https://www.law.cornell.edu/cfr/text/19/24.24"
+    ]
+  }
 }
