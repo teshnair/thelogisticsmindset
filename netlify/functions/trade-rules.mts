@@ -328,7 +328,7 @@ function enforceMetalMutualExclusivity(measures:EvaluatedMeasure[]){
     m.applicability="needs-facts";
     m.estimatedDuty=null;
     m.replacementDutyEstimate=null;
-    m.reason=reason;
+    m.reason=m.reason+' '+reason;
   }
 }
 function applyWorstCaseEstimates(measures:EvaluatedMeasure[],input:any,customsValue:number,country:string){
