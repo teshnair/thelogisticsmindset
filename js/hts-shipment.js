@@ -7,7 +7,7 @@ const codes='AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG B
 const names=new Intl.DisplayNames(['en'],{type:'region'});
 const countryOptions=codes.map(c=>[c,names.of(c)]).sort((a,b)=>a[1].localeCompare(b[1])).map(([c,n])=>`<option value="${c}">${esc(n)} (${c})</option>`).join('');
 const commonUnits=['kg','g','no.','l','m','m²','m³','doz.','prs.','t','1000','1000 kWh','doz. prs.','pf.liter'];
-const factLabels={meltPourCountry:'Steel melt/pour country',metalContentValue:'Covered metal content value (USD)',nonUsContentValue:'Non-U.S. content value (USD)',usContentValue:'U.S. content value (USD)',subjectMetalWeightPercent:'Subject metal weight (%)',containsAluminumSteelCopper:'Contains aluminum, steel or copper?',usMetalContentQualification:'Is at least 85% of each covered metal U.S.-melted/poured or U.S.-smelted/cast, with supporting evidence?',ukMetalContentQualification:'Meets U.K. metal qualification?',vehicleManufactureYear:'Vehicle manufacture year',vehiclePartCategory:'Vehicle part use',mhdProductionRepairCertification:'MHD production/repair certification?',nonUsVehicleContentValue:'Non-U.S. vehicle content value (USD)',commerceApproval:'Required Commerce approval?',quotaEligibility:'Quota eligibility confirmed?',column2CountryStatus:'Column 2 country status?',importedBeforeBan:'Imported before September 29, 2026, 12:01 a.m. ET?',packagedAlcohol:'Packaged for direct consumption (including kegs)?',importPurpose:'Import purpose',ftaQualification:'Special-program qualification confirmed?',approvalStatus:'Required program approval confirmed?',productSpecificCondition:'Meets product-specific condition?'};
+const factLabels={meltPourCountry:'Steel melt/pour country',metalContentValue:'Covered metal content value (USD)',nonUsContentValue:'Non-U.S. content value (USD)',usContentValue:'U.S. content value (USD)',subjectMetalWeightPercent:'What percentage of the finished article’s weight is applicable metal? Use metal weight divided by article weight × 100.',containsAluminumSteelCopper:'Does the finished article contain aluminum, steel or copper?',usMetalContentQualification:'Is at least 85% of each covered metal U.S.-melted/poured or U.S.-smelted/cast, with supporting evidence?',ukMetalContentQualification:'Meets U.K. metal qualification?',vehicleManufactureYear:'Vehicle manufacture year',vehiclePartCategory:'Vehicle part use',mhdProductionRepairCertification:'MHD production/repair certification?',nonUsVehicleContentValue:'Non-U.S. vehicle content value (USD)',commerceApproval:'Required Commerce approval?',quotaEligibility:'Quota eligibility confirmed?',column2CountryStatus:'Column 2 country status?',importedBeforeBan:'Imported before September 29, 2026, 12:01 a.m. ET?',packagedAlcohol:'Packaged for direct consumption (including kegs)?',importPurpose:'Import purpose',ftaQualification:'Special-program qualification confirmed?',approvalStatus:'Required program approval confirmed?',productSpecificCondition:'Meets product-specific condition?'};
 let nextId=0,busy=false,lastResults=[],lookupTimers=new Map();
 const field=(line,key)=>line.querySelector(`[data-field="${key}"]`);
 const unitsOptions=units=>'<option value="">Select unit</option>'+[...new Set([...units,...commonUnits])].map(u=>`<option value="${esc(u)}">${esc(u)}</option>`).join('');
@@ -109,9 +109,15 @@ function renderAceOrder(r) {
     if (m.applicability === 'applicable' && m.liveHeadingVerified && r.rules?.revisionVerified && order(m) !== null)
       filing.push(item + (m.ratePercent === 0 ? ' · $0.00' : ''));
     else {
-      const descriptions = r.guidance?.productConditions?.['productCondition:'+m.hts] || [];
-      const facts = (m.requiredFacts || []).filter(key=>!key.startsWith('productCondition:')).map(key=>factLabels[key] || key);
-      review.push(item+' · '+esc(m.reason || 'Confirm applicability and filing instructions.')
+      const keys = new Set(m.requiredFacts || []);
+      if (m.reason?.includes('52(f)')) {
+        for (const metal of rows.filter(row=>row.program==='Section 232')) {
+          for (const key of metal.requiredFacts || []) keys.add(key);
+        }
+      }
+      const descriptions = [...keys].flatMap(key=>r.guidance?.productConditions?.[key] || []);
+      const facts = [...keys].filter(key=>!key.startsWith('productCondition:')).map(key=>factLabels[key] || key);
+      review.push(item+' · '+esc(descriptions.length?'Does the imported product meet every condition in either of the following descriptions?':facts.length?'Provide the following details to determine this treatment.':m.reason || 'Confirm applicability and filing instructions.')
         +(facts.length?'<br>Shipment details: '+esc(facts.join(' · ')):'')
         +(descriptions.length?'<ul>'+descriptions.map(d=>'<li>'+esc(d)+'</li>').join('')+'</ul>':''));
     }
