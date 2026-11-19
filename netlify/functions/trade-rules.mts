@@ -1,4 +1,4 @@
-import { note52Decision } from "../../lib/note52-rules.mjs";
+import { note52Decision, listedProvision } from "../../lib/note52-rules.mjs";
 import { entryDateError, sourceDecision } from "../../lib/tariff-decision.mjs";
 import { supplementalScreening } from "../../lib/trade-screening.mts";
 import { buildChapter99Basis } from "../../lib/ch99-basis.mjs";
@@ -434,13 +434,21 @@ if (note52InScope) {
   const subdivisions = [
     ["b","9903.05.86","Check the listed classification under note 52(b)."],
     ["c","9903.05.87","Confirm the product description in note 52(c)."],
-    ["d","9903.05.88","Confirm the civil aircraft description and use under note 52(d)."],
-    ["e","9903.05.89","Confirm pharmaceutical use under note 52(e)."]
+    ["d","9903.05.88","Eligibility also requires a qualifying civil aircraft article meeting General Note 6."],
+    ["e","9903.05.89","Eligibility also requires pharmaceutical use."]
   ];
   for (const [note,code,reason] of subdivisions) {
     const legalText = index.legalNotes?.["52:"+note] || "";
-    const codes = String(legalText).match(/\b\d{4}\.\d{2}(?:\.\d{2})?(?:\.\d{2})?\b/g) || [];
-    if (codes.some(code => hts.startsWith(digits(code)))) exemptionCandidates.set(code,reason);
+    const match = listedProvision(legalText,hts);
+    if (!match) continue;
+    const basis = `HTS ${hts} matches ${match} in U.S. note 52(${note}), HTS revision ${index.htsRevision}.`;
+    let finding = reason;
+    if (note === "b") finding = "The country-wide note 52 surcharge is excluded for this classification.";
+    if (note === "c") {
+      const articles = String(legalText).split(/\(\d+\)\s*/).filter(clause => listedProvision(clause,hts));
+      if (articles.length) finding = "Product scope to confirm: "+articles.map(article=>article.trim()).join(" or ");
+    }
+    exemptionCandidates.set(code,basis+" "+finding);
   }
   if (evaluated.some(m => m.program==="Section 232" && m.applicability!=="not-applicable"))
     exemptionCandidates.set("9903.05.90","Confirm the sectoral treatment covered by note 52(f).");
