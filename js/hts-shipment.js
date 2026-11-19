@@ -91,7 +91,7 @@ function renderAceOrder(r) {
   const rows = [...(r.aceMeasures || [])];
   const exemption = r.rules?.note52Exemption;
   if (exemption && !rows.some(m => m.hts === exemption.hts))
-    rows.push({...exemption, program:'Section 301', applicability:'review-required'});
+    rows.push({...exemption, program:'Section 301', applicability:'applicable', liveHeadingVerified:r.rules.revisionVerified, ratePercent:0});
   function order(m) {
     if (m.program === 'Section 301') return 2;
     if (m.program === 'Section 338') return 3;
