@@ -108,7 +108,13 @@ function renderAceOrder(r) {
     const item = '<strong>'+esc(m.hts)+'</strong> · '+esc(m.program)+' · '+rate;
     if (m.applicability === 'applicable' && m.liveHeadingVerified && r.rules?.revisionVerified && order(m) !== null)
       filing.push(item + (m.ratePercent === 0 ? ' · $0.00' : ''));
-    else review.push(item+' · '+esc(m.reason || 'Confirm applicability and filing instructions.'));
+    else {
+      const descriptions = r.guidance?.productConditions?.['productCondition:'+m.hts] || [];
+      const facts = (m.requiredFacts || []).filter(key=>!key.startsWith('productCondition:')).map(key=>factLabels[key] || key);
+      review.push(item+' · '+esc(m.reason || 'Confirm applicability and filing instructions.')
+        +(facts.length?'<br>Shipment details: '+esc(facts.join(' · ')):'')
+        +(descriptions.length?'<ul>'+descriptions.map(d=>'<li>'+esc(d)+'</li>').join('')+'</ul>':''));
+    }
   }
   filing.push('<strong>'+esc(r.classification.displayHts)+'</strong> · Commodity classification');
   return start+'<p>Report applicable provisions in this sequence. Include a required zero-duty code. If claiming Chapter 98, enter it first.</p><ol><li>'+filing.join('</li><li>')+'</li></ol>'
