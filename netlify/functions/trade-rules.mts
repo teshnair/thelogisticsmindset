@@ -443,7 +443,7 @@ if (note52InScope) {
     if (!match) continue;
     const basis = `HTS ${hts} matches ${match} in U.S. note 52(${note}), HTS revision ${index.htsRevision}.`;
     let finding = reason;
-    if (note === "b") finding = "The country-wide note 52 surcharge is excluded for this classification.";
+    if (note === "b") finding = digits(match).length === 8 ? `Exemption applied automatically to all statistical suffixes under ${match}. No note 52 surcharge.` : "Exemption applied automatically. No note 52 surcharge.";
     if (note === "c") {
       const articles = String(legalText).split(/\(\d+\)\s*/).filter(clause => listedProvision(clause,hts));
       if (articles.length) finding = "Product scope to confirm: "+articles.map(article=>article.trim()).join(" or ");
